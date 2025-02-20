@@ -60,6 +60,13 @@ void decrease_streaming_index(void) {
         g_current_streaming_index -= 1;
     }
 }
+//we test that nano should use REVAMPED_IO
+//otherwise, hid will be blocked during display to cause JS SDK timeout
+//however, stax and flex should not use REVAMPED_IO
+//otherwise, the function 'hold to sign' will not response to the touch
+#ifndef HAVE_NBGL
+#define REVAMPED_IO
+#endif
 
 // Process UI events until the current flow terminates; does not handle any APDU exchange
 // This method also sets the UI state as "dirty" according to the input parameter
@@ -76,7 +83,7 @@ static bool io_ui_process(dispatcher_context_t *context, bool set_dirty) {
 
     // We are not waiting for the client's input, nor we are doing computations on the device
     io_clear_processing_timeout();
-#define REVAMPED_IO
+
 #ifdef REVAMPED_IO
     do {
         io_seproxyhal_io_heartbeat();

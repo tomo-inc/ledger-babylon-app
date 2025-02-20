@@ -2814,6 +2814,7 @@ void handler_sign_psbt(dispatcher_context_t *dc, uint8_t protocol_version) {
     if (!sign_result) {
         return;
     }
+    ui_post_processing_confirm_transaction(dc, sign_result);
 
     SEND_SW(dc, SW_OK);
 }

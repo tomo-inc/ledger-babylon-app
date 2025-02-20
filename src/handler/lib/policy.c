@@ -335,6 +335,9 @@ int read_and_parse_wallet_policy(
     if ((read_wallet_policy_header(buf, wallet_header)) < 0) {
         return WITH_ERROR(-1, "Failed reading wallet policy header");
     }
+    //chester
+    //to empty the mem for strcmp in check_descriptor
+    memset(policy_map_descriptor_template,0, MAX_DESCRIPTOR_TEMPLATE_LENGTH);
 
     if (wallet_header->version == WALLET_POLICY_VERSION_V1) {
         memcpy(policy_map_descriptor_template,

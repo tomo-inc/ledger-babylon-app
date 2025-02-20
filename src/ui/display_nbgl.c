@@ -563,9 +563,9 @@ void ui_confim_leaf_hash_flow(void) {
     nbgl_useCaseReviewLight(TYPE_OPERATION,
                             &pairList,
                             &C_Babylon_64px,
-                            "Leaf hash is hash of taproot script",
+                            "Leaf hash",
                             NULL,
-                            "Confirm it is the same\non your website",
+                            "Confirm it matches \ndisplayed on the Dapp",
                             status_operation_callback);
 
 }
@@ -589,7 +589,7 @@ void ui_confim_finality_pk_flow(void) {
                             &C_Babylon_64px,
                             "Finality provider\npublic key",
                             NULL,
-                            "Confirm it is the same\non your website",
+                            "Confirm it matches \ndisplayed on the Dapp",
                             status_operation_callback);
 
 }

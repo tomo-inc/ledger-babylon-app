@@ -50,7 +50,7 @@ void ui_menu_main_flow_bitcoin_testnet(void) {
     nbgl_useCaseHomeAndSettings(
         "Babylon",
         &C_Babylon_64px,
-        "This app enables transactions\n for Babylon test networks.",
+        "This app enables transactions\n for Babylon staking.",
         INIT_HOME_PAGE,
         NULL,
         &infoList,
