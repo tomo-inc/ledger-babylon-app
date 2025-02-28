@@ -3,7 +3,10 @@ from ragger.firmware import Firmware
 
 from ragger_bitcoin.ragger_instructions import Instructions
 
+    
+    
 
+        
 def message_instruction_approve(model: Firmware, save_screenshot=True) -> Instructions:
     instructions = Instructions(model)
 
@@ -13,6 +16,7 @@ def message_instruction_approve(model: Firmware, save_screenshot=True) -> Instru
     else:
         instructions.review_message(save_screenshot=save_screenshot)
         instructions.confirm_message(save_screenshot=save_screenshot)
+        
 
     return instructions
 
@@ -152,42 +156,51 @@ def sign_psbt_instruction_tap(model: Firmware) -> Instructions:
     return instructions
 
 
-def sign_psbt_instruction_approve(model: Firmware, save_screenshot: bool = True, *, has_spend_from_wallet: bool = False, to_on_next_page: bool = False, fees_on_next_page: bool = False, has_unverifiedwarning: bool = False, has_sighashwarning: bool = False, has_feewarning: bool = False) -> Instructions:
+# def sign_psbt_instruction_approve(model: Firmware, save_screenshot: bool = True, *, has_spend_from_wallet: bool = False, to_on_next_page: bool = False, fees_on_next_page: bool = False, has_unverifiedwarning: bool = False, has_sighashwarning: bool = False, has_feewarning: bool = False) -> Instructions:
+#     instructions = Instructions(model)
+
+#     if model.name.startswith("nano"):
+#         instructions.new_request("Continue", save_screenshot=save_screenshot)
+#         for has_step in [has_spend_from_wallet, has_unverifiedwarning, has_sighashwarning, has_feewarning]:
+#             if has_step:
+#                 instructions.same_request(
+#                     "Continue", save_screenshot=save_screenshot)
+
+#         instructions.same_request("Sign", save_screenshot=save_screenshot)
+#     else:
+#         instructions.new_request("Review", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP,
+#                                  save_screenshot=save_screenshot)
+#         if has_sighashwarning:
+#             instructions.same_request(
+#                 "Non-default sighash", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP, save_screenshot=save_screenshot)
+
+#         if has_unverifiedwarning:
+#             instructions.same_request(
+#                 "Unverified inputs", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP, save_screenshot=save_screenshot)
+
+#         instructions.same_request("Amount", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP,
+#                                   save_screenshot=save_screenshot)
+#         if to_on_next_page:
+#             instructions.same_request("To", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP,
+#                                       save_screenshot=save_screenshot)
+#         if fees_on_next_page:
+#             instructions.same_request("Fees", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP,
+#                                       save_screenshot=save_screenshot)
+
+#         if has_feewarning:
+#             instructions.same_request(
+#                 "Fees are above", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP, save_screenshot=save_screenshot)
+#         instructions.confirm_transaction(save_screenshot=save_screenshot)
+#     return instructions
+
+#def sign_psbt_instruction_approve(model: Firmware, save_screenshot: bool = False, *, has_spend_from_wallet: bool = False, to_on_next_page: bool = False, fees_on_next_page: bool = False, has_unverifiedwarning: bool = False, has_sighashwarning: bool = False, has_feewarning: bool = False, has_check_leafhash: bool = False) -> Instructions:
+
+def sign_psbt_instruction_approve(model: Firmware,save_screenshot: bool = False) -> Instructions:
     instructions = Instructions(model)
-
-    if model.name.startswith("nano"):
-        instructions.new_request("Continue", save_screenshot=save_screenshot)
-        for has_step in [has_spend_from_wallet, has_unverifiedwarning, has_sighashwarning, has_feewarning]:
-            if has_step:
-                instructions.same_request(
-                    "Continue", save_screenshot=save_screenshot)
-
-        instructions.same_request("Sign", save_screenshot=save_screenshot)
-    else:
-        instructions.new_request("Review", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP,
-                                 save_screenshot=save_screenshot)
-        if has_sighashwarning:
-            instructions.same_request(
-                "Non-default sighash", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP, save_screenshot=save_screenshot)
-
-        if has_unverifiedwarning:
-            instructions.same_request(
-                "Unverified inputs", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP, save_screenshot=save_screenshot)
-
-        instructions.same_request("Amount", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP,
-                                  save_screenshot=save_screenshot)
-        if to_on_next_page:
-            instructions.same_request("To", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP,
-                                      save_screenshot=save_screenshot)
-        if fees_on_next_page:
-            instructions.same_request("Fees", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP,
-                                      save_screenshot=save_screenshot)
-
-        if has_feewarning:
-            instructions.same_request(
-                "Fees are above", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP, save_screenshot=save_screenshot)
-        instructions.confirm_transaction(save_screenshot=save_screenshot)
+    instructions.new_request("Continue", save_screenshot=save_screenshot)
+    instructions.new_request("Continue", save_screenshot=save_screenshot)
     return instructions
+
 
 
 def sign_psbt_instruction_approve_selftransfer(model: Firmware) -> Instructions:
