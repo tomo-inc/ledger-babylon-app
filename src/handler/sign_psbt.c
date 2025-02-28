@@ -2699,6 +2699,8 @@ sign_transaction(dispatcher_context_t *dc,
 
         for (unsigned int i = 0; i < st->n_inputs; i++) {
             PRINTF("for %d\n",st->n_inputs);
+            //chester
+            //Todo:!!! how deal internal check decently 
             //if (bitvector_get(internal_inputs, i)) {
             if(true) {
                 PRINTF("bitvector_get\n");

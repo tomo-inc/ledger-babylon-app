@@ -10,7 +10,7 @@ from ragger.navigator import Navigator, NavInsID
 from ragger.firmware import Firmware
 from ragger_bitcoin import RaggerClient
 
-from .instructions import register_wallet_instruction_approve, register_wallet_instruction_approve_long, register_wallet_instruction_approve_unusual, register_wallet_instruction_reject
+from ..tests.instructions import register_wallet_instruction_approve, register_wallet_instruction_approve_long, register_wallet_instruction_approve_unusual, register_wallet_instruction_reject
 
 import hmac
 from hashlib import sha256

@@ -9,7 +9,7 @@ from ragger.firmware import Firmware
 from ragger.error import ExceptionRAPDU
 from ragger_bitcoin import RaggerClient
 
-from .instructions import wallet_instruction_approve
+from ..tests.instructions import wallet_instruction_approve
 
 
 import pytest
