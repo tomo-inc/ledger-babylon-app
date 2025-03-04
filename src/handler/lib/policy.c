@@ -51,6 +51,7 @@ typedef struct {
 
     cx_hash_t *hash_context;
     uint8_t hash[32];  // when a node is popped, the hash is computed here
+    sign_psbt_state_t *st;
 } policy_parser_state_t;
 
 // comparator for pointers to arrays of equal length
@@ -613,7 +614,8 @@ static void update_output_op_v(policy_parser_state_t *state, uint8_t op) {
 }
 
 __attribute__((warn_unused_result)) static int process_generic_node(policy_parser_state_t *state,
-                                                                    const void *arg) {
+                                                                    const void *arg
+                                                                ) {
     policy_parser_node_state_t *node = &state->nodes[state->node_stack_eos];
 
     const generic_processor_command_t *commands = (const generic_processor_command_t *) arg;
@@ -940,7 +942,6 @@ __attribute__((warn_unused_result)) static int process_multi_a_sortedmulti_a_nod
     UNUSED(arg);
 
     PRINT_STACK_POINTER();
-
     policy_parser_node_state_t *node = &state->nodes[state->node_stack_eos];
     const policy_node_multisig_t *policy = (const policy_node_multisig_t *) node->policy_node;
 
@@ -953,7 +954,7 @@ __attribute__((warn_unused_result)) static int process_multi_a_sortedmulti_a_nod
     // bitvector of used keys (only relevant for sorting keys in SORTEDMULTI)
     uint8_t used[BITVECTOR_REAL_SIZE(MAX_PUBKEYS_PER_MULTISIG)];
     memset(used, 0, sizeof(used));
-
+    PRINTF("-----policy->n %d\n", policy->n);
     for (int i = 0; i < policy->n; i++) {
         uint8_t compressed_pubkey[33];
 
@@ -1001,7 +1002,7 @@ __attribute__((warn_unused_result)) static int process_multi_a_sortedmulti_a_nod
             update_output_u8(state, OP_CHECKSIGADD);
         }
     }
-
+    PRINTF("-----quorum %d\n",policy->k);
     update_output_u8(state, 0x50 + policy->k);  // <k>
     update_output_op_v(state, OP_NUMEQUAL);     // OP_NUMEQUAL
 
@@ -1010,6 +1011,7 @@ __attribute__((warn_unused_result)) static int process_multi_a_sortedmulti_a_nod
 
 __attribute__((warn_unused_result, noinline)) static int compute_tapleaf_hash(
     dispatcher_context_t *dispatcher_context,
+    sign_psbt_state_t *st,
     const wallet_derivation_info_t *wdi,
     const policy_node_t *script_policy,
     uint8_t out[static 32]) {
@@ -1019,6 +1021,7 @@ __attribute__((warn_unused_result, noinline)) static int compute_tapleaf_hash(
     // we compute the tapscript once just to compute its length
     // this avoids having to store the script in memory
     int tapscript_len = get_wallet_internal_script_hash(dispatcher_context,
+                                                        st,
                                                         script_policy,
                                                         wdi,
                                                         WRAPPED_SCRIPT_TYPE_TAPSCRIPT,
@@ -1032,6 +1035,7 @@ __attribute__((warn_unused_result, noinline)) static int compute_tapleaf_hash(
     crypto_hash_update_varint(&hash_context.header, tapscript_len);
 
     if (0 > get_wallet_internal_script_hash(dispatcher_context,
+                                            st,
                                             script_policy,
                                             wdi,
                                             WRAPPED_SCRIPT_TYPE_TAPSCRIPT,
@@ -1046,12 +1050,13 @@ __attribute__((warn_unused_result, noinline)) static int compute_tapleaf_hash(
 // Separated from compute_taptree_hash to optimize its stack usage
 __attribute__((warn_unused_result, noinline)) static int compute_and_combine_taptree_child_hashes(
     dispatcher_context_t *dc,
+    sign_psbt_state_t *st,
     const wallet_derivation_info_t *wdi,
     const policy_node_tree_t *tree,
     uint8_t out[static 32]) {
     uint8_t left_h[32], right_h[32];
-    if (0 > compute_taptree_hash(dc, wdi, r_policy_node_tree(&tree->left_tree), left_h)) return -1;
-    if (0 > compute_taptree_hash(dc, wdi, r_policy_node_tree(&tree->right_tree), right_h))
+    if (0 > compute_taptree_hash(dc, st, wdi, r_policy_node_tree(&tree->left_tree), left_h)) return -1;
+    if (0 > compute_taptree_hash(dc, st, wdi, r_policy_node_tree(&tree->right_tree), right_h))
         return -1;
     crypto_tr_combine_taptree_hashes(left_h, right_h, out);
     return 0;
@@ -1059,13 +1064,14 @@ __attribute__((warn_unused_result, noinline)) static int compute_and_combine_tap
 
 // See taproot_tree_helper in BIP-0341
 __attribute__((noinline)) int compute_taptree_hash(dispatcher_context_t *dc,
+                                                   sign_psbt_state_t *st,
                                                    const wallet_derivation_info_t *wdi,
                                                    const policy_node_tree_t *tree,
                                                    uint8_t out[static 32]) {
     if (tree->is_leaf)
-        return compute_tapleaf_hash(dc, wdi, r_policy_node(&tree->script), out);
+        return compute_tapleaf_hash(dc, st, wdi, r_policy_node(&tree->script), out);
     else
-        return compute_and_combine_taptree_child_hashes(dc, wdi, tree, out);
+        return compute_and_combine_taptree_child_hashes(dc, st, wdi, tree, out);
 }
 
 #pragma GCC diagnostic push
@@ -1133,6 +1139,7 @@ int get_wallet_script(dispatcher_context_t *dispatcher_context,
         }
 
         if (0 > get_wallet_internal_script_hash(dispatcher_context,
+                                                NULL,
                                                 core_policy,
                                                 wdi,
                                                 script_type,
@@ -1198,6 +1205,7 @@ int get_wallet_script(dispatcher_context_t *dispatcher_context,
         int h_length = 0;
         if (!isnull_policy_node_tree(&tr_policy->tree)) {
             if (0 > compute_taptree_hash(dispatcher_context,
+                                         NULL,
                                          wdi,
                                          r_policy_node_tree(&tr_policy->tree),
                                          h)) {
@@ -1218,6 +1226,7 @@ int get_wallet_script(dispatcher_context_t *dispatcher_context,
 
 __attribute__((noinline)) int get_wallet_internal_script_hash(
     dispatcher_context_t *dispatcher_context,
+    sign_psbt_state_t *st,
     const policy_node_t *policy,
     const wallet_derivation_info_t *wdi,
     internal_script_type_e script_type,
@@ -1225,6 +1234,7 @@ __attribute__((noinline)) int get_wallet_internal_script_hash(
     const uint8_t *whitelist;
     size_t whitelist_len;
     PRINTF("script_type %d\n",script_type);
+   
     switch (script_type) {
         case WRAPPED_SCRIPT_TYPE_SH:
             whitelist = fragment_whitelist_sh;
@@ -1255,7 +1265,7 @@ __attribute__((noinline)) int get_wallet_internal_script_hash(
 
     state.nodes[0] =
         (policy_parser_node_state_t){.length = 0, .flags = 0, .step = 0, .policy_node = policy};
-
+    state.st = st;    
     int ret;
     do {
         const policy_parser_node_state_t *node = &state.nodes[state.node_stack_eos];
@@ -1356,7 +1366,7 @@ __attribute__((noinline)) int get_wallet_internal_script_hash(
                 break;
             case TOKEN_MULTI_A:
             case TOKEN_SORTEDMULTI_A:
-                ret = execute_processor(&state, process_multi_a_sortedmulti_a_node, NULL);
+                ret = execute_processor(&state, process_multi_a_sortedmulti_a_node, st);
                 break;
             case TOKEN_A:
                 ret = execute_processor(&state, process_generic_node, commands_a);
@@ -1770,6 +1780,7 @@ int get_keyexpr_by_index(const policy_node_t *policy,
             const policy_node_thresh_t *node = (const policy_node_thresh_t *) policy;
             bool found;
             int ret = 0;
+            PRINTF("-------TOKEN_THRESH i\n");
             policy_node_scriptlist_t *cur_child = r_policy_node_scriptlist(&node->scriptlist);
             for (int script_idx = 0; script_idx < node->n; script_idx++) {
                 LEDGER_ASSERT(cur_child != NULL,
@@ -1785,6 +1796,7 @@ int get_keyexpr_by_index(const policy_node_t *policy,
                 ret += ret_partial;
                 cur_child = r_policy_node_scriptlist(&cur_child->next);
             }
+            PRINTF("-------TOKEN_THRESH %d\n",ret);
             return ret;
         }
 
@@ -2158,18 +2170,17 @@ int get_action_step(char* name){
 bool check_descriptor(char* descriptor, bbn_policy_type_t type){
     PRINTF("--check_descriptor %s\n", descriptor);
     PRINTF("--check_descriptor type %d\n", type);
-    size_t size = strlen(BBN_DESCRIPTOR_WITHDRAW);
     switch (type) {
         case BBN_POLICY_SLASHING_1:
         case BBN_POLICY_SLASHING_2:
         case BBN_POLICY_SLASHING_3:
-            return strcmp(descriptor, BBN_DESCRIPTOR_SLASHING_3) == 0;
+            return memcmp(descriptor, BBN_DESCRIPTOR_SLASHING_3,53) == 0;
         case BBN_POLICY_STAKE_TRANSFER:
-            return strcmp(descriptor, BBN_DESCRIPTOR_STAKE_TRANSFER) == 0;
+            return memcmp(descriptor, BBN_DESCRIPTOR_STAKE_TRANSFER,53) == 0;
         case BBN_POLICY_UNBOUND:
-            return strcmp(descriptor, BBN_DESCRIPTOR_UNBOUND) == 0;
+            return memcmp(descriptor, BBN_DESCRIPTOR_UNBOUND,35) == 0;
         case BBN_POLICY_WITHDRAW:
-            return memcmp(descriptor, BBN_DESCRIPTOR_WITHDRAW, size) == 0;
+            return memcmp(descriptor, BBN_DESCRIPTOR_WITHDRAW, 32) == 0;
         case BBN_POLICY_UNKNOWN:
         default:
             return false;

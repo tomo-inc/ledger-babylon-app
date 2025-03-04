@@ -65,7 +65,6 @@
 
 /* BIP0341 tags for computing the tagged hashes when computing he sighash */
 static const uint8_t BIP0341_sighash_tag[] = {'T', 'a', 'p', 'S', 'i', 'g', 'h', 'a', 's', 'h'};
-
 /*
 Current assumptions during signing:
   1) exactly one of the keys in the wallet is internal (enforce during wallet registration)
@@ -1513,10 +1512,14 @@ static bool __attribute__((noinline)) display_transaction(
 #ifdef HAVE_NBGL
         // On NBGL devices, show the pre-approval screen
         // "Review transaction to send Bitcoin"
-        if (!ui_transaction_prompt(dc)) {
-            SEND_SW(dc, SW_DENY);
-            return false;
-        }
+        
+        //chester: close it
+        //since nothing known get here
+
+        // if (!ui_transaction_prompt(dc)) {
+        //     SEND_SW(dc, SW_DENY);
+        //     return false;
+        // }
 #endif
         // If it's not a default wallet policy, ask the user for confirmation, and abort if they
         // deny
@@ -2580,6 +2583,7 @@ static bool __attribute__((noinline)) sign_transaction_input(dispatcher_context_
                 PRINTF("compute_taptree_hash in\n");
                 if (0 > compute_taptree_hash(
                             dc,
+                            st,
                             &(wallet_derivation_info_t){
                                 .address_index = input->in_out.address_index,
                                 .change = input->in_out.is_change ? 1 : 0,
@@ -2647,7 +2651,7 @@ fill_taproot_keyexpr_info(dispatcher_context_t *dc,
     // we compute the tapscript once just to compute its length
     // this avoids having to store it
     int tapscript_len =
-        get_wallet_internal_script_hash(dc, tapleaf_ptr, &wdi, WRAPPED_SCRIPT_TYPE_TAPSCRIPT, NULL);
+        get_wallet_internal_script_hash(dc, st,tapleaf_ptr, &wdi, WRAPPED_SCRIPT_TYPE_TAPSCRIPT, NULL);
     PRINTF("tapscript_len=%d\n",tapscript_len);
     if (tapscript_len < 0) {
         PRINTF("Failed to compute tapleaf script\n");
@@ -2660,6 +2664,7 @@ fill_taproot_keyexpr_info(dispatcher_context_t *dc,
     // we compute it again to get add the actual script code to the hash computation
     //PRINTF("tapleaf_ptr %x\n",tapleaf_ptr);
     if (0 > get_wallet_internal_script_hash(dc,
+                                            st,
                                             tapleaf_ptr,
                                             &wdi,
                                             WRAPPED_SCRIPT_TYPE_TAPSCRIPT,

@@ -1379,6 +1379,7 @@ static int parse_script(buffer_t *in_buf,
             break;
         }
         case TOKEN_THRESH: {
+            PRINTF("-------TOKEN_THRESH c\n");
             policy_node_thresh_t *node =
                 (policy_node_thresh_t *) buffer_alloc(out_buf, sizeof(policy_node_thresh_t), true);
             if (node == NULL) {
@@ -2318,7 +2319,7 @@ int compute_miniscript_policy_ext_info(const policy_node_t *policy_node,
         }
         case TOKEN_AFTER: {
             const policy_node_with_uint32_t *node = (const policy_node_with_uint32_t *) policy_node;
-
+            PRINTF("LOCKTIME_THRESHOLD\n");
             out->f = 1;
 
             if (node->n >= LOCKTIME_THRESHOLD) {

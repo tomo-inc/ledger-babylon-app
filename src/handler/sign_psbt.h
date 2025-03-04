@@ -107,6 +107,12 @@ typedef struct signing_state_s {
 // have a single external output.
 #define N_CACHED_EXTERNAL_OUTPUTS 2
 
+
+#define BBN_ACTION_NAME_MAX_LEN                 32
+#define BBN_LEAF_HASH_LEN                       32
+#define BBN_PUBKEY_IN_SCRIPT_LEN                32
+#define BBN_COV_PUBKEY_MAX_COUNT                16         
+
 typedef struct {
     uint32_t master_key_fingerprint;
     uint32_t tx_version;
@@ -148,10 +154,19 @@ typedef struct {
     policy_node_t *wallet_policy_map;
 
     tx_ux_warning_t warnings;
-    uint8_t psbt_leafhash[32];
-    uint32_t psbt_leafhash_state;
-    uint8_t psbt_finality_pk[32];
-    uint32_t psbt_finality_pk_state;
 
+    //babylon script raw data buffers
+    uint8_t psbt_action_name[BBN_ACTION_NAME_MAX_LEN];
+    uint32_t psbt_action_name_len;
+    uint8_t psbt_leafhash[BBN_LEAF_HASH_LEN];
+    uint32_t psbt_leafhash_state;
+    uint8_t psbt_staker_pk[BBN_PUBKEY_IN_SCRIPT_LEN];
+    uint32_t psbt_staker_pk_state;
+    uint8_t psbt_finality_pk[BBN_PUBKEY_IN_SCRIPT_LEN];
+    uint32_t psbt_finality_pk_state;
+    uint8_t psbt_covenant_pk[BBN_PUBKEY_IN_SCRIPT_LEN][BBN_COV_PUBKEY_MAX_COUNT];
+    uint32_t psbt_covenant_pk_state[BBN_COV_PUBKEY_MAX_COUNT];
+    uint32_t psbt_quorum;
+    uint32_t psbt_timelock;
 } sign_psbt_state_t;
 

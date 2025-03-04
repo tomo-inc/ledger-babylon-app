@@ -3,6 +3,7 @@
 #include "../../boilerplate/dispatcher.h"
 #include "../../common/wallet.h"
 #include "../../handler/sign_psbt/sign_psbt_cache.h"
+#include "../sign_psbt.h"
 
 /**
  * Parses a serialized wallet policy, saving the wallet header, the policy map descriptor and the
@@ -90,6 +91,7 @@ __attribute__((warn_unused_result)) int get_extended_pubkey_from_client(
  */
 __attribute__((warn_unused_result)) int compute_taptree_hash(
     dispatcher_context_t *dispatcher_context,
+    sign_psbt_state_t *st,
     const wallet_derivation_info_t *wdi,
     const policy_node_tree_t *tree,
     uint8_t out[static 32]);
@@ -133,6 +135,7 @@ __attribute__((warn_unused_result)) int get_wallet_script(dispatcher_context_t *
  */
 __attribute__((warn_unused_result)) int get_wallet_internal_script_hash(
     dispatcher_context_t *dispatcher_context,
+    sign_psbt_state_t *st,
     const policy_node_t *policy,
     const wallet_derivation_info_t *wdi,
     internal_script_type_e script_type,
@@ -295,11 +298,12 @@ BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]);
 
 int get_action_step(char* name);
 
-#define BBN_DESCRIPTOR_SLASHING_1              "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))))"
-#define BBN_DESCRIPTOR_SLASHING_2              "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))))"
-#define BBN_DESCRIPTOR_SLASHING_3              "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))))"
-#define BBN_DESCRIPTOR_STAKE_TRANSFER          "tr(@0/**)"
-#define BBN_DESCRIPTOR_UNBOUND                 "tr(@0/**,and_v(pk_k(@1/**),multi_a(6,@2/**,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**)))"
+#define BBN_DESCRIPTOR_SLASHING_1              "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_SLASHING_2              "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_SLASHING_3              "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_STAKE_TRANSFER          "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_UNBOUND                 "tr(@0/**,and_v(pk_k(@1/**),multi_a("
 #define BBN_DESCRIPTOR_WITHDRAW                "tr(@0/**,and_v(pk_k(@1/**),older"
 
 bool check_descriptor(char* descriptor, bbn_policy_type_t type);
+          
