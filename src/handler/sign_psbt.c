@@ -65,6 +65,26 @@
 
 /* BIP0341 tags for computing the tagged hashes when computing he sighash */
 static const uint8_t BIP0341_sighash_tag[] = {'T', 'a', 'p', 'S', 'i', 'g', 'h', 'a', 's', 'h'};
+
+void print_bbn_st(sign_psbt_state_t *st){
+    PRINTF("final st\n");
+    PRINTF("-------psbt_quorum %d\n", st->psbt_quorum);
+    PRINTF("-------psbt_timelock_state %d %x\n", st->psbt_timelock_state, st->psbt_timelock);
+
+    PRINTF("-------psbt_staker_pk %d\n", st->psbt_staker_pk_state);
+    PRINTF_BUF(st->psbt_staker_pk,32);
+    PRINTF("-------psbt_finality_pk %d\n", st->psbt_finality_pk_state);
+    PRINTF_BUF(st->psbt_finality_pk,32);
+    for(int i=0;i<16;i++){
+        PRINTF("-------psbt_covenant_pk[%d] %d\n", i, st->psbt_covenant_pk_state[i]);
+        PRINTF("-------psbt_covenant_pk %x\n",st->psbt_covenant_pk[i]);
+        for (int j = 0; j < 32; j++) {
+            PRINTF("%02X", st->psbt_covenant_pk[i][j]);
+        }
+        PRINTF("\n");
+      
+    }
+}
 /*
 Current assumptions during signing:
   1) exactly one of the keys in the wallet is internal (enforce during wallet registration)
@@ -1524,6 +1544,7 @@ static bool __attribute__((noinline)) display_transaction(
         // If it's not a default wallet policy, ask the user for confirmation, and abort if they
         // deny
         //chester: babylon won't be default policy so
+
         // check if the name in list, if not deny
         // then display it to user for confirmation
         if (!st->is_wallet_default) {
@@ -1905,7 +1926,7 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
                                                                const tx_hashes_t *hashes,
                                                                input_info_t *input,
                                                                unsigned int cur_input_index,
-                                                               const keyexpr_info_t *keyexpr_info,
+                                                               keyexpr_info_t *keyexpr_info,
                                                                uint8_t sighash[static 32]) {
     LOG_PROCESSOR(__FILE__, __LINE__, __func__);
 
@@ -1942,12 +1963,22 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
         PRINTF("(sighash_byte & 3) != SIGHASH_NONE && (sighash_byte & 3) != SIGHASH_SINGLE\n");
         crypto_hash_update(&sighash_context.header, hashes->sha_outputs, 32);
     }
+    //chester
+    //also change here
+    //not script spend for stake transaction
 
+    // ext_flag
+    PRINTF("--------is_tapscript=%d\n",keyexpr_info->is_tapscript);
+    if( get_action_step(st->wallet_header.name) == BBN_POLICY_STAKE_TRANSFER){
+        keyexpr_info->is_tapscript = 0;
+        PRINTF("-------- change is_tapscript=%d\n",keyexpr_info->is_tapscript);
+    }
     // ext_flag
     uint8_t ext_flag = keyexpr_info->is_tapscript ? 1 : 0;
     // annex is not supported
     const uint8_t annex_present = 0;
     uint8_t spend_type = ext_flag * 2 + annex_present;
+    PRINTF("-------spend_type=%d\n",spend_type);
     crypto_hash_update_u8(&sighash_context.header, spend_type);
 
     if ((sighash_byte & 0x80) == SIGHASH_ANYONECANPAY) {
@@ -2028,7 +2059,10 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
 
         crypto_hash_update(&sighash_context.header, tmp, 32);
     }
-
+    //chester
+    //if for staking transaction
+    //ignore tanpscript part for hash
+    //just check the address
     if (keyexpr_info->is_tapscript) {
         // If spending a tapscript, append the Common Signature Message Extension per BIP-0342
         if(st->psbt_leafhash_state!=BBN_LEAF_HASH_NULL){
@@ -2203,7 +2237,10 @@ static bool __attribute__((noinline)) sign_sighash_schnorr_and_yield(dispatcher_
 
         PRINTF("sign_path %d\n",input->in_out.address_index);
         PRINTF("sign_path_len %d\n",sign_path_len);
-        PRINTF_BUF(sign_path,32);
+        PRINTF("sign_path 0 %x, sign_path 1 %x\n", sign_path[0], sign_path[1]);
+        PRINTF("sign_path 2 %x \n", sign_path[2]);
+        PRINTF("sign_path 3 %x, sign_path 4 %x\n", sign_path[3], sign_path[4]);
+    
 
         if (bip32_derive_init_privkey_256(CX_CURVE_256K1,
                                           sign_path,
@@ -2216,8 +2253,9 @@ static bool __attribute__((noinline)) sign_sighash_schnorr_and_yield(dispatcher_
 
         policy_node_tr_t *policy = (policy_node_tr_t *) st->wallet_policy_map;
         PRINTF("keyexpr_info->is_tapscript %x\n",keyexpr_info->is_tapscript);
+
         if (!keyexpr_info->is_tapscript) {
-            if (isnull_policy_node_tree(&policy->tree)) {
+            if (isnull_policy_node_tree(&policy->tree) ||  get_action_step(st->wallet_header.name) == BBN_POLICY_STAKE_TRANSFER) {
                 PRINTF("crypto_tr_tweak_seckey BIP-86 \n");
                 // tweak as specified in BIP-86 and BIP-386
                 crypto_tr_tweak_seckey(seckey, (uint8_t[]){}, 0, seckey);
@@ -2684,7 +2722,8 @@ sign_transaction(dispatcher_context_t *dc,
                  sign_psbt_state_t *st,
                  sign_psbt_cache_t *sign_psbt_cache,
                  signing_state_t *signing_state,
-                 const uint8_t internal_inputs[static BITVECTOR_REAL_SIZE(MAX_N_INPUTS_CAN_SIGN)]) {
+                 const uint8_t internal_inputs[static BITVECTOR_REAL_SIZE(MAX_N_INPUTS_CAN_SIGN)],
+                 const uint8_t internal_outputs[static BITVECTOR_REAL_SIZE(MAX_N_OUTPUTS_CAN_SIGN)]) {
     LOG_PROCESSOR(__FILE__, __LINE__, __func__);
 
     int key_expression_index = 0;
@@ -2736,6 +2775,12 @@ sign_transaction(dispatcher_context_t *dc,
                                                sign_psbt_cache)) {
                     return false;
                 }
+                //chester
+                //move display here
+                print_bbn_st(st);
+                if (!display_transaction(dc, st, internal_outputs)) return false;
+                // Signing always takes some time, so we rather not wait before showing the spinner
+                io_show_processing_screen();
                 PRINTF("sign_transaction_input %d\n", i);
                 if (!sign_transaction_input(dc,
                                             st,
@@ -2756,6 +2801,7 @@ sign_transaction(dispatcher_context_t *dc,
 
     return true;
 }
+
 
 // We declare this in the global space in order to use less stack space, since BOLOS enforces on
 // some devices an 8kb stack limit.
@@ -2808,19 +2854,20 @@ void handler_sign_psbt(dispatcher_context_t *dc, uint8_t protocol_version) {
     if (!compute_tx_hashes(dc, &st, &signing_state.tx_hashes)) {
             return;
     }
-
-    if (!display_transaction(dc, &st, internal_outputs)) return;
-    // Signing always takes some time, so we rather not wait before showing the spinner
-    io_show_processing_screen();
+    
+   
     /** SIGNING FLOW
     *
     * For each internal key expression, and for each internal input, sign using the
     * appropriate algorithm.
     */
-    int sign_result = sign_transaction(dc, &st, cache, &signing_state, internal_inputs);
+
+
+    int sign_result = sign_transaction(dc, &st, cache, &signing_state, internal_inputs, internal_outputs);
     if (!sign_result) {
         return;
     }
+      
     ui_post_processing_confirm_transaction(dc, sign_result);
 
     SEND_SW(dc, SW_OK);

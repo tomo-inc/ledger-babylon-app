@@ -641,6 +641,7 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                 break;
             }
             case CMD_CODE_PUSH_PK: {
+                PRINTF("----------push pk\n");
                 const policy_node_with_key_t *policy =
                     (const policy_node_with_key_t *) node->policy_node;
                 uint8_t compressed_pubkey[33];
@@ -655,6 +656,27 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                     update_output_u8(state, 33);  // PUSH 33 bytes
                     update_output(state, compressed_pubkey, 33);
                 } else {
+                    PRINTF("----------push pk 32 %s\n",state->st->wallet_header.name);
+                    //chester should know which one is staker pk
+                   //state->st->psbt_action_name
+                        //fill staker
+                        //fill finality
+                   //if unbounding 
+                   //fill the finality once
+                   if( get_action_step(state->st->wallet_header.name)==BBN_POLICY_STAKE_TRANSFER){
+                        PRINTF("BBN_POLICY_SLASHING\n");
+                        if(state->st->psbt_staker_pk_state==0 || state->st->psbt_finality_pk_state==0){
+                            if(state->st->psbt_staker_pk_state==0){
+                                PRINTF("BBN_POLICY_SLASHING psbt_staker_pk\n");
+                                memcpy(state->st->psbt_staker_pk,compressed_pubkey+1,32);
+                                state->st->psbt_staker_pk_state = 1;
+                            }else{
+                                PRINTF("BBN_POLICY_SLASHING psbt_finality_pk\n");
+                                memcpy(state->st->psbt_finality_pk,compressed_pubkey,32);
+                                state->st->psbt_finality_pk_state = 1;
+                            }   
+                        }  
+                   }
                     // x-only pubkey if within taproot
                     update_output_u8(state, 32);  // PUSH 32 bytes
                     update_output(state, compressed_pubkey + 1, 32);
@@ -662,6 +684,7 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                 break;
             }
             case CMD_CODE_PUSH_PKH: {
+                PRINTF("----------push pkh\n");
                 const policy_node_with_key_t *policy =
                     (const policy_node_with_key_t *) node->policy_node;
                 uint8_t compressed_pubkey[33];
@@ -686,6 +709,11 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                 const policy_node_with_uint32_t *policy =
                     (const policy_node_with_uint32_t *) node->policy_node;
                 update_output_push_u32(state, policy->n);
+                if(state->st->psbt_timelock_state==1){
+                    PRINTF("----------push timelock %x\n",state->st->psbt_timelock);
+                    state->st->psbt_timelock = policy->n;
+                    state->st->psbt_timelock_state = 2;
+                }
                 break;
             }
             case CMD_CODE_PUSH_HASH20: {
@@ -936,6 +964,17 @@ __attribute__((warn_unused_result)) static int process_multi_sortedmulti_node(
     return 1;
 }
 
+static int cov_push_compressed_pubkey_to_bbn_buffer(const uint8_t *compressed_pubkey, sign_psbt_state_t *st, int index) {
+    //find the first empty slot of cov key array
+    if(index>15)
+        return -1;
+    PRINTF("-----index %d\n",index);
+    PRINTF("-----st->psbt_covenant_pk[index] %x\n",st->psbt_covenant_pk[index]);
+    memcpy(st->psbt_covenant_pk[index], compressed_pubkey+1, 32);
+    st->psbt_covenant_pk_state[index] = 1;
+    return index;
+}
+
 __attribute__((warn_unused_result)) static int process_multi_a_sortedmulti_a_node(
     policy_parser_state_t *state,
     const void *arg) {
@@ -992,6 +1031,11 @@ __attribute__((warn_unused_result)) static int process_multi_a_sortedmulti_a_nod
             bitvector_set(used, smallest_pubkey_index, true);  // mark the key as used
         }
 
+       
+        //chester
+        if(cov_push_compressed_pubkey_to_bbn_buffer(compressed_pubkey,state->st, i)<0){
+            return -1;
+        }
         // push <i-th pubkey> as x-only key (32 = 0x20 bytes)
         update_output_u8(state, 0x20);
         update_output(state, compressed_pubkey + 1, 32);
@@ -1003,6 +1047,11 @@ __attribute__((warn_unused_result)) static int process_multi_a_sortedmulti_a_nod
         }
     }
     PRINTF("-----quorum %d\n",policy->k);
+    if(policy->k<4)
+        return -1;
+
+    state->st->psbt_quorum = policy->k;
+    
     update_output_u8(state, 0x50 + policy->k);  // <k>
     update_output_op_v(state, OP_NUMEQUAL);     // OP_NUMEQUAL
 
@@ -1261,11 +1310,12 @@ __attribute__((noinline)) int get_wallet_internal_script_hash(
                                    .wdi = wdi,
                                    .is_taproot = (script_type == WRAPPED_SCRIPT_TYPE_TAPSCRIPT),
                                    .node_stack_eos = 0,
-                                   .hash_context = hash_context};
+                                   .hash_context = hash_context,
+                                   .st = st};
 
     state.nodes[0] =
         (policy_parser_node_state_t){.length = 0, .flags = 0, .step = 0, .policy_node = policy};
-    state.st = st;    
+    //state.st = st;    
     int ret;
     do {
         const policy_parser_node_state_t *node = &state.nodes[state.node_stack_eos];
@@ -1311,6 +1361,8 @@ __attribute__((noinline)) int get_wallet_internal_script_hash(
                 ret = execute_processor(&state, process_pkh_wpkh_node, NULL);
                 break;
             case TOKEN_OLDER:
+                PRINTF("-----------TOKEN_OLDER\n");
+                state.st->psbt_timelock_state++;
                 ret = execute_processor(&state, process_generic_node, commands_older);
                 break;
             case TOKEN_AFTER:
@@ -2151,12 +2203,8 @@ BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]){
 int get_action_step(char* name){
     PRINTF("--get_action_step %s\n", name);
     size_t size = strlen(name);
-    if (memcmp(name, BBN_POLICY_NAME_SLASHING_1, size) == 0){
-        return BBN_POLICY_SLASHING_1;
-    }else if(memcmp(name, BBN_POLICY_NAME_SLASHING_2, size) == 0){
-        return BBN_POLICY_SLASHING_2;
-    }else if(memcmp(name, BBN_POLICY_NAME_SLASHING_3, size) == 0){
-        return BBN_POLICY_SLASHING_3;
+    if (memcmp(name, BBN_POLICY_NAME_SLASHING, size) == 0){
+        return BBN_POLICY_SLASHING;
     }else if(memcmp(name, BBN_POLICY_NAME_STAKE_TRANSFER, size) == 0){
         return BBN_POLICY_STAKE_TRANSFER;
     }else if(memcmp(name, BBN_POLICY_NAME_UNBOUND, size) == 0){
@@ -2171,12 +2219,10 @@ bool check_descriptor(char* descriptor, bbn_policy_type_t type){
     PRINTF("--check_descriptor %s\n", descriptor);
     PRINTF("--check_descriptor type %d\n", type);
     switch (type) {
-        case BBN_POLICY_SLASHING_1:
-        case BBN_POLICY_SLASHING_2:
-        case BBN_POLICY_SLASHING_3:
-            return memcmp(descriptor, BBN_DESCRIPTOR_SLASHING_3,53) == 0;
+        case BBN_POLICY_SLASHING:
+            return memcmp(descriptor, BBN_DESCRIPTOR_SLASHING,53) == 0;
         case BBN_POLICY_STAKE_TRANSFER:
-            return memcmp(descriptor, BBN_DESCRIPTOR_STAKE_TRANSFER,53) == 0;
+            return memcmp(descriptor, BBN_DESCRIPTOR_STAKE_TRANSFER,59) == 0;
         case BBN_POLICY_UNBOUND:
             return memcmp(descriptor, BBN_DESCRIPTOR_UNBOUND,35) == 0;
         case BBN_POLICY_WITHDRAW:
