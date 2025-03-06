@@ -195,8 +195,8 @@ UX_STEP_NOCB(ux_finality_pk_step,
 UX_STEP_NOCB(ux_cov_pks_step,
             bnnn_paging,
             {
-                .title = (const char *)g_ui_state.cov_ok.name,
-                .text = g_ui_state.cov_ok.pk,
+                .title = (const char *)g_ui_state.cov_pk.name,
+                .text = g_ui_state.cov_pk.pk,
             });
 UX_STEP_NOCB(ux_bbn_v_step,
                 bnnn_paging,

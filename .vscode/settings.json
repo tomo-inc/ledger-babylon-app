@@ -6,7 +6,7 @@
     "editor.formatOnSave": true,
     "ledgerDevTools.appSettings": {
         "selectedUseCase": "debug",
-        "selectedDevice": "Nano S Plus",
+        "selectedDevice": "Flex",
         "selectedVariant": "bitcoin_testnet"
     }
 }

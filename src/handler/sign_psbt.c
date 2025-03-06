@@ -1576,7 +1576,7 @@ static bool __attribute__((noinline)) display_transaction(
         // If it's not a default wallet policy, ask the user for confirmation, and abort if they
         // deny
         //chester: babylon won't be default policy so
-
+       
         // check if the name in list, if not deny
         // then display it to user for confirmation
         if (!st->is_wallet_default) {
@@ -1587,14 +1587,14 @@ static bool __attribute__((noinline)) display_transaction(
                 return false;
             }
 
-
+            PRINTF("ui_authorize_wallet_spend\n");
             if(!ui_authorize_wallet_spend(dc, st->wallet_header.name)){
                 PRINTF("ui_authorize_wallet_spend fail \n");
                 SEND_SW(dc, SW_DENY);
                 return false;
             }
         }
-
+        PRINTF("display_warnings\n");
         if (!display_warnings(dc, st)) {
             PRINTF("display_warnings fail \n");
             return false;
@@ -1604,16 +1604,18 @@ static bool __attribute__((noinline)) display_transaction(
          *
          *  Display finality pk, this is the most important infomation for all the babylon actions
          */
+        PRINTF("display_bbn_pk\n");
         if (!display_bbn_pk(dc, st)) {
             PRINTF("display_bbn_pk fail \n");
             return false;
         }
+        PRINTF("display_bbn_value\n");
         if (!display_bbn_value(dc, st)) {
             PRINTF("display_bbn_value fail \n");
             return false;
         }
         
-        
+        PRINTF("display_external_outputs\n");
         /** OUTPUTS CONFIRMATION
          *
          *  Display each non-change output, and transaction fees, and acquire user confirmation,

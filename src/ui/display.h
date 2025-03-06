@@ -137,7 +137,7 @@ typedef union {
 #endif
     ui_leaf_hash_state_t validata_leafhash;
     ui_finality_pk_state_t finality_pk;
-    ui_cov_pk_state_t cov_ok;
+    ui_cov_pk_state_t cov_pk;
     ui_bbn_value_state_t bbn_v;
 } ui_state_t;
 extern ui_state_t g_ui_state;

@@ -593,6 +593,50 @@ void ui_confirm_finality_pk_flow(void) {
                             status_operation_callback);
 
 }
+void ui_confirm_cov_pks_flow(void) {
+    confirmed_status = "Action\nconfirmed";
+    rejected_status = "Action rejected";
+
+    // Setup data to display
+    pairs[0].item = g_ui_state.cov_pk.name;
+    pairs[0].value = g_ui_state.cov_pk.pk;
+
+    // Setup list
+    pairList.nbMaxLinesForValue = 0;
+    pairList.nbPairs = 1;
+    pairList.pairs = pairs;
+
+    nbgl_useCaseReviewLight(TYPE_OPERATION,
+                            &pairList,
+                            &C_Babylon_64px,
+                            "Covenant committee\npublic key",
+                            NULL,
+                            "Confirm it matches \ndisplayed on the Dapp",
+                            status_operation_callback);
+}
+
+void ui_confirm_bbn_value_flow(void){
+    confirmed_status = "Action\nconfirmed";
+    rejected_status = "Action rejected";
+
+    // Setup data to display
+    pairs[0].item = g_ui_state.bbn_v.name;
+    pairs[0].value = g_ui_state.bbn_v.value;
+
+    // Setup list
+    pairList.nbMaxLinesForValue = 0;
+    pairList.nbPairs = 1;
+    pairList.pairs = pairs;
+
+    nbgl_useCaseReviewLight(TYPE_OPERATION,
+                            &pairList,
+                            &C_Babylon_64px,
+                            "Babylon infomation",
+                            NULL,
+                            "Confirm it matches \ndisplayed on the Dapp",
+                            status_operation_callback);
+}
+
 
 void ui_display_warning_external_inputs_flow(void) {
     nbgl_useCaseChoice(&C_Important_Circle_64px,
