@@ -192,12 +192,19 @@ UX_STEP_NOCB(ux_finality_pk_step,
                  .text = g_ui_state.finality_pk.pk,
              });
 
- UX_STEP_NOCB(ux_cov_pks_step,
+UX_STEP_NOCB(ux_cov_pks_step,
             bnnn_paging,
             {
                 .title = (const char *)g_ui_state.cov_ok.name,
                 .text = g_ui_state.cov_ok.pk,
             });
+UX_STEP_NOCB(ux_bbn_v_step,
+                bnnn_paging,
+                {
+                    .title = (const char *)g_ui_state.bbn_v.name,
+                    .text = (const char *)g_ui_state.bbn_v.value,
+                });            
+            
 
 UX_STEP_NOCB(ux_confirm_selftransfer_step, pnn, {&C_icon_eye, "Confirm", "self-transfer"});
 UX_STEP_NOCB(ux_confirm_transaction_fees_step,
@@ -469,7 +476,11 @@ UX_FLOW(ux_confim_cov_pks_flow,
     &ux_display_continue_step,
     &ux_display_reject_step);
 
-
+UX_FLOW(ux_confim_bbn_value_flow,
+        &ux_bbn_v_step,
+        &ux_display_continue_step,
+        &ux_display_reject_step);    
+    
 // Show transaction fees and finally accept signing
 // #1 screen: fee amount
 // #2 screen: "Sign transaction", with approve button
@@ -576,6 +587,9 @@ void ui_confirm_finality_pk_flow(void) {
 
 void ui_confirm_cov_pks_flow(void) {
     ux_flow_init(0, ux_confim_cov_pks_flow, NULL);
+}
+void ui_confirm_bbn_value_flow(void) {
+    ux_flow_init(0, ux_confim_bbn_value_flow, NULL);
 }
 
 void ui_accept_transaction_flow(bool is_self_transfer) {

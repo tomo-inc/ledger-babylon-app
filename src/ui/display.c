@@ -414,7 +414,7 @@ bool ui_confirm_finality_pk(dispatcher_context_t *context, uint8_t *pk) {
     return io_ui_process(context, SET_UX_DIRTY);
 }
 
-bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t *pk, uint32_t count, uint32_t index) {
+bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t *pk, uint32_t index) {
     #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
         return true;
     #endif
@@ -424,11 +424,24 @@ bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t *pk, uint32_t cou
             snprintf(state->pk + i * 2, 64, "%02x", pk[i]); 
         }
         state->index = index;
-        snprintf((char *)state->name, sizeof(state->name), "Covenant %u/%u", index+1, count);
+        snprintf((char *)state->name, sizeof(state->name), "Covenant %u", index+1);
         state->pk[64] = '\0';  
         ui_confirm_cov_pks_flow();
         
         return io_ui_process(context, SET_UX_DIRTY);
+}
+
+bool ui_confirm_bbn_value(dispatcher_context_t *context,  const char *value, const char *name){
+    #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
+        return true;
+    #endif
+
+    ui_bbn_value_state_t *state = (ui_bbn_value_state_t *) &g_ui_state;
+    snprintf((char *)state->value, sizeof(state->value), "%s", value);
+    snprintf((char *)state->name, sizeof(state->name), "%s", name);
+    ui_confirm_bbn_value_flow();
+
+    return io_ui_process(context, SET_UX_DIRTY);
 }
 
 

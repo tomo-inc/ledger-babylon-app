@@ -1420,10 +1420,37 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
         SEND_SW(dc, SW_DENY);
         return false;
     }
+    if(get_action_step(st->wallet_header.name) != BBN_POLICY_STAKE_TRANSFER)
+        return true;
     int cov_counts = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    PRINTF("cov_counts = %d\n", cov_counts);
     for(int i=0; i<cov_counts; i++){
-        ui_confirm_cov_pks(dc, st->psbt_covenant_pk[i], cov_counts, i);
+        if( !ui_confirm_cov_pks(dc, st->psbt_covenant_pk[i], i)){
+            SEND_SW(dc, SW_DENY);
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool __attribute__((noinline))
+display_bbn_value(dispatcher_context_t *dc, sign_psbt_state_t *st) {
+    if(get_action_step(st->wallet_header.name) != BBN_POLICY_STAKE_TRANSFER)
+        return true;
+
+    char psbt_quorum_str[12]; // Enough to hold the maximum 32-bit integer value in decimal
+    snprintf(psbt_quorum_str, sizeof(psbt_quorum_str), "%u", st->psbt_quorum);
+
+    if(!ui_confirm_bbn_value(dc, psbt_quorum_str ,"Covenant quorum")){
+        SEND_SW(dc, SW_DENY);
+        return false;
+    }
+
+    char timelock_str[12]; // Enough to hold the maximum 32-bit integer value in decimal
+    snprintf(timelock_str, sizeof(timelock_str), "%u", st->psbt_timelock);
+    PRINTF_BUF(timelock_str, 12);
+    if(!ui_confirm_bbn_value(dc, timelock_str ,"Timelock block count")){
+        SEND_SW(dc, SW_DENY);
+        return false;
     }
     return true;
 }
@@ -1581,6 +1608,11 @@ static bool __attribute__((noinline)) display_transaction(
             PRINTF("display_bbn_pk fail \n");
             return false;
         }
+        if (!display_bbn_value(dc, st)) {
+            PRINTF("display_bbn_value fail \n");
+            return false;
+        }
+        
         
         /** OUTPUTS CONFIRMATION
          *
