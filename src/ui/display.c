@@ -409,9 +409,26 @@ bool ui_confirm_finality_pk(dispatcher_context_t *context, uint8_t *pk) {
         snprintf(state->pk + i * 2, 64, "%02x", pk[i]); 
     }
     state->pk[64] = '\0';  
-    ui_confim_finality_pk_flow();
+    ui_confirm_finality_pk_flow();
 
     return io_ui_process(context, SET_UX_DIRTY);
+}
+
+bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t *pk, uint32_t count, uint32_t index) {
+    #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
+        return true;
+    #endif
+        
+        ui_cov_pk_state_t *state = (ui_cov_pk_state_t *) &g_ui_state;
+        for (int i = 0; i < 32; i++) {
+            snprintf(state->pk + i * 2, 64, "%02x", pk[i]); 
+        }
+        state->index = index;
+        snprintf((char *)state->name, sizeof(state->name), "Covenant %u/%u", index+1, count);
+        state->pk[64] = '\0';  
+        ui_confirm_cov_pks_flow();
+        
+        return io_ui_process(context, SET_UX_DIRTY);
 }
 
 

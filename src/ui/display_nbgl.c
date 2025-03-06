@@ -570,7 +570,7 @@ void ui_confim_leaf_hash_flow(void) {
 
 }
 
-void ui_confim_finality_pk_flow(void) {
+void ui_confirm_finality_pk_flow(void) {
 
     confirmed_status = "Action\nconfirmed";
     rejected_status = "Action rejected";

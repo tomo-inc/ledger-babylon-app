@@ -1414,11 +1414,16 @@ static bool __attribute__((noinline)) display_external_outputs(
 }
 
 static bool __attribute__((noinline))
-display_finality_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
+display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
 
     if(0 < st->psbt_finality_pk_state && !ui_confirm_finality_pk(dc, st->psbt_finality_pk)){
         SEND_SW(dc, SW_DENY);
         return false;
+    }
+    int cov_counts = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    PRINTF("cov_counts = %d\n", cov_counts);
+    for(int i=0; i<cov_counts; i++){
+        ui_confirm_cov_pks(dc, st->psbt_covenant_pk[i], cov_counts, i);
     }
     return true;
 }
@@ -1572,8 +1577,8 @@ static bool __attribute__((noinline)) display_transaction(
          *
          *  Display finality pk, this is the most important infomation for all the babylon actions
          */
-        if (!display_finality_pk(dc, st)) {
-            PRINTF("display_finality_pk fail \n");
+        if (!display_bbn_pk(dc, st)) {
+            PRINTF("display_bbn_pk fail \n");
             return false;
         }
         
@@ -1584,12 +1589,12 @@ static bool __attribute__((noinline)) display_transaction(
         //chester
         //not sure if it is necessary for step1 and step2 to show output
         //seems useless
-        if(2 < get_action_step(st->wallet_header.name)){
-            if (!display_external_outputs(dc, st, internal_outputs)) {
-                PRINTF("display_external_outputs fail \n");
-                return false;
-            }
+
+        if (!display_external_outputs(dc, st, internal_outputs)) {
+            PRINTF("display_external_outputs fail \n");
+            return false;
         }
+
         if (st->warnings.high_fee && !ui_warn_high_fee(dc)) {
             PRINTF("ui_warn_high_fee fail \n");
             SEND_SW(dc, SW_DENY);
@@ -2871,4 +2876,14 @@ void handler_sign_psbt(dispatcher_context_t *dc, uint8_t protocol_version) {
     ui_post_processing_confirm_transaction(dc, sign_result);
 
     SEND_SW(dc, SW_OK);
+}
+
+static inline int count_psbt_covenant_pk_state(const uint32_t state_array[BBN_COV_PUBKEY_MAX_COUNT]) {
+    int count = 0;
+    for (int i = 0; i < BBN_COV_PUBKEY_MAX_COUNT; i++) {
+        if (state_array[i] == 1) {
+            count++;
+        }
+    }
+    return count;
 }
