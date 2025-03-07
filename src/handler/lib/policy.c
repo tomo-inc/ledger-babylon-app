@@ -329,7 +329,7 @@ int read_and_parse_wallet_policy(
     dispatcher_context_t *dispatcher_context,
     buffer_t *buf,
     policy_map_wallet_header_t *wallet_header,
-    uint8_t policy_map_descriptor_template[static MAX_DESCRIPTOR_TEMPLATE_LENGTH],
+    uint8_t policy_map_descriptor_template[192],
     uint8_t *policy_map_bytes,
     size_t policy_map_bytes_len,
     bool is_sign) {
@@ -337,8 +337,9 @@ int read_and_parse_wallet_policy(
         return WITH_ERROR(-1, "Failed reading wallet policy header");
     }
     //chester
+    PRINTF("wallet_header->version %d\n",wallet_header->version);
     //to empty the mem for strcmp in check_descriptor
-    memset(policy_map_descriptor_template,0, MAX_DESCRIPTOR_TEMPLATE_LENGTH);
+    memset(policy_map_descriptor_template,0, 192);
 
     if (wallet_header->version == WALLET_POLICY_VERSION_V1) {
         memcpy(policy_map_descriptor_template,
@@ -2202,14 +2203,13 @@ BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]){
 
 int get_action_step(char* name){
     PRINTF("--get_action_step %s\n", name);
-    size_t size = strlen(name);
-    if (memcmp(name, BBN_POLICY_NAME_SLASHING, size) == 0){
+    if (memcmp(name, BBN_POLICY_NAME_SLASHING, strlen(BBN_POLICY_NAME_SLASHING)) == 0){
         return BBN_POLICY_SLASHING;
-    }else if(memcmp(name, BBN_POLICY_NAME_STAKE_TRANSFER, size) == 0){
+    }else if(memcmp(name, BBN_POLICY_NAME_STAKE_TRANSFER, strlen(BBN_POLICY_NAME_STAKE_TRANSFER)) == 0){
         return BBN_POLICY_STAKE_TRANSFER;
-    }else if(memcmp(name, BBN_POLICY_NAME_UNBOUND, size) == 0){
+    }else if(memcmp(name, BBN_POLICY_NAME_UNBOUND, strlen(BBN_POLICY_NAME_UNBOUND)) == 0){
         return BBN_POLICY_UNBOUND;
-    }else if(memcmp(name, BBN_POLICY_NAME_WITHDRAW, size) == 0){
+    }else if(memcmp(name, BBN_POLICY_NAME_WITHDRAW, strlen(BBN_POLICY_NAME_WITHDRAW)) == 0){
         return BBN_POLICY_WITHDRAW;
     }
     return BBN_POLICY_UNKNOWN;

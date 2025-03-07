@@ -1971,8 +1971,8 @@ static int parse_script(buffer_t *in_buf,
                 return WITH_ERROR(-1, "unreachable code reached");
         }
     }
-    PRINTF("--out-- size %d, offset %d\n",out_buf->size, out_buf->offset);
-    PRINTF_BUF(out_buf->ptr, out_buf->size);
+    //PRINTF("--out-- size %d, offset %d\n",out_buf->size, out_buf->offset);
+    //PRINTF_BUF(out_buf->ptr, out_buf->size);
     return 0;
 }
 

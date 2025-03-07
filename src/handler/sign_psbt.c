@@ -85,6 +85,209 @@ void print_bbn_st(sign_psbt_state_t *st){
       
     }
 }
+
+static void bbn_tapbranch_compute(uint8_t *leaf1, uint8_t *leaf2, uint8_t *tapbranch){
+    crypto_tr_combine_taptree_hashes(leaf1, leaf2, tapbranch);
+    PRINTF("tapbranch\n");
+    PRINTF_BUF(tapbranch, 32);
+}
+
+static void bbn_leafhash_compute(uint8_t *tapscript, int tapscript_len, uint8_t *leafhash){
+    cx_sha256_t hash_context;
+    crypto_tr_tapleaf_hash_init(&hash_context); 
+    crypto_hash_update_u8(&hash_context.header, 0xC0);
+    crypto_hash_update_varint(&hash_context.header, tapscript_len);
+    crypto_hash_update(&hash_context.header, tapscript, tapscript_len);
+    crypto_hash_digest(&hash_context.header, leafhash, 32);
+    PRINTF("leafhash\n");
+    PRINTF_BUF(leafhash, 32);
+}
+
+//20 staker ad 20 fk ad 20 ck1 ac 20 ck2 ba ... 20 ckn ba 0x50+quorum 9c
+static void compute_bbn_leafhash_slasing(sign_psbt_state_t *st, uint8_t *leafhash){
+    uint8_t tapscript[1024] = { 0 };
+    int offset = 0;
+
+    // Add staker public key
+    tapscript[offset++] = 0x20;
+    memcpy(tapscript + offset, st->psbt_staker_pk, 32);
+    offset += 32;
+    tapscript[offset++] = 0xad;
+
+    // Add finality public key
+    tapscript[offset++] = 0x20;
+    memcpy(tapscript + offset, st->psbt_finality_pk, 32);
+    offset += 32;
+    tapscript[offset++] = 0xad;
+    // Add covenant public keys
+    int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    for (int i = 0; i < cov_count; i++) {
+        tapscript[offset++] = 0x20;
+        memcpy(tapscript + offset, st->psbt_covenant_pk[i], 32);
+        offset += 32;
+        if(i==0)
+            tapscript[offset++] = 0xac;
+        else
+            tapscript[offset++] = 0xba;
+    }
+
+
+    // Add quorum
+    tapscript[offset++] = 0x50 + st->psbt_quorum;
+    tapscript[offset++] = 0x9c;
+    PRINTF("tapscript slash %d\n", offset);
+    PRINTF_BUF(tapscript, offset);
+    // Compute leaf hash
+    bbn_leafhash_compute(tapscript, offset, leafhash);
+}
+
+//20 staker ad 20 ck1 ac 20 ck2 ba ... 20 ckn ba 0x50+quorum 9c
+static void compute_bbn_leafhash_unbounding(sign_psbt_state_t *st, uint8_t *leafhash){  
+    uint8_t tapscript[1024] = { 0 };
+    int offset = 0;
+
+    // Add staker public key
+    tapscript[offset++] = 0x20;
+    memcpy(tapscript + offset, st->psbt_staker_pk, 32);
+    offset += 32;
+    tapscript[offset++] = 0xad;
+
+    // Add covenant public keys
+    int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    for (int i = 0; i < cov_count; i++) {
+        tapscript[offset++] = 0x20;
+        memcpy(tapscript + offset, st->psbt_covenant_pk[i], 32);
+        offset += 32;
+        if(i==0)
+            tapscript[offset++] = 0xac;
+        else
+            tapscript[offset++] = 0xba;
+    }
+
+    // Add quorum
+    tapscript[offset++] = 0x50 + st->psbt_quorum;
+    tapscript[offset++] = 0x9c;
+    PRINTF("tapscript unbound %d\n", offset);
+    PRINTF_BUF(tapscript, offset);
+    // Compute leaf hash
+    bbn_leafhash_compute(tapscript, offset, leafhash);
+}
+
+static int encode_minimal_push(uint32_t value, uint8_t *buffer) {
+    if (value == 0) {
+        buffer[0] = 0x00;
+        return 1;
+    }
+    
+    int size = 0;
+    int is_negative = (value < 0);
+    uint32_t abs_value = (is_negative) ? -value : value;
+    
+    while (abs_value) {
+        buffer[size++] = abs_value & 0xFF;
+        abs_value >>= 8;
+    }
+
+    if (buffer[size - 1] & 0x80) {
+        buffer[size++] = is_negative ? 0x80 : 0x00;
+    } else if (is_negative) {
+        buffer[size - 1] |= 0x80; 
+    }
+    
+    return size;
+}
+
+//20 staker len xxxxxx b2
+static void compute_bbn_leafhash_timelock(sign_psbt_state_t *st,  uint8_t *leafhash){
+
+    uint8_t tapscript[1024] = { 0 };
+    int offset = 0;
+
+    // Add staker public key
+    tapscript[offset++] = 0x20;
+    memcpy(tapscript + offset, st->psbt_staker_pk, 32);
+    offset += 32;
+    tapscript[offset++] = 0xad;
+
+    uint8_t value_buffer[4];
+    int len = encode_minimal_push(st->psbt_timelock,value_buffer);
+    tapscript[offset++] = len;
+    memcpy(tapscript + offset, value_buffer, len);
+    offset += len;
+    tapscript[offset++] = 0xb2;
+
+    PRINTF("tapscript timelock\n");
+    PRINTF_BUF(tapscript, offset);
+    // Compute leaf hash
+    bbn_leafhash_compute(tapscript, offset, leafhash);
+}
+
+/*
+        root
+        /  \
+    slasing path
+           /    \
+       unbound  time       
+*/
+static void compute_bbn_merkle_root(sign_psbt_state_t *st, uint8_t* roothash){
+    uint8_t slashing_leafhash[32];
+    uint8_t unbounding_leafhash[32];
+    uint8_t timelock_leafhash[32];
+
+    compute_bbn_leafhash_slasing(st, slashing_leafhash);
+    compute_bbn_leafhash_unbounding(st, unbounding_leafhash);
+    compute_bbn_leafhash_timelock(st, timelock_leafhash);
+
+    uint8_t branch_hash[32];
+    cx_sha256_t hash_context;
+    
+    bbn_tapbranch_compute(unbounding_leafhash, timelock_leafhash, branch_hash);
+    PRINTF("branch_hash\n");
+    PRINTF_BUF(branch_hash, 32);
+    // Sort slashing_leafhash and intermediate_hash
+    bbn_tapbranch_compute(slashing_leafhash, branch_hash, roothash);
+    PRINTF("roothash\n");
+    PRINTF_BUF(roothash, 32);
+}
+
+static bool bbn_check_address(dispatcher_context_t *dc, sign_psbt_state_t *st){
+    uint8_t tweaked_pubkey[34];
+    uint8_t merkle_root[32];
+    if(get_action_step(st->wallet_header.name) != BBN_POLICY_STAKE_TRANSFER)
+        return true;
+
+    // Compute the merkle root
+    compute_bbn_merkle_root(st, merkle_root);
+    uint8_t parity;
+    // Tweak the staker public key with the merkle root
+    uint8_t NUMS_PUBKEY[] = {0x02, 0x50, 0x92, 0x9b, 0x74, 0xc1, 0xa0, 0x49, 0x54,
+        0xb7, 0x8b, 0x4b, 0x60, 0x35, 0xe9, 0x7a, 0x5e, 0x07,
+        0x8a, 0x5a, 0x0f, 0x28, 0xec, 0x96, 0xd5, 0x47, 0xbf,
+        0xee, 0x9a, 0xce, 0x80, 0x3a, 0xc0};
+
+    if (crypto_tr_tweak_pubkey(NUMS_PUBKEY+1, merkle_root, 32, &parity, tweaked_pubkey) != 0) {
+        PRINTF("Failed to tweak public key\n");
+        SEND_SW(dc, SW_DENY);
+        return false;
+    }
+
+    PRINTF("Tweaked public key:\n");
+    PRINTF_BUF(tweaked_pubkey, 32);
+    uint8_t out_scriptPubKey[MAX_OUTPUT_SCRIPTPUBKEY_LEN];
+    size_t out_scriptPubKey_len;
+    out_scriptPubKey_len = st->outputs.output_script_lengths[0];
+    memcpy(out_scriptPubKey,
+        st->outputs.output_scripts[0],
+        out_scriptPubKey_len);
+    PRINTF("out_scriptPubKey_len: %d\n",out_scriptPubKey_len);    
+    PRINTF_BUF(out_scriptPubKey+2, 32);
+    if (memcmp(out_scriptPubKey+2, tweaked_pubkey, 32)) {
+        SEND_SW(dc, SW_DENY);
+        return false;
+    }
+    return true;
+}
+
 /*
 Current assumptions during signing:
   1) exactly one of the keys in the wallet is internal (enforce during wallet registration)
@@ -1616,6 +1819,7 @@ static bool __attribute__((noinline)) display_transaction(
         }
         
         PRINTF("display_external_outputs\n");
+
         /** OUTPUTS CONFIRMATION
          *
          *  Display each non-change output, and transaction fees, and acquire user confirmation,
@@ -1623,6 +1827,7 @@ static bool __attribute__((noinline)) display_transaction(
         //chester
         //not sure if it is necessary for step1 and step2 to show output
         //seems useless
+       
 
         if (!display_external_outputs(dc, st, internal_outputs)) {
             PRINTF("display_external_outputs fail \n");
@@ -2817,6 +3022,11 @@ sign_transaction(dispatcher_context_t *dc,
                 //chester
                 //move display here
                 print_bbn_st(st);
+                if(!bbn_check_address(dc,st)){
+                    PRINTF("bbn_check_address fail\n");
+                    return false;
+                }
+                   
                 if (!display_transaction(dc, st, internal_outputs)) return false;
                 // Signing always takes some time, so we rather not wait before showing the spinner
                 io_show_processing_screen();
