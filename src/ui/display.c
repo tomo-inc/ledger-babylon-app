@@ -449,8 +449,7 @@ bool ui_confirm_bbn_value(dispatcher_context_t *context,  const char *value, con
 bool ui_validate_transaction(dispatcher_context_t *context,
                              const char *coin_name,
                              uint64_t fee,
-                             bool is_self_transfer) {
-    return true;                         
+                             bool is_self_transfer) {                    
 #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
     return true;
 #endif

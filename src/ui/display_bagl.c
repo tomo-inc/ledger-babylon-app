@@ -216,7 +216,7 @@ UX_STEP_NOCB(ux_confirm_transaction_fees_step,
 UX_STEP_CB(ux_sign_transaction_step,
            pbb,
            set_ux_flow_response(true),
-           {&C_icon_validate_14, "Sign", "Staking1"});
+           {&C_icon_validate_14, "Sign", "Action"});
 
 // Step with wallet icon and "Register account"
 UX_STEP_NOCB(ux_display_register_wallet_step,

@@ -1819,7 +1819,6 @@ static bool __attribute__((noinline)) display_transaction(
         }
         
         PRINTF("display_external_outputs\n");
-
         /** OUTPUTS CONFIRMATION
          *
          *  Display each non-change output, and transaction fees, and acquire user confirmation,
@@ -1833,7 +1832,7 @@ static bool __attribute__((noinline)) display_transaction(
             PRINTF("display_external_outputs fail \n");
             return false;
         }
-
+        PRINTF("ui_warn_high_fee\n");
         if (st->warnings.high_fee && !ui_warn_high_fee(dc)) {
             PRINTF("ui_warn_high_fee fail \n");
             SEND_SW(dc, SW_DENY);
@@ -1845,6 +1844,7 @@ static bool __attribute__((noinline)) display_transaction(
          *  Show summary info to the user (transaction fees), ask for final confirmation
          */
         // Show final user validation UI
+        PRINTF("-------------ui_validate_transaction\n");
         if (!ui_validate_transaction(dc, COIN_COINID_SHORT, fee, false)) {
             PRINTF("ui_validate_transaction fail \n");
             SEND_SW(dc, SW_DENY);
@@ -2325,13 +2325,13 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
         }
         
         PRINTF("--checkleaf-- checked\n");
-        if(st->psbt_leafhash_state==BBN_LEAF_HASH_DISPALY){
-            if (!ui_confirm_leafhash(dc, st->psbt_leafhash)) {
-                PRINTF("--checkleaf-- confirming\n");
-                SEND_SW(dc, SW_DENY);
-                return false;
-            }
-        }          
+        // if(st->psbt_leafhash_state==BBN_LEAF_HASH_DISPALY){
+        //     if (!ui_confirm_leafhash(dc, st->psbt_leafhash)) {
+        //         PRINTF("--checkleaf-- confirming\n");
+        //         SEND_SW(dc, SW_DENY);
+        //         return false;
+        //     }
+        // }          
         
         PRINTF_BUF(keyexpr_info->tapleaf_hash, 32);
         //chester

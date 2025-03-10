@@ -223,7 +223,7 @@ void ui_accept_transaction_simplified_flow(void) {
                        &C_Babylon_64px,
                        "Review Babylon\nto send Bitcoin",
                        NULL,
-                       "Babylon Staking\nto send Bitcoin?",
+                       "Bitcoin Staking\nto send Bitcoin?",
                        start_transaction_callback);
 }
 
