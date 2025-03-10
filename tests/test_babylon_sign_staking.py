@@ -45,7 +45,7 @@ def test_sign_psbt_tr_script_slashing(navigator: Navigator, firmware: Firmware, 
                                             RaggerClient, test_name: str):
 
     wallet = WalletPolicy(
-        name="Slashing Consent",
+        name="Slashing consent",
         descriptor_template="tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))))",
         keys_info=[
             "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4WNLDZARxRfzGzvp9Lnm88oGRLmoTSPWNg3uuE6F4xBdmcEqUxs2ovExCUqFBjvF8QkjawKp1KRp6wtFDptzPbBPwQ9LMeY1",
@@ -97,7 +97,7 @@ def test_sign_psbt_tr_script_stake_transfer(navigator: Navigator, firmware: Firm
 #   descriptor_template="tr(@0/**,and_v(after(1008),and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**)))))",
 #   descriptor_template="tr(@0/**)",
     wallet = WalletPolicy(
-        name="Staking Transaction",
+        name="Staking transaction",
         descriptor_template="tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))),older(64000)))",
          keys_info=[
             "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4WNLDZARxRfzGzvp9Lnm88oGRLmoTSPWNg3uuE6F4xBdmcEqUxs2ovExCUqFBjvF8QkjawKp1KRp6wtFDptzPbBPwQ9LMeY1",

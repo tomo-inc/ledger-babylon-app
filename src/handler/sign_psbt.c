@@ -1623,9 +1623,18 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
         SEND_SW(dc, SW_DENY);
         return false;
     }
-    if(get_action_step(st->wallet_header.name) != BBN_POLICY_STAKE_TRANSFER)
-        return true;
+    //if(get_action_step(st->wallet_header.name) != BBN_POLICY_STAKE_TRANSFER)
+    //    return true;
     int cov_counts = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    for (int i = 0; i < cov_counts; i++) {
+        for (int j = i + 1; j < cov_counts; j++) {
+            if (memcmp(st->psbt_covenant_pk[i], st->psbt_covenant_pk[j], 32) == 0) {
+                PRINTF("Duplicate covenant pk\n");
+                SEND_SW(dc, SW_DENY);
+                return false;
+            }
+        }
+    }
     for(int i=0; i<cov_counts; i++){
         if( !ui_confirm_cov_pks(dc, st->psbt_covenant_pk[i], i)){
             SEND_SW(dc, SW_DENY);
@@ -1637,24 +1646,31 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
 
 static bool __attribute__((noinline))
 display_bbn_value(dispatcher_context_t *dc, sign_psbt_state_t *st) {
-    if(get_action_step(st->wallet_header.name) != BBN_POLICY_STAKE_TRANSFER)
-        return true;
 
     char psbt_quorum_str[12]; // Enough to hold the maximum 32-bit integer value in decimal
-    snprintf(psbt_quorum_str, sizeof(psbt_quorum_str), "%u", st->psbt_quorum);
-
-    if(!ui_confirm_bbn_value(dc, psbt_quorum_str ,"Covenant quorum")){
-        SEND_SW(dc, SW_DENY);
-        return false;
+    if(st->psbt_quorum>0){
+        if(st->psbt_quorum<BBN_MIN_QUORUM){
+            PRINTF("Invalid quorum %d\n", st->psbt_quorum);
+            SEND_SW(dc, SW_DENY);
+            return false;
+        }
+        snprintf(psbt_quorum_str, sizeof(psbt_quorum_str), "%u", st->psbt_quorum);
+        if(!ui_confirm_bbn_value(dc, psbt_quorum_str ,"Covenant quorum")){
+            SEND_SW(dc, SW_DENY);
+            return false;
+        }
     }
 
     char timelock_str[12]; // Enough to hold the maximum 32-bit integer value in decimal
-    snprintf(timelock_str, sizeof(timelock_str), "%u", st->psbt_timelock);
-    PRINTF_BUF(timelock_str, 12);
-    if(!ui_confirm_bbn_value(dc, timelock_str ,"Timelock block count")){
-        SEND_SW(dc, SW_DENY);
-        return false;
+    if(st->psbt_timelock_state>0){
+        snprintf(timelock_str, sizeof(timelock_str), "%u", st->psbt_timelock);
+        PRINTF_BUF(timelock_str, 12);
+        if(!ui_confirm_bbn_value(dc, timelock_str ,"Timelock block count")){
+            SEND_SW(dc, SW_DENY);
+            return false;
+        }
     }
+
     return true;
 }
 
