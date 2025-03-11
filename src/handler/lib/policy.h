@@ -292,13 +292,12 @@ typedef enum {
 
 BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]);
 
-int get_action_step(char* name);
+int get_action_step(const char* name);
 
-#define BBN_DESCRIPTOR_SLASHING                 "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
-//#define BBN_DESCRIPTOR_STAKE_TRANSFER          "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_SLASHING                "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_STAKE_TRANSFER          "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_UNBOUND                 "tr(@0/**,and_v(pk_k(@1/**),multi_a("
 #define BBN_DESCRIPTOR_WITHDRAW                "tr(@0/**,and_v(pk_k(@1/**),older"
 
-bool check_descriptor(char* descriptor, bbn_policy_type_t type);
+bool check_descriptor(const char* descriptor, bbn_policy_type_t type);
           

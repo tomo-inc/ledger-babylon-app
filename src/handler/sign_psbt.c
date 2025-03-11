@@ -86,11 +86,6 @@ void print_bbn_st(sign_psbt_state_t *st){
     }
 }
 
-static void bbn_tapbranch_compute(uint8_t *leaf1, uint8_t *leaf2, uint8_t *tapbranch){
-    crypto_tr_combine_taptree_hashes(leaf1, leaf2, tapbranch);
-    PRINTF("tapbranch\n");
-    PRINTF_BUF(tapbranch, 32);
-}
 
 static void bbn_leafhash_compute(uint8_t *tapscript, int tapscript_len, uint8_t *leafhash){
     cx_sha256_t hash_context;
@@ -241,11 +236,11 @@ static void compute_bbn_merkle_root(sign_psbt_state_t *st, uint8_t* roothash){
     uint8_t branch_hash[32];
     cx_sha256_t hash_context;
     
-    bbn_tapbranch_compute(unbounding_leafhash, timelock_leafhash, branch_hash);
+    crypto_tr_combine_taptree_hashes(unbounding_leafhash, timelock_leafhash, branch_hash);
     PRINTF("branch_hash\n");
     PRINTF_BUF(branch_hash, 32);
     // Sort slashing_leafhash and intermediate_hash
-    bbn_tapbranch_compute(slashing_leafhash, branch_hash, roothash);
+    crypto_tr_combine_taptree_hashes(slashing_leafhash, branch_hash, roothash);
     PRINTF("roothash\n");
     PRINTF_BUF(roothash, 32);
 }
@@ -1740,18 +1735,71 @@ static bool __attribute__((noinline)) display_transaction(
             }
         }
 
+        // /** TRANSACTION CONFIRMATION
+        //  *
+        //  *  Show transaction amount, destination and fees, ask for final confirmation
+        //  */
+        // if (!ui_validate_transaction_simplified(
+        //         dc,
+        //         COIN_COINID_SHORT,
+        //         st->is_wallet_default ? NULL : st->wallet_header.name,
+        //         is_self_transfer ? 0 : st->outputs.output_amounts[0],
+        //         is_self_transfer ? NULL : output_description,
+        //         st->warnings,
+        //         fee)) {
+        //     SEND_SW(dc, SW_DENY);
+        //     return false;
+        // }
+        if (!st->is_wallet_default) {
+            PRINTF("wallet name %s \n", st->wallet_header.name);
+            if(0 > get_action_step(st->wallet_header.name)){
+                PRINTF("get_action_step fail \n");
+                SEND_SW(dc, SW_DENY);
+                return false;
+            }
+
+            PRINTF("ui_authorize_wallet_spend\n");
+            if(!ui_authorize_wallet_spend(dc, st->wallet_header.name)){
+                PRINTF("ui_authorize_wallet_spend fail \n");
+                SEND_SW(dc, SW_DENY);
+                return false;
+            }
+        }
+        //chester
+        /** FINALITY PK CONFIRMATION
+         *
+         *  Display finality pk, this is the most important infomation for all the babylon actions
+         */
+        PRINTF("display_bbn_pk\n");
+        if (!display_bbn_pk(dc, st)) {
+            PRINTF("display_bbn_pk fail \n");
+            return false;
+        }
+        PRINTF("display_bbn_value\n");
+        if (!display_bbn_value(dc, st)) {
+            PRINTF("display_bbn_value fail \n");
+            return false;
+        }
+        
+        if (!display_external_outputs(dc, st, internal_outputs)) {
+            PRINTF("display_external_outputs fail \n");
+            return false;
+        }
+        PRINTF("ui_warn_high_fee\n");
+        if (st->warnings.high_fee && !ui_warn_high_fee(dc)) {
+            PRINTF("ui_warn_high_fee fail \n");
+            SEND_SW(dc, SW_DENY);
+            return false;
+        }
+
         /** TRANSACTION CONFIRMATION
          *
-         *  Show transaction amount, destination and fees, ask for final confirmation
+         *  Show summary info to the user (transaction fees), ask for final confirmation
          */
-        if (!ui_validate_transaction_simplified(
-                dc,
-                COIN_COINID_SHORT,
-                st->is_wallet_default ? NULL : st->wallet_header.name,
-                is_self_transfer ? 0 : st->outputs.output_amounts[0],
-                is_self_transfer ? NULL : output_description,
-                st->warnings,
-                fee)) {
+        // Show final user validation UI
+        PRINTF("-------------ui_validate_transaction\n");
+        if (!ui_validate_transaction(dc, COIN_COINID_SHORT, fee, false)) {
+            PRINTF("ui_validate_transaction fail \n");
             SEND_SW(dc, SW_DENY);
             return false;
         }

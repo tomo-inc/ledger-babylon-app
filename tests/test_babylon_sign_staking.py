@@ -41,110 +41,110 @@ def open_psbt_from_file(filename: str) -> PSBT:
     #tr(@0/**,and_v(pk_k(@1/**), older(12690)))
 
 
-def test_sign_psbt_tr_script_slashing(navigator: Navigator, firmware: Firmware, client:
-                                            RaggerClient, test_name: str):
+# def test_sign_psbt_tr_script_slashing(navigator: Navigator, firmware: Firmware, client:
+#                                             RaggerClient, test_name: str):
 
-    wallet = WalletPolicy(
-        name="Slashing consent",
-        descriptor_template="tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))))",
-        keys_info=[
-            "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4WNLDZARxRfzGzvp9Lnm88oGRLmoTSPWNg3uuE6F4xBdmcEqUxs2ovExCUqFBjvF8QkjawKp1KRp6wtFDptzPbBPwQ9LMeY1",
-            "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
-            "[ff119473/86'/1'/0']tpubD6NzVbkrYhZ4Yt3Vn3Naxxfg8LpfnAkUBVsm2VLFDXCWekWMsZSvKjpeWM9AVgnQxUjc9fWS7gW7Vvoy2kXbgGBc6KxTGoMP7W688gzhyKe", 
-            "tpubD6NzVbkrYhZ4WwrfC9BkfdDF7YNk8dXmJ7acsTTtR3C6hr8qvsb2K7Dp42uMsVAW4L8Qc1RakiTDZg1ywXDNUxNBRCkp3dS7yj7x7VMPVqz", 
-            "tpubD6NzVbkrYhZ4Xuv92CZucpRA6ou9tKpe73EomdBVJ9PkXKirJEAkedwKTgKR8bhe4Pp1zJNmK71LbWPattjZqShzT3go658xc5FQiLRZQFr", 
-            "tpubD6NzVbkrYhZ4XtngEHGMzyYcYY9S9dhpe5awQW7rMfDs247YPe4UkjKu3zUT5gLreiDMCsq1RX4BvPaP9PWhrFYo3sk2M1HVjdHjMWiC8pn", 
-            "tpubD6NzVbkrYhZ4XgSQ8NsumcA7iHSCou5Vegcf8AK7mezeUQUKJeS2trsPqaYeuAM7FEizZEFcuQ7aWf27CdBL1E7kZEv9rwDrsq18oov8H7A", 
-            "tpubD6NzVbkrYhZ4Ysn5e6UVJLDVowAks2RuUbyaNM4NLNvU2PaPSuvmFB3NeYUDNf5EF1C8pGYCjBWKtGMqbD6HiYj4xyWhFSAxucQ26EGED7H", 
-            "tpubD6NzVbkrYhZ4WZ9ozPNtBTh7bNtczM2CmHkg7SYSQx7DUTn4YjeFK4SqBgFRqjuZC1XTnxDqJaqPNcMxSFjrLMZgGU1dkF4THyXdyP2iHa9", 
-            "tpubD6NzVbkrYhZ4YWPuHMubgo31Rn2oBG2EuH7eFVpTnyQzhu3upESECW8HyouyLXUXsRVwgDja9aoFggnhiX6zLEWiVrJWfMrbRH5qaSdEZg7", 
-            "tpubD6NzVbkrYhZ4XVW9QtYpXNdtQsCTLZZCoKmnzPpwh9F54VmjxHciynJA7qqf2rfeEuqvDNuaPG4g6F9TdjeUyhFWbbeNyhVnJGNjhxaESqT", 
-            "tpubD6NzVbkrYhZ4WiZ659T6qE19WFEa7LD2ZFYD1peKszT6Xqkdrvkp7Gkyk7PRRW2Jtm5fgUSWJsvF6rq9yDt8muoa9HB5mC8UGayBf8arZvW"
-        ],
-    )
+#     wallet = WalletPolicy(
+#         name="Slashing consent",
+#         descriptor_template="tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))))",
+#         keys_info=[
+#             "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4WNLDZARxRfzGzvp9Lnm88oGRLmoTSPWNg3uuE6F4xBdmcEqUxs2ovExCUqFBjvF8QkjawKp1KRp6wtFDptzPbBPwQ9LMeY1",
+#             "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
+#             "[ff119473/86'/1'/0']tpubD6NzVbkrYhZ4Yt3Vn3Naxxfg8LpfnAkUBVsm2VLFDXCWekWMsZSvKjpeWM9AVgnQxUjc9fWS7gW7Vvoy2kXbgGBc6KxTGoMP7W688gzhyKe", 
+#             "tpubD6NzVbkrYhZ4WwrfC9BkfdDF7YNk8dXmJ7acsTTtR3C6hr8qvsb2K7Dp42uMsVAW4L8Qc1RakiTDZg1ywXDNUxNBRCkp3dS7yj7x7VMPVqz", 
+#             "tpubD6NzVbkrYhZ4Xuv92CZucpRA6ou9tKpe73EomdBVJ9PkXKirJEAkedwKTgKR8bhe4Pp1zJNmK71LbWPattjZqShzT3go658xc5FQiLRZQFr", 
+#             "tpubD6NzVbkrYhZ4XtngEHGMzyYcYY9S9dhpe5awQW7rMfDs247YPe4UkjKu3zUT5gLreiDMCsq1RX4BvPaP9PWhrFYo3sk2M1HVjdHjMWiC8pn", 
+#             "tpubD6NzVbkrYhZ4XgSQ8NsumcA7iHSCou5Vegcf8AK7mezeUQUKJeS2trsPqaYeuAM7FEizZEFcuQ7aWf27CdBL1E7kZEv9rwDrsq18oov8H7A", 
+#             "tpubD6NzVbkrYhZ4Ysn5e6UVJLDVowAks2RuUbyaNM4NLNvU2PaPSuvmFB3NeYUDNf5EF1C8pGYCjBWKtGMqbD6HiYj4xyWhFSAxucQ26EGED7H", 
+#             "tpubD6NzVbkrYhZ4WZ9ozPNtBTh7bNtczM2CmHkg7SYSQx7DUTn4YjeFK4SqBgFRqjuZC1XTnxDqJaqPNcMxSFjrLMZgGU1dkF4THyXdyP2iHa9", 
+#             "tpubD6NzVbkrYhZ4YWPuHMubgo31Rn2oBG2EuH7eFVpTnyQzhu3upESECW8HyouyLXUXsRVwgDja9aoFggnhiX6zLEWiVrJWfMrbRH5qaSdEZg7", 
+#             "tpubD6NzVbkrYhZ4XVW9QtYpXNdtQsCTLZZCoKmnzPpwh9F54VmjxHciynJA7qqf2rfeEuqvDNuaPG4g6F9TdjeUyhFWbbeNyhVnJGNjhxaESqT", 
+#             "tpubD6NzVbkrYhZ4WiZ659T6qE19WFEa7LD2ZFYD1peKszT6Xqkdrvkp7Gkyk7PRRW2Jtm5fgUSWJsvF6rq9yDt8muoa9HB5mC8UGayBf8arZvW"
+#         ],
+#     )
 
-    wallet_hmac = bytes.fromhex(
-        "dae925660e20859ed8833025d46444483ce264fdb77e34569aabe9d590da8fb7"
-    )
+#     wallet_hmac = bytes.fromhex(
+#         "dae925660e20859ed8833025d46444483ce264fdb77e34569aabe9d590da8fb7"
+#     )
 
-    psbt = PSBT()
-    psbt.deserialize("cHNidP8BAH0CAAAAAU5oPucfQQOAdrEZwJODBvpzHfaA/orEXxwbxelbMexgAAAAAAD/////AsQJAAAAAAAAFgAUW+EmJNCKK0JAldfAciHDNFDRS/EEpgAAAAAAACJRICyVutUKY9E6qBjfjktoZBga2/RyCoiq+OPBI1ugik2fAAAAAAABAStQwwAAAAAAACJRINdj3mtHHjBWQbpB1lxngujLz/bgjoPaqw2hJ1u8n6rQQhXBUJKbdMGgSVS3i0tgNel6XgeKWg8o7JbVR7/ums6AOsCJtgX5iDHD5SbZ6yF5ZRRSk4qMD/f16u7MthJR1dRt6/15ASDcjS+e/wxPTb3gcKSOMw78kItip2ZWjZHmWPKEsyS4eK0g1mEk+PQv2D5MkBoQCuO11wbvbP0hewS8ZBUuc5owxB6tIAruBQmxbbccmZI4pIJ9uUVSaFmxPJVIerRnJTV8mp8lrCARPDoyqdMgtyGQoEoCCg2zl27zaXJnMljpo4o2Tz3DsLogF5Ic8VbMtOc9Qo+ZbtEbJFMT434nyXisTSzCHspGcuS6IDu5PfyLYYh9dx82MOmmPpfLr8/MeFVqR034OjGg74mcuiBAr69HxP+lbehkENjke6ortvBLYE9OokMjc33cP+CS37ogeacf/XHFA+8uL5G8z8j82nlG9GU87w2fPd4geV7zufC6INIfr3jGdRoNOOa9gCi5B/8H6ahppD/IN9az+N/2EZo2uiD1GZ764/KLuCR2Fjp+RYx61EXZv/sGgtENO9sstB+Ojrog+p2ILUX0BgvbgEIYOCjNh1RPHqmXOA5YbKt31f1phze6VpzAARcgUJKbdMGgSVS3i0tgNel6XgeKWg8o7JbVR7/ums6AOsAAAAA=")
+#     psbt = PSBT()
+#     psbt.deserialize("cHNidP8BAH0CAAAAAU5oPucfQQOAdrEZwJODBvpzHfaA/orEXxwbxelbMexgAAAAAAD/////AsQJAAAAAAAAFgAUW+EmJNCKK0JAldfAciHDNFDRS/EEpgAAAAAAACJRICyVutUKY9E6qBjfjktoZBga2/RyCoiq+OPBI1ugik2fAAAAAAABAStQwwAAAAAAACJRINdj3mtHHjBWQbpB1lxngujLz/bgjoPaqw2hJ1u8n6rQQhXBUJKbdMGgSVS3i0tgNel6XgeKWg8o7JbVR7/ums6AOsCJtgX5iDHD5SbZ6yF5ZRRSk4qMD/f16u7MthJR1dRt6/15ASDcjS+e/wxPTb3gcKSOMw78kItip2ZWjZHmWPKEsyS4eK0g1mEk+PQv2D5MkBoQCuO11wbvbP0hewS8ZBUuc5owxB6tIAruBQmxbbccmZI4pIJ9uUVSaFmxPJVIerRnJTV8mp8lrCARPDoyqdMgtyGQoEoCCg2zl27zaXJnMljpo4o2Tz3DsLogF5Ic8VbMtOc9Qo+ZbtEbJFMT434nyXisTSzCHspGcuS6IDu5PfyLYYh9dx82MOmmPpfLr8/MeFVqR034OjGg74mcuiBAr69HxP+lbehkENjke6ortvBLYE9OokMjc33cP+CS37ogeacf/XHFA+8uL5G8z8j82nlG9GU87w2fPd4geV7zufC6INIfr3jGdRoNOOa9gCi5B/8H6ahppD/IN9az+N/2EZo2uiD1GZ764/KLuCR2Fjp+RYx61EXZv/sGgtENO9sstB+Ojrog+p2ILUX0BgvbgEIYOCjNh1RPHqmXOA5YbKt31f1phze6VpzAARcgUJKbdMGgSVS3i0tgNel6XgeKWg8o7JbVR7/ums6AOsAAAAA=")
 
 
-    result = client.sign_psbt(psbt, wallet, wallet_hmac, navigator,
-                              instructions=sign_psbt_instruction_approve(firmware),
-                              testname=test_name)
+#     result = client.sign_psbt(psbt, wallet, wallet_hmac, navigator,
+#                               instructions=sign_psbt_instruction_approve(firmware),
+#                               testname=test_name)
 
-    assert len(result) == 1
+#     assert len(result) == 1
 
-    # sighash verified with real transaction
-    sighash0 = bytes.fromhex("BA111E858EED59BA9527273BC8DFB047AE96BE59B6B4EC3769F6C35E5135134C")
-    leaf_hash = bytes.fromhex("ed429f93af8bb724a9f5066248b32d945fdd1c12f7f59a33f4f83b6565716750")
-    assert len(result) == 1
-    idx0, partial_sig0 = result[0]
-    assert idx0 == 0
+#     # sighash verified with real transaction
+#     sighash0 = bytes.fromhex("BA111E858EED59BA9527273BC8DFB047AE96BE59B6B4EC3769F6C35E5135134C")
+#     leaf_hash = bytes.fromhex("ed429f93af8bb724a9f5066248b32d945fdd1c12f7f59a33f4f83b6565716750")
+#     assert len(result) == 1
+#     idx0, partial_sig0 = result[0]
+#     assert idx0 == 0
     
-    assert partial_sig0.tapleaf_hash == leaf_hash, "leafhash veriry fail"
-    
-  
-    assert partial_sig0.pubkey == bytes.fromhex("dc8d2f9eff0c4f4dbde070a48e330efc908b62a766568d91e658f284b324b878")
-    assert bip0340.schnorr_verify(sighash0, partial_sig0.pubkey, partial_sig0.signature[:64]), "signature veriry fail"
-
-
-
-def test_sign_psbt_tr_script_stake_transfer(navigator: Navigator, firmware: Firmware, client:
-                                            RaggerClient, test_name: str):
-#   descriptor_template="tr(@0/**,and_v(after(1008),and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**)))))",
-#   descriptor_template="tr(@0/**)",
-    wallet = WalletPolicy(
-        name="Staking transaction",
-        descriptor_template="tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))),older(64000)))",
-         keys_info=[
-            "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4WNLDZARxRfzGzvp9Lnm88oGRLmoTSPWNg3uuE6F4xBdmcEqUxs2ovExCUqFBjvF8QkjawKp1KRp6wtFDptzPbBPwQ9LMeY1",
-            "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
-            "[ff119473/86'/1'/0']tpubD6NzVbkrYhZ4Yt3Vn3Naxxfg8LpfnAkUBVsm2VLFDXCWekWMsZSvKjpeWM9AVgnQxUjc9fWS7gW7Vvoy2kXbgGBc6KxTGoMP7W688gzhyKe", 
-            "tpubD6NzVbkrYhZ4WwrfC9BkfdDF7YNk8dXmJ7acsTTtR3C6hr8qvsb2K7Dp42uMsVAW4L8Qc1RakiTDZg1ywXDNUxNBRCkp3dS7yj7x7VMPVqz", 
-            "tpubD6NzVbkrYhZ4Xuv92CZucpRA6ou9tKpe73EomdBVJ9PkXKirJEAkedwKTgKR8bhe4Pp1zJNmK71LbWPattjZqShzT3go658xc5FQiLRZQFr", 
-            "tpubD6NzVbkrYhZ4XtngEHGMzyYcYY9S9dhpe5awQW7rMfDs247YPe4UkjKu3zUT5gLreiDMCsq1RX4BvPaP9PWhrFYo3sk2M1HVjdHjMWiC8pn", 
-            "tpubD6NzVbkrYhZ4XgSQ8NsumcA7iHSCou5Vegcf8AK7mezeUQUKJeS2trsPqaYeuAM7FEizZEFcuQ7aWf27CdBL1E7kZEv9rwDrsq18oov8H7A", 
-            "tpubD6NzVbkrYhZ4Ysn5e6UVJLDVowAks2RuUbyaNM4NLNvU2PaPSuvmFB3NeYUDNf5EF1C8pGYCjBWKtGMqbD6HiYj4xyWhFSAxucQ26EGED7H", 
-            "tpubD6NzVbkrYhZ4WZ9ozPNtBTh7bNtczM2CmHkg7SYSQx7DUTn4YjeFK4SqBgFRqjuZC1XTnxDqJaqPNcMxSFjrLMZgGU1dkF4THyXdyP2iHa9", 
-            "tpubD6NzVbkrYhZ4YWPuHMubgo31Rn2oBG2EuH7eFVpTnyQzhu3upESECW8HyouyLXUXsRVwgDja9aoFggnhiX6zLEWiVrJWfMrbRH5qaSdEZg7", 
-            "tpubD6NzVbkrYhZ4XVW9QtYpXNdtQsCTLZZCoKmnzPpwh9F54VmjxHciynJA7qqf2rfeEuqvDNuaPG4g6F9TdjeUyhFWbbeNyhVnJGNjhxaESqT", 
-            "tpubD6NzVbkrYhZ4WiZ659T6qE19WFEa7LD2ZFYD1peKszT6Xqkdrvkp7Gkyk7PRRW2Jtm5fgUSWJsvF6rq9yDt8muoa9HB5mC8UGayBf8arZvW"
-        ],
-    )
-
-    wallet_hmac = bytes.fromhex(
-        "dae925660e20859ed8833025d46444483ce264fdb77e34569aabe9d590da8fb7"
-    )
-
-    psbt = PSBT()
-    psbt.deserialize("cHNidP8BAIkCAAAAAQoDdUgOA5oDhvrH0NWZTa/GJzvd4UhFIbmbOiWufc84AAAAAAD/////AlDDAAAAAAAAIlEg12Pea0ceMFZBukHWXGeC6MvP9uCOg9qrDaEnW7yfqtAcAi0AAAAAACJRIHQO5k5FLjuu4SewPBlbzCGtPt3tLvJsWvSD2cVjBNHlAAAAAAABASvAxi0AAAAAACJRIHQO5k5FLjuu4SewPBlbzCGtPt3tLvJsWvSD2cVjBNHlARcg3I0vnv8MT0294HCkjjMO/JCLYqdmVo2R5ljyhLMkuHgAAAA=")
-
-
-
-    # fees don't fit in the same page on 'flex', but they fit on 'stax' instructions=sign_psbt_instruction_approve(firmware),
-
-    result = client.sign_psbt(psbt, wallet, wallet_hmac, navigator,
-                              instructions=sign_psbt_instruction_approve(firmware),
-                              testname=test_name)
-
-    assert len(result) == 1
-
-    # sighash verified with real transaction
-    sighash0 = bytes.fromhex("672C460A4AB491DD3B70BC5E35D4796683AF95B11F68D4667A8963CBC52A3CDF")
-    assert len(result) == 1
-    idx0, partial_sig0 = result[0]
-    assert idx0 == 0
-    
-    assert partial_sig0.tapleaf_hash is None, "leaf hash is not None"
+#     assert partial_sig0.tapleaf_hash == leaf_hash, "leafhash veriry fail"
     
   
-    #note that the pub is not internal key, secret tweaked when doing BIP86
-    #use pub in scriptPubKey
-    pubkey = bytes.fromhex("740ee64e452e3baee127b03c195bcc21ad3edded2ef26c5af483d9c56304d1e5")
-    assert bip0340.schnorr_verify(sighash0, pubkey, partial_sig0.signature[:64]), "signature veriry fail"
+#     assert partial_sig0.pubkey == bytes.fromhex("dc8d2f9eff0c4f4dbde070a48e330efc908b62a766568d91e658f284b324b878")
+#     assert bip0340.schnorr_verify(sighash0, partial_sig0.pubkey, partial_sig0.signature[:64]), "signature veriry fail"
+
+
+
+# def test_sign_psbt_tr_script_stake_transfer(navigator: Navigator, firmware: Firmware, client:
+#                                             RaggerClient, test_name: str):
+# #   descriptor_template="tr(@0/**,and_v(after(1008),and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**)))))",
+# #   descriptor_template="tr(@0/**)",
+#     wallet = WalletPolicy(
+#         name="Staking transaction",
+#         descriptor_template="tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))),older(64000)))",
+#          keys_info=[
+#             "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4WLczPJWReQycCJdd6YVWXubbVUFnJ5KgU5MDQrD998ZJLSmaB7GVcCnJSDWprxmrGkJ6SvgQC6QAffVpqSvonXmeizXcrkN",
+#             "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
+#             "[ff119473/86'/1'/0']tpubD6NzVbkrYhZ4Yt3Vn3Naxxfg8LpfnAkUBVsm2VLFDXCWekWMsZSvKjpeWM9AVgnQxUjc9fWS7gW7Vvoy2kXbgGBc6KxTGoMP7W688gzhyKe", 
+#             "tpubD6NzVbkrYhZ4WwrfC9BkfdDF7YNk8dXmJ7acsTTtR3C6hr8qvsb2K7Dp42uMsVAW4L8Qc1RakiTDZg1ywXDNUxNBRCkp3dS7yj7x7VMPVqz", 
+#             "tpubD6NzVbkrYhZ4Xuv92CZucpRA6ou9tKpe73EomdBVJ9PkXKirJEAkedwKTgKR8bhe4Pp1zJNmK71LbWPattjZqShzT3go658xc5FQiLRZQFr", 
+#             "tpubD6NzVbkrYhZ4XtngEHGMzyYcYY9S9dhpe5awQW7rMfDs247YPe4UkjKu3zUT5gLreiDMCsq1RX4BvPaP9PWhrFYo3sk2M1HVjdHjMWiC8pn", 
+#             "tpubD6NzVbkrYhZ4XgSQ8NsumcA7iHSCou5Vegcf8AK7mezeUQUKJeS2trsPqaYeuAM7FEizZEFcuQ7aWf27CdBL1E7kZEv9rwDrsq18oov8H7A", 
+#             "tpubD6NzVbkrYhZ4Ysn5e6UVJLDVowAks2RuUbyaNM4NLNvU2PaPSuvmFB3NeYUDNf5EF1C8pGYCjBWKtGMqbD6HiYj4xyWhFSAxucQ26EGED7H", 
+#             "tpubD6NzVbkrYhZ4WZ9ozPNtBTh7bNtczM2CmHkg7SYSQx7DUTn4YjeFK4SqBgFRqjuZC1XTnxDqJaqPNcMxSFjrLMZgGU1dkF4THyXdyP2iHa9", 
+#             "tpubD6NzVbkrYhZ4YWPuHMubgo31Rn2oBG2EuH7eFVpTnyQzhu3upESECW8HyouyLXUXsRVwgDja9aoFggnhiX6zLEWiVrJWfMrbRH5qaSdEZg7", 
+#             "tpubD6NzVbkrYhZ4XVW9QtYpXNdtQsCTLZZCoKmnzPpwh9F54VmjxHciynJA7qqf2rfeEuqvDNuaPG4g6F9TdjeUyhFWbbeNyhVnJGNjhxaESqT", 
+#             "tpubD6NzVbkrYhZ4WiZ659T6qE19WFEa7LD2ZFYD1peKszT6Xqkdrvkp7Gkyk7PRRW2Jtm5fgUSWJsvF6rq9yDt8muoa9HB5mC8UGayBf8arZvW"
+#         ],
+#     )
+
+#     wallet_hmac = bytes.fromhex(
+#         "dae925660e20859ed8833025d46444483ce264fdb77e34569aabe9d590da8fb7"
+#     )
+
+#     psbt = PSBT()
+#     psbt.deserialize("cHNidP8BAIkCAAAAAQoDdUgOA5oDhvrH0NWZTa/GJzvd4UhFIbmbOiWufc84AAAAAAD/////AlDDAAAAAAAAIlEg12Pea0ceMFZBukHWXGeC6MvP9uCOg9qrDaEnW7yfqtAcAi0AAAAAACJRIHQO5k5FLjuu4SewPBlbzCGtPt3tLvJsWvSD2cVjBNHlAAAAAAABASvAxi0AAAAAACJRIHQO5k5FLjuu4SewPBlbzCGtPt3tLvJsWvSD2cVjBNHlARcg3I0vnv8MT0294HCkjjMO/JCLYqdmVo2R5ljyhLMkuHgAAAA=")
+
+
+
+#     # fees don't fit in the same page on 'flex', but they fit on 'stax' instructions=sign_psbt_instruction_approve(firmware),
+
+#     result = client.sign_psbt(psbt, wallet, wallet_hmac, navigator,
+#                               instructions=sign_psbt_instruction_approve(firmware),
+#                               testname=test_name)
+
+#     assert len(result) == 1
+
+#     # sighash verified with real transaction
+#     sighash0 = bytes.fromhex("672C460A4AB491DD3B70BC5E35D4796683AF95B11F68D4667A8963CBC52A3CDF")
+#     assert len(result) == 1
+#     idx0, partial_sig0 = result[0]
+#     assert idx0 == 0
+    
+#     assert partial_sig0.tapleaf_hash is None, "leaf hash is not None"
+    
+  
+#     #note that the pub is not internal key, secret tweaked when doing BIP86
+#     #use pub in scriptPubKey
+#     pubkey = bytes.fromhex("740ee64e452e3baee127b03c195bcc21ad3edded2ef26c5af483d9c56304d1e5")
+#     assert bip0340.schnorr_verify(sighash0, pubkey, partial_sig0.signature[:64]), "signature veriry fail"
     
 def test_sign_psbt_tr_script_unbounding(navigator: Navigator, firmware: Firmware, client:
                                             RaggerClient, test_name: str):

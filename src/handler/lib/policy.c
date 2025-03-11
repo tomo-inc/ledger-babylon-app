@@ -329,7 +329,7 @@ int read_and_parse_wallet_policy(
     dispatcher_context_t *dispatcher_context,
     buffer_t *buf,
     policy_map_wallet_header_t *wallet_header,
-    uint8_t policy_map_descriptor_template[192],
+    uint8_t policy_map_descriptor_template[MAX_DESCRIPTOR_TEMPLATE_LENGTH],
     uint8_t *policy_map_bytes,
     size_t policy_map_bytes_len,
     bool is_sign) {
@@ -339,7 +339,7 @@ int read_and_parse_wallet_policy(
     //chester
     PRINTF("wallet_header->version %d\n",wallet_header->version);
     //to empty the mem for strcmp in check_descriptor
-    memset(policy_map_descriptor_template,0, 192);
+    memset(policy_map_descriptor_template,0, MAX_DESCRIPTOR_TEMPLATE_LENGTH);
 
     if (wallet_header->version == WALLET_POLICY_VERSION_V1) {
         memcpy(policy_map_descriptor_template,
@@ -2201,7 +2201,8 @@ BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]){
     }
 }
 
-int get_action_step(char* name){
+
+int get_action_step(const char* name){
     PRINTF("--get_action_step %s\n", name);
     if (memcmp(name, BBN_POLICY_NAME_SLASHING, strlen(BBN_POLICY_NAME_SLASHING)) == 0){
         return BBN_POLICY_SLASHING;
@@ -2215,7 +2216,7 @@ int get_action_step(char* name){
     return BBN_POLICY_UNKNOWN;
 }
 
-bool check_descriptor(char* descriptor, bbn_policy_type_t type){
+bool check_descriptor(const char* descriptor, bbn_policy_type_t type){
     PRINTF("--check_descriptor %s\n", descriptor);
     PRINTF("--check_descriptor type %d\n", type);
     switch (type) {
