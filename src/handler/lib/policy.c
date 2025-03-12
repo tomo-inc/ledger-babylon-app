@@ -364,7 +364,7 @@ int read_and_parse_wallet_policy(
          if(0 > get_action_step(wallet_header->name)){
             return WITH_ERROR(-1, "Failed  to get_action_step");
         }else{
-        if(!check_descriptor(policy_map_descriptor_template, get_action_step(wallet_header->name))){
+        if(!check_descriptor((const char *)policy_map_descriptor_template, get_action_step(wallet_header->name))){
                 PRINTF("check_descriptor fail \n");
                 return WITH_ERROR(-1, "Failed  to check descriptor template");
             }   

@@ -66,26 +66,6 @@
 /* BIP0341 tags for computing the tagged hashes when computing he sighash */
 static const uint8_t BIP0341_sighash_tag[] = {'T', 'a', 'p', 'S', 'i', 'g', 'h', 'a', 's', 'h'};
 
-void print_bbn_st(sign_psbt_state_t *st){
-    PRINTF("final st\n");
-    PRINTF("-------psbt_quorum %d\n", st->psbt_quorum);
-    PRINTF("-------psbt_timelock_state %d %x\n", st->psbt_timelock_state, st->psbt_timelock);
-
-    PRINTF("-------psbt_staker_pk %d\n", st->psbt_staker_pk_state);
-    PRINTF_BUF(st->psbt_staker_pk,32);
-    PRINTF("-------psbt_finality_pk %d\n", st->psbt_finality_pk_state);
-    PRINTF_BUF(st->psbt_finality_pk,32);
-    for(int i=0;i<16;i++){
-        PRINTF("-------psbt_covenant_pk[%d] %d\n", i, st->psbt_covenant_pk_state[i]);
-        PRINTF("-------psbt_covenant_pk %x\n",st->psbt_covenant_pk[i]);
-        for (int j = 0; j < 32; j++) {
-            PRINTF("%02X", st->psbt_covenant_pk[i][j]);
-        }
-        PRINTF("\n");
-      
-    }
-}
-
 
 static void bbn_leafhash_compute(uint8_t *tapscript, int tapscript_len, uint8_t *leafhash){
     cx_sha256_t hash_context;
@@ -233,9 +213,7 @@ static void compute_bbn_merkle_root(sign_psbt_state_t *st, uint8_t* roothash){
     compute_bbn_leafhash_unbounding(st, unbounding_leafhash);
     compute_bbn_leafhash_timelock(st, timelock_leafhash);
 
-    uint8_t branch_hash[32];
-    cx_sha256_t hash_context;
-    
+    uint8_t branch_hash[32];  
     crypto_tr_combine_taptree_hashes(unbounding_leafhash, timelock_leafhash, branch_hash);
     PRINTF("branch_hash\n");
     PRINTF_BUF(branch_hash, 32);
@@ -3030,7 +3008,6 @@ sign_transaction(dispatcher_context_t *dc,
                  sign_psbt_state_t *st,
                  sign_psbt_cache_t *sign_psbt_cache,
                  signing_state_t *signing_state,
-                 const uint8_t internal_inputs[static BITVECTOR_REAL_SIZE(MAX_N_INPUTS_CAN_SIGN)],
                  const uint8_t internal_outputs[static BITVECTOR_REAL_SIZE(MAX_N_OUTPUTS_CAN_SIGN)]) {
     LOG_PROCESSOR(__FILE__, __LINE__, __func__);
 
@@ -3050,12 +3027,7 @@ sign_transaction(dispatcher_context_t *dc,
         }
 
         for (unsigned int i = 0; i < st->n_inputs; i++) {
-            PRINTF("for %d\n",st->n_inputs);
-            //chester
-            //Todo:!!! how deal internal check decently 
-            //if (bitvector_get(internal_inputs, i)) {
-            if(true) {
-                PRINTF("bitvector_get\n");
+                PRINTF("for %d\n",st->n_inputs);
                 input_info_t input;
                 memset(&input, 0, sizeof(input));
 
@@ -3085,7 +3057,6 @@ sign_transaction(dispatcher_context_t *dc,
                 }
                 //chester
                 //move display here
-                print_bbn_st(st);
                 if(!bbn_check_address(dc,st)){
                     PRINTF("bbn_check_address fail\n");
                     return false;
@@ -3106,7 +3077,6 @@ sign_transaction(dispatcher_context_t *dc,
                     // already does it on failure
                     return false;
                 }
-            }
         }
 
         ++key_expression_index;
@@ -3176,7 +3146,7 @@ void handler_sign_psbt(dispatcher_context_t *dc, uint8_t protocol_version) {
     */
 
 
-    int sign_result = sign_transaction(dc, &st, cache, &signing_state, internal_inputs, internal_outputs);
+    int sign_result = sign_transaction(dc, &st, cache, &signing_state, internal_outputs);
     if (!sign_result) {
         return;
     }
