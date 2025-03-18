@@ -74,10 +74,7 @@ typedef struct {
 } ui_finality_pk_state_t;
 
 typedef struct {
-    uint32_t index;
-    uint8_t name[32];
-    char pk[BBN_FINALITY_PK_STR_LEN];
-
+    char pk[BBN_COV_PUBKEY_MAX_COUNT][BBN_FINALITY_PK_STR_LEN];
 } ui_cov_pk_state_t;
 typedef struct {
     uint8_t name[32];
@@ -220,7 +217,7 @@ bool ui_confirm_leafhash(dispatcher_context_t *context, uint8_t *leaf_hash);
 
 bool ui_confirm_finality_pk(dispatcher_context_t *context, uint8_t *pk);
 
-bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t *pk, uint32_t index);
+bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t pk[][32], uint32_t count);
 
 bool ui_confirm_bbn_value(dispatcher_context_t *context,  const char *value, const char *name);
 

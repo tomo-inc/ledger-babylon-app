@@ -111,7 +111,7 @@ typedef struct signing_state_s {
 #define BBN_ACTION_NAME_MAX_LEN                 32
 #define BBN_LEAF_HASH_LEN                       32
 #define BBN_PUBKEY_IN_SCRIPT_LEN                32
-#define BBN_COV_PUBKEY_MAX_COUNT                16         
+    
 
 typedef struct {
     uint32_t master_key_fingerprint;

@@ -1608,11 +1608,10 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
             }
         }
     }
-    for(int i=0; i<cov_counts; i++){
-        if( !ui_confirm_cov_pks(dc, st->psbt_covenant_pk[i], i)){
-            SEND_SW(dc, SW_DENY);
-            return false;
-        }
+
+    if( !ui_confirm_cov_pks(dc, st->psbt_covenant_pk, cov_counts)){
+        SEND_SW(dc, SW_DENY);
+        return false;
     }
     return true;
 }

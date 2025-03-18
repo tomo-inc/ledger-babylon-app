@@ -192,12 +192,62 @@ UX_STEP_NOCB(ux_finality_pk_step,
                  .text = g_ui_state.finality_pk.pk,
              });
 
-UX_STEP_NOCB(ux_cov_pks_step,
+UX_STEP_NOCB(ux_cov_pks_step1,
             bnnn_paging,
             {
-                .title = (const char *)g_ui_state.cov_pk.name,
-                .text = g_ui_state.cov_pk.pk,
+                .title = "Covenant 1",
+                .text = g_ui_state.cov_pk.pk[0],
             });
+
+UX_STEP_NOCB(ux_cov_pks_step2,
+            bnnn_paging,
+            {
+                .title = "Covenant 2",
+                .text = g_ui_state.cov_pk.pk[1],
+            });    
+UX_STEP_NOCB(ux_cov_pks_step3,
+            bnnn_paging,
+            {
+                .title = "Covenant 3",
+                .text = g_ui_state.cov_pk.pk[2],
+            });  
+UX_STEP_NOCB(ux_cov_pks_step4,
+            bnnn_paging,
+            {
+                .title = "Covenant 4",
+                .text = g_ui_state.cov_pk.pk[3],
+            });  
+UX_STEP_NOCB(ux_cov_pks_step5,
+            bnnn_paging,
+            {
+                .title = "Covenant 5",
+                .text = g_ui_state.cov_pk.pk[4],
+            });
+UX_STEP_NOCB(ux_cov_pks_step6,
+            bnnn_paging,
+            {
+                .title = "Covenant 6",
+                .text = g_ui_state.cov_pk.pk[5],
+            });  
+UX_STEP_NOCB(ux_cov_pks_step7,
+            bnnn_paging,
+            {
+                .title = "Covenant 7",
+                .text = g_ui_state.cov_pk.pk[6],
+            });  
+UX_STEP_NOCB(ux_cov_pks_step8,
+            bnnn_paging,
+            {
+                .title = "Covenant 8",
+                .text = g_ui_state.cov_pk.pk[7],
+            });  
+UX_STEP_NOCB(ux_cov_pks_step9,
+            bnnn_paging,
+            {
+                .title = "Covenant 9",
+                .text = g_ui_state.cov_pk.pk[8],
+            }); 
+
 UX_STEP_NOCB(ux_bbn_v_step,
                 bnnn_paging,
                 {
@@ -471,10 +521,23 @@ UX_FLOW(ux_confim_finality_pk_flow,
 &ux_display_continue_step,
 &ux_display_reject_step);
 
+// UX_FLOW(ux_confim_cov_pks_flow,
+//     &ux_cov_pks_step,
+//     &ux_display_continue_step,
+//     &ux_display_reject_step);
+
 UX_FLOW(ux_confim_cov_pks_flow,
-    &ux_cov_pks_step,
-    &ux_display_continue_step,
-    &ux_display_reject_step);
+     &ux_cov_pks_step1,
+     &ux_cov_pks_step2,
+     &ux_cov_pks_step3,
+     &ux_cov_pks_step4,
+     &ux_cov_pks_step5,
+     &ux_cov_pks_step6,
+     &ux_cov_pks_step7,
+     &ux_cov_pks_step8,
+     &ux_cov_pks_step9,
+     &ux_display_continue_step,
+     &ux_display_reject_step);
 
 UX_FLOW(ux_confim_bbn_value_flow,
         &ux_bbn_v_step,
