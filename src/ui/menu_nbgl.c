@@ -23,7 +23,7 @@
 
 #define SETTING_INFO_NB 3
 static const char* const INFO_TYPES[SETTING_INFO_NB] = {"Version", "Developer", "Copyright"};
-static const char* const INFO_CONTENTS[SETTING_INFO_NB] = {APPVERSION, "Tomo Connect", "(c) 2025 Tomo Inc"};
+static const char* const INFO_CONTENTS[SETTING_INFO_NB] = {APPVERSION, "Tomo Connect", "(c) 2025 Tomo Inc."};
 
 static const nbgl_contentInfoList_t infoList = {
     .nbInfos = SETTING_INFO_NB,
