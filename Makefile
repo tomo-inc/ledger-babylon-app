@@ -47,7 +47,7 @@ PATH_SLIP21_APP_LOAD_PARAMS = "LEDGER-Wallet policy"
 # Application version
 APPVERSION_M = 0
 APPVERSION_N = 9
-APPVERSION_P = 6
+APPVERSION_P = 7
 APPVERSION_SUFFIX = ap # if not empty, appended at the end. Do not add a dash.
 
 ifeq ($(APPVERSION_SUFFIX),)

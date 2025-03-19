@@ -1609,7 +1609,7 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
         }
     }
 
-    if( !ui_confirm_cov_pks(dc, st->psbt_covenant_pk, cov_counts)){
+    if( cov_counts>0 && !ui_confirm_cov_pks(dc, st->psbt_covenant_pk, cov_counts)){
         SEND_SW(dc, SW_DENY);
         return false;
     }
@@ -3157,7 +3157,7 @@ void handler_sign_psbt(dispatcher_context_t *dc, uint8_t protocol_version) {
 
 static inline int count_psbt_covenant_pk_state(const uint32_t state_array[BBN_COV_PUBKEY_MAX_COUNT]) {
     int count = 0;
-    for (int i = 0; i < BBN_COV_PUBKEY_MAX_COUNT; i++) {
+    for (unsigned int i = 0; i < BBN_COV_PUBKEY_MAX_COUNT; i++) {
         if (state_array[i] == 1) {
             count++;
         }

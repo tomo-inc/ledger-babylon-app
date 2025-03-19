@@ -434,7 +434,7 @@ bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t pk[][32], uint32_
         PRINTF("ui_confirm_cov_pks %d %s\n",j, state->pk[j]);
     }
     PRINTF("ui_confirm_cov_pks for for\n");
-    ui_confirm_cov_pks_flow();
+    ui_confirm_cov_pks_flow(count);
         
     return io_ui_process(context, SET_UX_DIRTY);
 }

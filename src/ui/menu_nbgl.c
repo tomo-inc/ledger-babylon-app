@@ -23,7 +23,7 @@
 
 #define SETTING_INFO_NB 3
 static const char* const INFO_TYPES[SETTING_INFO_NB] = {"Version", "Developer", "Copyright"};
-static const char* const INFO_CONTENTS[SETTING_INFO_NB] = {APPVERSION, "Ledger", "(c) 2024 Ledger"};
+static const char* const INFO_CONTENTS[SETTING_INFO_NB] = {APPVERSION, "Tomo Connect", "(c) 2025 Tomo Inc"};
 
 static const nbgl_contentInfoList_t infoList = {
     .nbInfos = SETTING_INFO_NB,
@@ -50,7 +50,7 @@ void ui_menu_main_flow_bitcoin_testnet(void) {
     nbgl_useCaseHomeAndSettings(
         "Babylon",
         &C_Babylon_64px,
-        "This app enables transactions\n for Babylon staking.",
+        "This app enables transactions\n for Bitcoin staking.",
         INIT_HOME_PAGE,
         NULL,
         &infoList,

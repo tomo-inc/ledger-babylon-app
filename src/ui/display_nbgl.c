@@ -593,17 +593,22 @@ void ui_confirm_finality_pk_flow(void) {
                             status_operation_callback);
 
 }
-void ui_confirm_cov_pks_flow(void) {
+
+
+void ui_confirm_cov_pks_flow(int count) {
     confirmed_status = "Action\nconfirmed";
     rejected_status = "Action rejected";
 
     // Setup data to display
-    pairs[0].item = g_ui_state.cov_pk.name;
-    pairs[0].value = g_ui_state.cov_pk.pk;
+    for (int i = 0; i < count; i++) {
+        snprintf(g_ui_state.cov_pk.name[i], sizeof(g_ui_state.cov_pk.name[i]), "covenant %d", i + 1);
+        pairs[i].item = g_ui_state.cov_pk.name[i];
+        pairs[i].value = g_ui_state.cov_pk.pk[i];
+    }
 
     // Setup list
     pairList.nbMaxLinesForValue = 0;
-    pairList.nbPairs = 1;
+    pairList.nbPairs = count;
     pairList.pairs = pairs;
 
     nbgl_useCaseReviewLight(TYPE_OPERATION,
@@ -620,8 +625,8 @@ void ui_confirm_bbn_value_flow(void){
     rejected_status = "Action rejected";
 
     // Setup data to display
-    pairs[0].item = g_ui_state.bbn_v.name;
-    pairs[0].value = g_ui_state.bbn_v.value;
+    pairs[0].item = (const char *)g_ui_state.bbn_v.name;
+    pairs[0].value = (const char *)g_ui_state.bbn_v.value;
 
     // Setup list
     pairList.nbMaxLinesForValue = 0;

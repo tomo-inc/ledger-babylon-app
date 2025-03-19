@@ -74,6 +74,7 @@ typedef struct {
 } ui_finality_pk_state_t;
 
 typedef struct {
+    char name[BBN_COV_PUBKEY_MAX_COUNT][20];
     char pk[BBN_COV_PUBKEY_MAX_COUNT][BBN_FINALITY_PK_STR_LEN];
 } ui_cov_pk_state_t;
 typedef struct {
@@ -276,7 +277,7 @@ void ui_confim_leaf_hash_flow(void);
 
 void ui_confirm_finality_pk_flow(void);
 
-void ui_confirm_cov_pks_flow(void);
+void ui_confirm_cov_pks_flow(int count);
 
 void ui_confirm_bbn_value_flow(void);
 
