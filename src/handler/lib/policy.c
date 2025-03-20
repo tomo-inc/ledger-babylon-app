@@ -2212,6 +2212,8 @@ int get_action_step(const char* name){
         return BBN_POLICY_UNBOUND;
     }else if(memcmp(name, BBN_POLICY_NAME_WITHDRAW, strlen(BBN_POLICY_NAME_WITHDRAW)) == 0){
         return BBN_POLICY_WITHDRAW;
+    }else if(memcmp(name, BBN_POLICY_NAME_BIP322_MESSAGE, strlen(BBN_POLICY_NAME_BIP322_MESSAGE)) == 0){
+        return BBN_POLICY_BIP322;
     }
     return BBN_POLICY_UNKNOWN;
 }
@@ -2228,6 +2230,13 @@ bool check_descriptor(const char* descriptor, bbn_policy_type_t type){
             return memcmp(descriptor, BBN_DESCRIPTOR_UNBOUND,35) == 0;
         case BBN_POLICY_WITHDRAW:
             return memcmp(descriptor, BBN_DESCRIPTOR_WITHDRAW, 32) == 0;
+        case BBN_POLICY_BIP322:
+            if(memcmp(descriptor, BBN_DESCRIPTOR_BIP322_1, 12) == 0)
+                return true;
+            else if(memcmp(descriptor, BBN_DESCRIPTOR_BIP322_2, 9) == 0)
+                return true;
+            else
+                return false;
         case BBN_POLICY_UNKNOWN:
         default:
             return false;

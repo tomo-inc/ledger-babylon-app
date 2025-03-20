@@ -285,6 +285,7 @@ typedef enum{
 #define BBN_POLICY_NAME_STAKE_TRANSFER          "Staking transaction"
 #define BBN_POLICY_NAME_UNBOUND                 "Unbond"
 #define BBN_POLICY_NAME_WITHDRAW                "Withdraw"
+#define BBN_POLICY_NAME_BIP322_MESSAGE          "Sign message"
 
 typedef enum {
     BBN_POLICY_UNKNOWN = -1,
@@ -292,6 +293,7 @@ typedef enum {
     BBN_POLICY_STAKE_TRANSFER,
     BBN_POLICY_UNBOUND,
     BBN_POLICY_WITHDRAW,
+    BBN_POLICY_BIP322,
 } bbn_policy_type_t;
 
 BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]);
@@ -302,6 +304,8 @@ int get_action_step(const char* name);
 #define BBN_DESCRIPTOR_STAKE_TRANSFER          "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_UNBOUND                 "tr(@0/**,and_v(pk_k(@1/**),multi_a("
 #define BBN_DESCRIPTOR_WITHDRAW                "tr(@0/**,and_v(pk_k(@1/**),older"
+#define BBN_DESCRIPTOR_BIP322_1                "wpkh(@0/**)"
+#define BBN_DESCRIPTOR_BIP322_2                "tr(@0/**)"
 
 bool check_descriptor(const char* descriptor, bbn_policy_type_t type);
           

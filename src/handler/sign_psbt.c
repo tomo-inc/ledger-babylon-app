@@ -1077,7 +1077,7 @@ preprocess_inputs(dispatcher_context_t *dc,
 
         if (input.has_nonWitnessUtxo) {
             uint8_t prevout_hash[32];
-
+            PRINTF("======== has_nonWitnessUtxo\n");  
             // check if the prevout_hash of the transaction matches the computed one from the
             // non-witness utxo
             if (0 > call_get_merkleized_map_value(dc,
@@ -1089,7 +1089,8 @@ preprocess_inputs(dispatcher_context_t *dc,
                 SEND_SW(dc, 0xC004);//SW_INCORRECT_DATA);
                 return false;
             }
-
+            PRINTF("==========prevout_hash %s\n", st->wallet_header.name);
+            PRINTF_BUF(prevout_hash, 32);
             // request non-witness utxo, and get the prevout's value and scriptpubkey
             // Also checks that the recomputed transaction hash matches with prevout_hash.
             if (0 > get_amount_scriptpubkey_from_psbt_nonwitness(dc,
@@ -1107,6 +1108,7 @@ preprocess_inputs(dispatcher_context_t *dc,
         }
 
         if (input.has_witnessUtxo) {
+            PRINTF("======== has_witnessUtxo\n");  
             size_t wit_utxo_scriptPubkey_len;
             uint8_t wit_utxo_scriptPubkey[MAX_PREVOUT_SCRIPTPUBKEY_LEN];
             uint64_t wit_utxo_prevout_amount;
@@ -1119,7 +1121,8 @@ preprocess_inputs(dispatcher_context_t *dc,
                 SEND_SW(dc, SW_INCORRECT_DATA);
                 return false;
             };
-
+            PRINTF("======== wit_utxo_prevout_amount %d\n",wit_utxo_prevout_amount); 
+            PRINTF_BUF(wit_utxo_scriptPubkey, wit_utxo_scriptPubkey_len); 
             if (input.has_nonWitnessUtxo) {
                 // we already know the scriptPubKey, but we double check that it matches
                 if (input.in_out.scriptPubKey_len != wit_utxo_scriptPubkey_len ||
@@ -2238,6 +2241,10 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
 
     if ((sighash_byte & 0x80) != SIGHASH_ANYONECANPAY) {
         PRINTF("(sighash_byte & 0x80) != SIGHASH_ANYONECANPAY\n");
+        PRINTF_BUF(hashes->sha_prevouts, 32);
+        PRINTF_BUF(hashes->sha_amounts, 32);
+        PRINTF_BUF(hashes->sha_scriptpubkeys, 32);
+        PRINTF_BUF(hashes->sha_sequences, 32);
         crypto_hash_update(&sighash_context.header, hashes->sha_prevouts, 32);
         crypto_hash_update(&sighash_context.header, hashes->sha_amounts, 32);
         crypto_hash_update(&sighash_context.header, hashes->sha_scriptpubkeys, 32);
@@ -2649,7 +2656,8 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
                 //SEND_SW(dc, SW_INCORRECT_DATA);
                 return false;
             }
-
+            PRINTF("ith_prevout_hash\n");
+            PRINTF_BUF(ith_prevout_hash,32);
             crypto_hash_update(&sha_prevouts_context.header, ith_prevout_hash, 32);
 
             uint8_t ith_prevout_n_raw[4];
@@ -2663,7 +2671,8 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
                 //SEND_SW(dc, SW_INCORRECT_DATA);
                 return false;
             }
-
+            PRINTF("ith_prevout_n_raw\n");
+            PRINTF_BUF(ith_prevout_n_raw,4);
             crypto_hash_update(&sha_prevouts_context.header, ith_prevout_n_raw, 4);
 
             uint8_t ith_nSequence_raw[4];
