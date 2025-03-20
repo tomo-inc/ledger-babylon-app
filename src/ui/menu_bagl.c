@@ -57,7 +57,7 @@ UX_FLOW(ux_menu_main_flow_bitcoin_testnet,
         &ux_menu_exit_step,
         FLOW_LOOP);
 
-UX_STEP_NOCB(ux_menu_info_step, bn, {"Tomo Connect", "(c) 2025 Tomo Inc."});
+UX_STEP_NOCB(ux_menu_info_step, bn, {"Tomo Wallet Team", "(c) 2025 Tomo Inc."});
 UX_STEP_CB(ux_menu_back_step, pb, ui_menu_main(), {&C_icon_back, "Back"});
 
 // FLOW for the about submenu:
