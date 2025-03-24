@@ -1459,6 +1459,19 @@ display_output(dispatcher_context_t *dc,
     // show this output's address
     char output_description[MAX_OUTPUT_SCRIPT_DESC_SIZE];
 
+    //chester
+    //if it is the sign message in BIP322
+    //to avoid it is mis-used(attacked) for normal transaction
+    //we check amount=0, address=OP_RETURN
+    PRINTF("=====get_action_step %s\n",st->wallet_header.name);
+    PRINTF("=====out_amount %d\n",out_amount);  
+    if(get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322){
+        if(!is_opreturn(out_scriptPubKey,out_scriptPubKey_len) || out_amount != 0){
+            SEND_SW(dc, SW_NOT_SUPPORTED);
+            return false;
+        }  
+    }
+    
     if (!format_script(out_scriptPubKey, out_scriptPubKey_len, output_description)) {
         PRINTF("Invalid or unsupported script for output %d\n", cur_output_index);
         SEND_SW(dc, SW_NOT_SUPPORTED);
@@ -1849,7 +1862,7 @@ static bool __attribute__((noinline)) display_transaction(
         //chester
         /** FINALITY PK CONFIRMATION
          *
-         *  Display finality pk, this is the most important infomation for all the babylon actions
+         *  Display finality pk, this is the most important information for all the babylon actions
          */
         PRINTF("display_bbn_pk\n");
         if (!display_bbn_pk(dc, st)) {

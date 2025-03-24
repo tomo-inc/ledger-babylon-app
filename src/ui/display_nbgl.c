@@ -221,9 +221,9 @@ void ui_accept_transaction_simplified_flow(void) {
     nbgl_useCaseReview(TYPE_TRANSACTION,
                        &pairList,
                        &C_Babylon_64px,
-                       "Review Babylon\nto send Bitcoin",
+                       "Review Babylon\nto stake Bitcoin",
                        NULL,
-                       "Bitcoin Staking\nto send Bitcoin?",
+                       "Bitcoin Staking\nto stake Bitcoin?",
                        start_transaction_callback);
 }
 
@@ -636,7 +636,7 @@ void ui_confirm_bbn_value_flow(void){
     nbgl_useCaseReviewLight(TYPE_OPERATION,
                             &pairList,
                             &C_Babylon_64px,
-                            "Babylon infomation",
+                            "Babylon information",
                             NULL,
                             "Confirm it matches \ndisplayed on the Dapp",
                             status_operation_callback);
