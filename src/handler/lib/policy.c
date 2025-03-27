@@ -470,10 +470,12 @@ __attribute__((noinline, warn_unused_result)) int get_extended_pubkey_from_clien
     }
     *out = key_info.ext_pubkey;
 //chester
-    if(get_fingerprint(key_info.master_key_fingerprint)==FP_OTHER)
+    if(get_fingerprint(key_info.master_key_fingerprint)==FP_OTHER){
         return key_info.master_key_derivation_len;
-    else
+    }  
+    else{
         return 0;
+    }   
 }
 
 __attribute__((warn_unused_result)) static int get_derived_pubkey(
@@ -642,7 +644,6 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                 break;
             }
             case CMD_CODE_PUSH_PK: {
-                PRINTF("----------push pk\n");
                 const policy_node_with_key_t *policy =
                     (const policy_node_with_key_t *) node->policy_node;
                 uint8_t compressed_pubkey[33];
@@ -652,12 +653,12 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                                              compressed_pubkey)) {
                     return -1;
                 }
-
                 if (!state->is_taproot) {
                     update_output_u8(state, 33);  // PUSH 33 bytes
                     update_output(state, compressed_pubkey, 33);
                 } else {
-                    PRINTF("----------push pk 32 %s\n",state->st->wallet_header.name);
+                    //PRINTF_BUF(state->st->wallet_header.name,65);
+                    //PRINTF("----------push pk 32 %s\n",state->st->wallet_header.name);
                     //chester should know which one is staker pk
                    //state->st->psbt_action_name
                         //fill staker
@@ -944,7 +945,6 @@ __attribute__((warn_unused_result)) static int process_multi_sortedmulti_node(
                                                  cur_pubkey)) {
                         return -1;
                     }
-
                     if (cmp_arrays(compressed_pubkey, cur_pubkey, 33) > 0) {
                         memcpy(compressed_pubkey, cur_pubkey, 33);
                         smallest_pubkey_index = j;
@@ -1021,7 +1021,6 @@ __attribute__((warn_unused_result)) static int process_multi_a_sortedmulti_a_nod
                                                  cur_pubkey)) {
                         return -1;
                     }
-
                     // x-only pubkeys must be compared ignoring the first byte
                     if (cmp_arrays(compressed_pubkey + 1, cur_pubkey + 1, 32) > 0) {
                         memcpy(compressed_pubkey, cur_pubkey, 33);
@@ -1245,7 +1244,6 @@ int get_wallet_script(dispatcher_context_t *dispatcher_context,
                                    compressed_pubkey)) {
             return -1;
         }
-
         out[0] = OP_1;
         out[1] = 32;  // PUSH 32 bytes
 
@@ -2195,6 +2193,12 @@ BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]){
     }else if(!memcmp(fingerprint, BBN_FINALITY_PUB_FP,4)){
         PRINTF("FP_FINALITY_PUB\n");
         return FP_FINALITY_PUB;
+    }else if(!memcmp(fingerprint, BBN_BIP322_MESSAGE,4)){
+        PRINTF("BBN_BIP322_MESSAGE\n");
+        return FP_BIP322_MESSAGE;
+    }else if(!memcmp(fingerprint, BBN_BIP322_TAPPUB,4)){
+        PRINTF("BBN_BIP322_SIGNATURE\n");
+        return FP_BIP322_TAPPUB;
     }else{
         PRINTF("FP_OTHER\n");
         return FP_OTHER;
@@ -2231,12 +2235,7 @@ bool check_descriptor(const char* descriptor, bbn_policy_type_t type){
         case BBN_POLICY_WITHDRAW:
             return memcmp(descriptor, BBN_DESCRIPTOR_WITHDRAW, 32) == 0;
         case BBN_POLICY_BIP322:
-            if(memcmp(descriptor, BBN_DESCRIPTOR_BIP322_1, 12) == 0)
-                return true;
-            else if(memcmp(descriptor, BBN_DESCRIPTOR_BIP322_2, 9) == 0)
-                return true;
-            else
-                return false;
+             return memcmp(descriptor, BBN_DESCRIPTOR_BIP322, 41) == 0;
         case BBN_POLICY_UNKNOWN:
         default:
             return false;

@@ -278,6 +278,8 @@ typedef enum{
     FP_LEAF_HASH_DISPLY,
     FP_LEAF_HASH_CHECK,
     FP_FINALITY_PUB,
+    FP_BIP322_MESSAGE,
+    FP_BIP322_TAPPUB,
     FP_OTHER
 
 }BBN_FingerPrintType;
@@ -305,8 +307,7 @@ int get_action_step(const char* name);
 #define BBN_DESCRIPTOR_STAKE_TRANSFER          "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_UNBOUND                 "tr(@0/**,and_v(pk_k(@1/**),multi_a("
 #define BBN_DESCRIPTOR_WITHDRAW                "tr(@0/**,and_v(pk_k(@1/**),older"
-#define BBN_DESCRIPTOR_BIP322_1                "wpkh(@0/**)"
-#define BBN_DESCRIPTOR_BIP322_2                "tr(@0/**)"
+#define BBN_DESCRIPTOR_BIP322                  "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))"
 
 bool check_descriptor(const char* descriptor, bbn_policy_type_t type);
           

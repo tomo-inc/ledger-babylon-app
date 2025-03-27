@@ -79,7 +79,7 @@ typedef struct {
 } ui_cov_pk_state_t;
 typedef struct {
     uint8_t name[32];
-    uint8_t value[16];
+    uint8_t value[128];
 } ui_bbn_value_state_t;
 
 // maximum length of the description of a cosigner in a wallet policy

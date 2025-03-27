@@ -426,8 +426,6 @@ bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t pk[][32], uint32_
     ui_cov_pk_state_t *state = (ui_cov_pk_state_t *) &g_ui_state;
     for(uint32_t j=0; j<count; j++){
         for (uint32_t i = 0; i < 32; i++) {
-            PRINTF("i=%d j=%d\n", i, j);
-            PRINTF("i=%d j=%d state-pk-%x, pk-%x\n", i, j, state->pk[j] + i * 2, pk[j][i]);
             snprintf(state->pk[j] + i * 2, 64, "%02x", pk[j][i]);  
         }
         state->pk[j][64] = '\0';
@@ -443,7 +441,7 @@ bool ui_confirm_bbn_value(dispatcher_context_t *context,  const char *value, con
     #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
         return true;
     #endif
-
+    PRINTF("ENTER ui_confirm_bbn_value\n");
     ui_bbn_value_state_t *state = (ui_bbn_value_state_t *) &g_ui_state;
     snprintf((char *)state->value, sizeof(state->value), "%s", value);
     snprintf((char *)state->name, sizeof(state->name), "%s", name);

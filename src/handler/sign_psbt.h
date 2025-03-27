@@ -174,8 +174,7 @@ typedef struct {
 // 函数声明
 static inline int count_psbt_covenant_pk_state(const uint32_t state_array[BBN_COV_PUBKEY_MAX_COUNT]);
 
-#define TAG_STRING "BIP0322-signed-message:"
-#define TAG_LEN 24
+
 
 // Atomic byte constants
 #define TX_VER_BYTES            0x00, 0x00, 0x00, 0x00
@@ -184,6 +183,7 @@ static inline int count_psbt_covenant_pk_state(const uint32_t state_array[BBN_CO
                                 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, \
                                 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, \
                                 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+                                
 #define TX_VOUT_INDEX           0xff, 0xff, 0xff, 0xff
 #define TX_SCRIPTSIG_LEN        0x22
 #define TX_SCRIPTSIG_TAG        0x00, 0x20
@@ -195,8 +195,8 @@ static inline int count_psbt_covenant_pk_state(const uint32_t state_array[BBN_CO
 #define TX_SPK_TAG              0x51, 0x20
 #define TX_LOCKTIME             0x00, 0x00, 0x00, 0x00
 
-#define OFFSET_MSG_HASH         41
-#define OFFSET_PUBKEY           90
+#define OFFSET_MSG_HASH         44
+#define OFFSET_PUBKEY           92
 
 // Fixed parts of tx as macros
 #define TX_PREFIX \
@@ -207,6 +207,4 @@ static inline int count_psbt_covenant_pk_state(const uint32_t state_array[BBN_CO
 
 #define TX_SUFFIX \
     TX_LOCKTIME
-
-static inline int compute_bip322_txid_by_message(const uint8_t *message, size_t message_len, const uint8_t *tappub, uint8_t *txid_out);
 

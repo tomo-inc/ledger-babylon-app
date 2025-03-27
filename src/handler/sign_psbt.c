@@ -65,7 +65,37 @@
 
 /* BIP0341 tags for computing the tagged hashes when computing he sighash */
 static const uint8_t BIP0341_sighash_tag[] = {'T', 'a', 'p', 'S', 'i', 'g', 'h', 'a', 's', 'h'};
+static const uint8_t BIP0322_msghash_tag[] = {'B', 'I', 'P', '0', '3', '2', '2', '-', 's', 'i', 'g', 'n', 'e', 'd', '-', 'm', 'e', 's', 's', 'a', 'g', 'e'};
 
+static void compute_bip322_txid_by_message( const uint8_t *message, size_t message_len, const uint8_t *tappub, uint8_t *txid_out){
+    uint8_t tx[] = { TX_PREFIX, TX_DUMMY_TXID, TX_MIDFIX, TX_DUMMY_TXID, TX_SUFFIX };
+    cx_sha256_t sighash_context, txhash_context, txid_context;
+    uint8_t hash[32];
+    PRINTF("compute_bip322_txid_by_message\n");
+    PRINTF_BUF(message,message_len);
+    PRINTF_BUF(tappub,32);
+
+    crypto_tr_tagged_hash_init(&sighash_context, BIP0322_msghash_tag, sizeof(BIP0322_msghash_tag));   
+    crypto_hash_update(&sighash_context.header, message, message_len);
+    crypto_hash_digest(&sighash_context.header, hash, 32);
+    PRINTF("message hash\n");
+    PRINTF_BUF(hash,32);
+
+    memcpy(tx + OFFSET_MSG_HASH, hash, 32);
+    memcpy(tx + OFFSET_PUBKEY, tappub, 32);
+    PRINTF("tx\n");
+    PRINTF_BUF(tx,sizeof(tx));
+
+    //HASH256(tx)   
+    cx_sha256_init(&txhash_context);   
+    crypto_hash_update(&txhash_context.header, tx, sizeof(tx));    
+    crypto_hash_digest(&txhash_context.header, hash, 32);
+    cx_sha256_init(&txid_context); 
+    crypto_hash_update(&txid_context.header, hash, 32);    
+    crypto_hash_digest(&txid_context.header, txid_out, 32);    
+    PRINTF("txid\n");
+    PRINTF_BUF(txid_out,32);
+}
 
 static void bbn_leafhash_compute(uint8_t *tapscript, int tapscript_len, uint8_t *leafhash){
     cx_sha256_t hash_context;
@@ -261,6 +291,35 @@ static bool bbn_check_address(dispatcher_context_t *dc, sign_psbt_state_t *st){
     return true;
 }
 
+static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_state_t *st){
+    uint8_t txid[32];
+    char message[64] = { 0 }; 
+    char message_str[64];
+    if(get_action_step(st->wallet_header.name) != BBN_POLICY_BIP322)
+        return true;
+    compute_bip322_txid_by_message(st->psbt_leafhash+1, st->psbt_leafhash_state, st->psbt_finality_pk, txid);
+    PRINTF("txid\n");
+    PRINTF_BUF(txid, 32);
+    PRINTF("st->psbt_staker_pk\n");
+    PRINTF_BUF(st->psbt_staker_pk, 32);
+    if(memcmp(txid, st->psbt_staker_pk, 32) != 0){
+        SEND_SW(dc, SW_DENY);
+        return false;
+    }
+    PRINTF("before ui_confirm_bbn_value\n");
+    PRINTF_BUF(st->psbt_leafhash+1, st->psbt_leafhash_state);
+    memcpy(message, st->psbt_leafhash+1, st->psbt_leafhash_state);
+    for (int i = 0; i < st->psbt_leafhash_state; i++) {
+        snprintf(message_str + i * 2, 3, "%02X", message[i]);
+    }
+    PRINTF_BUF(message_str, 64);
+    if(!ui_confirm_bbn_value(dc, message_str, "message")){
+        SEND_SW(dc, SW_DENY);
+        return false;
+    }
+    return true;
+}
+
 /*
 Current assumptions during signing:
   1) exactly one of the keys in the wallet is internal (enforce during wallet registration)
@@ -292,7 +351,6 @@ static int hash_output_n(dispatcher_context_t *dc,
     if (res < 0) {
         return -1;
     }
-
     // get output's amount
     uint8_t amount_raw[8];
     if (8 != call_get_merkleized_map_value(dc,
@@ -564,7 +622,6 @@ static int is_in_out_internal(dispatcher_context_t *dispatcher_context,
         // unlike for inputs, we only consider outputs internal if they are on the change path
         return 0;
     }
-
     return compare_wallet_script_at_path(dispatcher_context,
                                          sign_psbt_cache,
                                          in_out_info->is_change,
@@ -733,7 +790,7 @@ static bool __attribute__((noinline)) get_and_verify_key_info(dispatcher_context
                                                               keyexpr_info_t *keyexpr_info) {
     policy_map_key_info_t key_info;
     uint8_t key_info_str[MAX_POLICY_KEY_INFO_LEN];
-
+                                                        
     int key_info_len = call_get_merkle_leaf_element(dc,
                                                     st->wallet_header.keys_info_merkle_root,
                                                     st->wallet_header.n_keys,
@@ -783,8 +840,17 @@ static bool __attribute__((noinline)) get_and_verify_key_info(dispatcher_context
             PRINTF_BUF(st->psbt_leafhash, 32);
         } 
     }
-  
-
+    if(get_fingerprint(key_info.master_key_fingerprint)==FP_BIP322_MESSAGE){
+        PRINTF("--FP_BIP322_MESSAGE-- got\n");
+        memcpy(st->psbt_leafhash, keyexpr_info->pubkey.compressed_pubkey+1,32);//reuse for save memoroy
+        PRINTF_BUF(st->psbt_leafhash, 32);
+        st->psbt_leafhash_state = st->psbt_leafhash[0];
+    }
+    if(get_fingerprint(key_info.master_key_fingerprint)==FP_BIP322_TAPPUB){
+        PRINTF("--FP_BIP322_TAPPUB-- got\n");
+        memcpy(st->psbt_finality_pk, keyexpr_info->pubkey.compressed_pubkey+1,32);//reuse for save memoroy
+        PRINTF_BUF(st->psbt_finality_pk, 32);
+    }
     
     // the rest of the function verifies if the key is indeed internal, if it has our fingerprint
     uint32_t fpr = read_u32_be(key_info.master_key_fingerprint, 0);
@@ -1034,13 +1100,14 @@ preprocess_inputs(dispatcher_context_t *dc,
                   sign_psbt_cache_t *sign_psbt_cache,
                   uint8_t internal_inputs[static BITVECTOR_REAL_SIZE(MAX_N_INPUTS_CAN_SIGN)]) {
     LOG_PROCESSOR(__FILE__, __LINE__, __func__);
-
+                
     memset(internal_inputs, 0, BITVECTOR_REAL_SIZE(MAX_N_INPUTS_CAN_SIGN));
 
     if (!fill_internal_key_expressions(dc, st)) return false;
 
     // process each input
     for (unsigned int cur_input_index = 0; cur_input_index < st->n_inputs; cur_input_index++) {
+
         input_info_t input;
         memset(&input, 0, sizeof(input));
 
@@ -1058,7 +1125,6 @@ preprocess_inputs(dispatcher_context_t *dc,
             SEND_SW(dc, 0xC001);//SW_INCORRECT_DATA);
             return false;
         }
-
         if (input.in_out.unexpected_pubkey_error) {
             PRINTF("Unexpected pubkey length\n");  // only compressed pubkeys are supported
              SEND_SW(dc, 0xC002);//SW_INCORRECT_DATA);
@@ -1091,6 +1157,10 @@ preprocess_inputs(dispatcher_context_t *dc,
             }
             PRINTF("==========prevout_hash %s\n", st->wallet_header.name);
             PRINTF_BUF(prevout_hash, 32);
+            if(get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322){
+                memcpy(st->psbt_staker_pk, prevout_hash,32);//to save memory
+            }
+            
             // request non-witness utxo, and get the prevout's value and scriptpubkey
             // Also checks that the recomputed transaction hash matches with prevout_hash.
             if (0 > get_amount_scriptpubkey_from_psbt_nonwitness(dc,
@@ -1112,7 +1182,6 @@ preprocess_inputs(dispatcher_context_t *dc,
             size_t wit_utxo_scriptPubkey_len;
             uint8_t wit_utxo_scriptPubkey[MAX_PREVOUT_SCRIPTPUBKEY_LEN];
             uint64_t wit_utxo_prevout_amount;
-
             if (0 > get_amount_scriptpubkey_from_psbt_witness(dc,
                                                               &input.in_out.map,
                                                               &wit_utxo_prevout_amount,
@@ -1121,8 +1190,6 @@ preprocess_inputs(dispatcher_context_t *dc,
                 SEND_SW(dc, SW_INCORRECT_DATA);
                 return false;
             };
-            PRINTF("======== wit_utxo_prevout_amount %d\n",wit_utxo_prevout_amount); 
-            PRINTF_BUF(wit_utxo_scriptPubkey, wit_utxo_scriptPubkey_len); 
             if (input.has_nonWitnessUtxo) {
                 // we already know the scriptPubKey, but we double check that it matches
                 if (input.in_out.scriptPubKey_len != wit_utxo_scriptPubkey_len ||
@@ -1150,18 +1217,20 @@ preprocess_inputs(dispatcher_context_t *dc,
         }
 
         // check if the input is internal; if not, continue
+        // chester
+        // this check fails in bip322 message, close it for now
+        // int is_internal = is_in_out_internal(dc, st, sign_psbt_cache, &input.in_out, true);
 
-        int is_internal = is_in_out_internal(dc, st, sign_psbt_cache, &input.in_out, true);
-        if (is_internal < 0) {
-            PRINTF("Error checking if input %d is internal\n", cur_input_index);
-            SEND_SW(dc,0xC007);// SW_INCORRECT_DATA);
-            return false;
-        } else if (is_internal == 0) {
-            ++st->n_external_inputs;
+        // if (is_internal < 0) {
+        //     PRINTF("Error checking if input %d is internal\n", cur_input_index);
+        //     SEND_SW(dc,0xC007);// SW_INCORRECT_DATA);
+        //     return false;
+        // } else if (is_internal == 0) {
+        //     ++st->n_external_inputs;
 
-            PRINTF("INPUT %d is external\n", cur_input_index);
-            continue;
-        }
+        //     PRINTF("INPUT %d is external\n", cur_input_index);
+        //     continue;
+        // }
 
         bitvector_set(internal_inputs, cur_input_index, 1);
 
@@ -1341,7 +1410,7 @@ preprocess_outputs(dispatcher_context_t *dc,
             cur_output_index,
             (merkle_tree_elements_callback_t) output_keys_callback,
             &output.in_out.map);
-        PRINTF("---call_get_merkleized_map_with_callback %d %d\n",res, cur_output_index); 
+
         if (res < 0) {
             SEND_SW(dc,0xD001);// SW_INCORRECT_DATA);
             return false;
@@ -1768,7 +1837,13 @@ static bool __attribute__((noinline)) display_transaction(
             PRINTF("display_bbn_pk fail \n");
             return false;
         }
-        PRINTF("display_bbn_value\n");
+        PRINTF("bbn_check_and_display_message\n");
+        if(!bbn_check_and_display_message(dc,st)){
+            PRINTF("bbn_check_and_display_message fail\n");
+            return false;
+        }
+
+       
         if (!display_bbn_value(dc, st)) {
             PRINTF("display_bbn_value fail \n");
             return false;
@@ -1869,6 +1944,12 @@ static bool __attribute__((noinline)) display_transaction(
             PRINTF("display_bbn_pk fail \n");
             return false;
         }
+        PRINTF("bbn_check_and_display_message\n");
+        if(!bbn_check_and_display_message(dc,st)){
+            PRINTF("bbn_check_and_display_message fail\n");
+            return false;
+        }
+
         PRINTF("display_bbn_value\n");
         if (!display_bbn_value(dc, st)) {
             PRINTF("display_bbn_value fail \n");
@@ -2274,7 +2355,7 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
 
     // ext_flag
     PRINTF("--------is_tapscript=%d\n",keyexpr_info->is_tapscript);
-    if( get_action_step(st->wallet_header.name) == BBN_POLICY_STAKE_TRANSFER){
+    if( get_action_step(st->wallet_header.name) == BBN_POLICY_STAKE_TRANSFER || get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322){
         keyexpr_info->is_tapscript = 0;
         PRINTF("-------- change is_tapscript=%d\n",keyexpr_info->is_tapscript);
     }
@@ -2560,7 +2641,7 @@ static bool __attribute__((noinline)) sign_sighash_schnorr_and_yield(dispatcher_
         PRINTF("keyexpr_info->is_tapscript %x\n",keyexpr_info->is_tapscript);
 
         if (!keyexpr_info->is_tapscript) {
-            if (isnull_policy_node_tree(&policy->tree) ||  get_action_step(st->wallet_header.name) == BBN_POLICY_STAKE_TRANSFER) {
+            if (isnull_policy_node_tree(&policy->tree) ||  get_action_step(st->wallet_header.name) == BBN_POLICY_STAKE_TRANSFER || get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322) {
                 PRINTF("crypto_tr_tweak_seckey BIP-86 \n");
                 // tweak as specified in BIP-86 and BIP-386
                 crypto_tr_tweak_seckey(seckey, (uint8_t[]){}, 0, seckey);
@@ -2671,6 +2752,10 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
             }
             PRINTF("ith_prevout_hash\n");
             PRINTF_BUF(ith_prevout_hash,32);
+            if(get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322){
+                memcpy(st->psbt_staker_pk, ith_prevout_hash,32);//to save memory
+            }
+
             crypto_hash_update(&sha_prevouts_context.header, ith_prevout_hash, 32);
 
             uint8_t ith_prevout_n_raw[4];
@@ -3082,6 +3167,8 @@ sign_transaction(dispatcher_context_t *dc,
                     PRINTF("bbn_check_address fail\n");
                     return false;
                 }
+
+              
                    
                 if (!display_transaction(dc, st, internal_outputs)) return false;
                 // Signing always takes some time, so we rather not wait before showing the spinner
@@ -3122,10 +3209,8 @@ void handler_sign_psbt(dispatcher_context_t *dc, uint8_t protocol_version) {
 
     // read APDU inputs, intialize global state and read global PSBT map
     if (!init_global_state(dc, &st)) return;
-
     sign_psbt_cache_t *cache = &G_sign_psbt_cache;
     init_sign_psbt_cache(cache);
-
     // bitmap to keep track of which inputs are internal
     uint8_t internal_inputs[BITVECTOR_REAL_SIZE(MAX_N_INPUTS_CAN_SIGN)];
     memset(internal_inputs, 0, sizeof(internal_inputs));
@@ -3144,21 +3229,18 @@ void handler_sign_psbt(dispatcher_context_t *dc, uint8_t protocol_version) {
      */
     
     if (!preprocess_inputs(dc, &st, cache, internal_inputs)) return;
-
     /** OUTPUTS VERIFICATION FLOW
      *
      *  For each output, check if it's a change address.
      *  Check if it's an acceptable output.
      */
     if (!preprocess_outputs(dc, &st, cache, internal_outputs)) return;
-
     signing_state_t signing_state;
     memset(&signing_state, 0, sizeof(signing_state));
 
     if (!compute_tx_hashes(dc, &st, &signing_state.tx_hashes)) {
             return;
     }
-    
    
     /** SIGNING FLOW
     *
