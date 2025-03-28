@@ -270,7 +270,6 @@ static bool bbn_check_address(dispatcher_context_t *dc, sign_psbt_state_t *st){
 
     if (crypto_tr_tweak_pubkey(NUMS_PUBKEY+1, merkle_root, 32, &parity, tweaked_pubkey) != 0) {
         PRINTF("Failed to tweak public key\n");
-        SEND_SW(dc, SW_DENY);
         return false;
     }
 
@@ -285,7 +284,7 @@ static bool bbn_check_address(dispatcher_context_t *dc, sign_psbt_state_t *st){
     PRINTF("out_scriptPubKey_len: %d\n",out_scriptPubKey_len);    
     PRINTF_BUF(out_scriptPubKey+2, 32);
     if (memcmp(out_scriptPubKey+2, tweaked_pubkey, 32)) {
-        SEND_SW(dc, SW_DENY);
+        PRINTF("tweak public key cmp fail\n");
         return false;
     }
     return true;
@@ -3165,6 +3164,7 @@ sign_transaction(dispatcher_context_t *dc,
                 //move display here
                 if(!bbn_check_address(dc,st)){
                     PRINTF("bbn_check_address fail\n");
+                    SEND_SW(dc, SW_DENY);
                     return false;
                 }
 
@@ -3250,11 +3250,13 @@ void handler_sign_psbt(dispatcher_context_t *dc, uint8_t protocol_version) {
 
 
     int sign_result = sign_transaction(dc, &st, cache, &signing_state, internal_outputs);
+    
+    ui_post_processing_confirm_transaction(dc, sign_result);
     if (!sign_result) {
         return;
     }
       
-    ui_post_processing_confirm_transaction(dc, sign_result);
+   
 
     SEND_SW(dc, SW_OK);
 }
