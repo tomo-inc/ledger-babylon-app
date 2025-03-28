@@ -67,6 +67,15 @@
 static const uint8_t BIP0341_sighash_tag[] = {'T', 'a', 'p', 'S', 'i', 'g', 'h', 'a', 's', 'h'};
 static const uint8_t BIP0322_msghash_tag[] = {'B', 'I', 'P', '0', '3', '2', '2', '-', 's', 'i', 'g', 'n', 'e', 'd', '-', 'm', 'e', 's', 's', 'a', 'g', 'e'};
 
+void bytes_to_ascii_hex(const uint8_t *input, size_t input_len, uint8_t *output) {
+    const char hex_chars[] = "0123456789abcdef";
+
+    for (size_t i = 0; i < input_len; ++i) {
+        output[2 * i]     = hex_chars[(input[i] >> 4) & 0x0F]; // high nibble
+        output[2 * i + 1] = hex_chars[input[i] & 0x0F];        // low nibble
+    }
+}
+
 static void compute_bip322_txid_by_message( const uint8_t *message, size_t message_len, const uint8_t *tappub, uint8_t *txid_out){
     uint8_t tx[] = { TX_PREFIX, TX_DUMMY_TXID, TX_MIDFIX, TX_DUMMY_TXID, TX_SUFFIX };
     cx_sha256_t sighash_context, txhash_context, txid_context;
@@ -76,7 +85,13 @@ static void compute_bip322_txid_by_message( const uint8_t *message, size_t messa
     PRINTF_BUF(tappub,32);
 
     crypto_tr_tagged_hash_init(&sighash_context, BIP0322_msghash_tag, sizeof(BIP0322_msghash_tag));   
-    crypto_hash_update(&sighash_context.header, message, message_len);
+    // Convert each byte of the message into two ASCII characters representing its hexadecimal value
+    uint8_t converted_message[32 * 2];
+    bytes_to_ascii_hex(message, message_len, converted_message);    
+    PRINTF("converted_message\n");
+    PRINTF_BUF(converted_message,message_len * 2);
+    // Update the hash context with the converted message
+    crypto_hash_update(&sighash_context.header, converted_message, message_len * 2);
     crypto_hash_digest(&sighash_context.header, hash, 32);
     PRINTF("message hash\n");
     PRINTF_BUF(hash,32);
@@ -309,7 +324,7 @@ static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_st
     PRINTF_BUF(st->psbt_leafhash+1, st->psbt_leafhash_state);
     memcpy(message, st->psbt_leafhash+1, st->psbt_leafhash_state);
     for (int i = 0; i < st->psbt_leafhash_state; i++) {
-        snprintf(message_str + i * 2, 3, "%02X", message[i]);
+        snprintf(message_str + i * 2, 3, "%02x", message[i]);
     }
     PRINTF_BUF(message_str, 64);
     if(!ui_confirm_bbn_value(dc, message_str, "message")){
@@ -3250,7 +3265,7 @@ void handler_sign_psbt(dispatcher_context_t *dc, uint8_t protocol_version) {
 
 
     int sign_result = sign_transaction(dc, &st, cache, &signing_state, internal_outputs);
-    
+
     ui_post_processing_confirm_transaction(dc, sign_result);
     if (!sign_result) {
         return;

@@ -246,20 +246,20 @@ def test_sign_psbt_tr_script_withdraw(navigator: Navigator, firmware: Firmware, 
 def test_sign_psbt_bip322_message_display(navigator: Navigator, firmware: Firmware, client:
                                        RaggerClient, test_name: str):
     # script pubkey = 740ee64e452e3baee127b03c195bcc21ad3edded2ef26c5af483d9c56304d1e5
-    # message = "hello" = 05 68656c6c6f fcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfc
+    # 1452fe7c1491b07fb68acd3aa83ecfc5af5c2d8e74fcfcfcfcfcfcfcfcfcfcfc
     # tap pubkey = 740ee64e452e3baee127b03c195bcc21ad3edded2ef26c5af483d9c56304d1e5
 
     wallet = WalletPolicy(
         "Sign message",
         "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))",
-        [
+         [
             "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
-            "[83871619/86'/1'/0']tpubD6NzVbkrYhZ4XrsWqSCvFPWZwPCG77B54B3aKspxAdX4STCqutkRgUWQ5b5FmXSJdPDgki9zqZ2vrSWjUkXsXVkqFNS89fVPoUeX4JEEWnA",#message
-            "[25270417/86'/1'/0']tpubD6NzVbkrYhZ4YkMn2vxCprkptChmVi9PDL2LeceaonJm71Rqg5TPC7UexzfFVRah3YegACuusqkDQQdCYCAJNiNFkzasVh8XBD6bQsumurc",#tap pubkey
-        ],
+            "[83871619/86'/1'/0']tpubD6NzVbkrYhZ4XwMNUjF8FFGx2L4RAKYKWvGFjRyJB7mCKC1pLJaa4BCq6teRfNjUqFYFabRToqDFMks9foKghcEV4oBn2TEKVN4QsjjkK25",
+            "[25270417/86'/1'/0']tpubD6NzVbkrYhZ4YkMn2vxCprkptChmVi9PDL2LeceaonJm71Rqg5TPC7UexzfFVRah3YegACuusqkDQQdCYCAJNiNFkzasVh8XBD6bQsumurc"
+    ]
     )
     
-    psbt_b64 = "cHNidP8BAD0AAAAAASI0RL02HpENGxxE3zEBAR+FRafrpJgVXTi7sypcmKkeAAAAAAAAAAAAAQAAAAAAAAAAAWoAAAAAAAEBKwAAAAAAAAAAIlEgdA7mTkUuO67hJ7A8GVvMIa0+3e0u8mxa9IPZxWME0eUhFtyNL57/DE9NveBwpI4zDvyQi2KnZlaNkeZY8oSzJLh4GQD1rML9VgAAgAEAAIAAAACAAAAAAAAAAAABFyDcjS+e/wxPTb3gcKSOMw78kItip2ZWjZHmWPKEsyS4eAAA"
+    psbt_b64 = "cHNidP8BAD0AAAAAAfnzpZz1H7eb/ESlaY3WClZ5a0uQxjLExG5FALY4mkuRAAAAAAAAAAAAAQAAAAAAAAAAAWoAAAAAAAEBKwAAAAAAAAAAIlEgdA7mTkUuO67hJ7A8GVvMIa0+3e0u8mxa9IPZxWME0eUhFtyNL57/DE9NveBwpI4zDvyQi2KnZlaNkeZY8oSzJLh4GQD1rML9VgAAgAEAAIAAAACAAAAAAAAAAAABFyDcjS+e/wxPTb3gcKSOMw78kItip2ZWjZHmWPKEsyS4eAAA"
     psbt = PSBT()
     psbt.deserialize(psbt_b64)
 
