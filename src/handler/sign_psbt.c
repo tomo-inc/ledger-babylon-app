@@ -51,7 +51,6 @@
 
 #include "handlers.h"
 #include "sign_psbt.h"
-
 #include "sign_psbt/compare_wallet_script_at_path.h"
 #include "sign_psbt/extract_bip32_derivation.h"
 #include "sign_psbt/musig_signing.h"
@@ -62,6 +61,8 @@
 #include "../swap/handle_swap_sign_transaction.h"
 #include "../musig/musig.h"
 #include "../musig/musig_sessions.h"
+
+#include "../common/segwit_addr.h"
 
 /* BIP0341 tags for computing the tagged hashes when computing he sighash */
 static const uint8_t BIP0341_sighash_tag[] = {'T', 'a', 'p', 'S', 'i', 'g', 'h', 'a', 's', 'h'};
@@ -86,12 +87,22 @@ static void compute_bip322_txid_by_message( const uint8_t *message, size_t messa
 
     crypto_tr_tagged_hash_init(&sighash_context, BIP0322_msghash_tag, sizeof(BIP0322_msghash_tag));   
     // Convert each byte of the message into two ASCII characters representing its hexadecimal value
-    uint8_t converted_message[32 * 2];
-    bytes_to_ascii_hex(message, message_len, converted_message);    
-    PRINTF("converted_message\n");
-    PRINTF_BUF(converted_message,message_len * 2);
+    uint8_t converted_5bit[32 * 2] = { 0 };
+    size_t datalen = 0;
+    uint8_t converted_message[32 * 4] = { 0 };
+    // bytes_to_ascii_hex(message, message_len, converted_message);    
+    // PRINTF("converted_message\n");
+    // PRINTF_BUF(converted_message,message_len * 2);
+
+    //use bech32 encoding instead of hex encoding
+    convert_bits(converted_5bit, &datalen, 5, message, message_len, 8, 1);
+    bech32_encode(converted_message,(const char*)"bbn",converted_5bit,datalen,BECH32_ENCODING_BECH32); //bech32 encode the message
+    PRINTF("bech32 encoded message %s\n", converted_message);
+    PRINTF_BUF(converted_message,strlen(converted_message)); //bech32 encoded message is 2*message_len+1 bytes long, 1 byte for the checksum
+    //then convert to ascii hex
+
     // Update the hash context with the converted message
-    crypto_hash_update(&sighash_context.header, converted_message, message_len * 2);
+    crypto_hash_update(&sighash_context.header, converted_message, strlen(converted_message));
     crypto_hash_digest(&sighash_context.header, hash, 32);
     PRINTF("message hash\n");
     PRINTF_BUF(hash,32);
@@ -308,7 +319,8 @@ static bool bbn_check_address(dispatcher_context_t *dc, sign_psbt_state_t *st){
 static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_state_t *st){
     uint8_t txid[32];
     char message[64] = { 0 }; 
-    char message_str[64];
+    size_t message_len = 0;
+    char message_str[128] = { 0 };
     if(get_action_step(st->wallet_header.name) != BBN_POLICY_BIP322)
         return true;
     compute_bip322_txid_by_message(st->psbt_leafhash+1, st->psbt_leafhash_state, st->psbt_finality_pk, txid);
@@ -322,10 +334,14 @@ static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_st
     }
     PRINTF("before ui_confirm_bbn_value\n");
     PRINTF_BUF(st->psbt_leafhash+1, st->psbt_leafhash_state);
-    memcpy(message, st->psbt_leafhash+1, st->psbt_leafhash_state);
-    for (int i = 0; i < st->psbt_leafhash_state; i++) {
-        snprintf(message_str + i * 2, 3, "%02x", message[i]);
-    }
+
+    convert_bits(message, &message_len, 5, st->psbt_leafhash+1, st->psbt_leafhash_state, 8, 1);
+    bech32_encode(message_str,(const char*)"bbn",message,message_len,BECH32_ENCODING_BECH32); //bech32 encode the message
+    // memcpy(message, st->psbt_leafhash+1, st->psbt_leafhash_state);
+    // for (int i = 0; i < st->psbt_leafhash_state; i++) {
+    //     snprintf(message_str + i * 2, 3, "%02x", message[i]);
+    // }
+    PRINTF("message_str %s\n", message_str);
     PRINTF_BUF(message_str, 64);
     if(!ui_confirm_bbn_value(dc, message_str, "message")){
         SEND_SW(dc, SW_DENY);
