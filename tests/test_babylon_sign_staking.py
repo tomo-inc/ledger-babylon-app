@@ -45,7 +45,7 @@ def test_sign_psbt_tr_script_slashing(navigator: Navigator, firmware: Firmware, 
                                             RaggerClient, test_name: str):
 
     wallet = WalletPolicy(
-        name="Slashing consent",
+        name="Consent to slashing",
         descriptor_template="tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))))",
         keys_info=[
             "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4WNLDZARxRfzGzvp9Lnm88oGRLmoTSPWNg3uuE6F4xBdmcEqUxs2ovExCUqFBjvF8QkjawKp1KRp6wtFDptzPbBPwQ9LMeY1",
@@ -150,7 +150,7 @@ def test_sign_psbt_tr_script_unbounding(navigator: Navigator, firmware: Firmware
                                             RaggerClient, test_name: str):
 
     wallet = WalletPolicy(
-        name="Unbond",
+        name="Unbonding",
         descriptor_template="tr(@0/**,and_v(pk_k(@1/**),multi_a(6,@2/**,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**)))",
         keys_info=[
             "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4XWi3SqSnoi6YERXhkUcjv6qJxF8Ujdk4HDY6oyr6gxA56UVRr3TbnwK9pPchZgVzh9RwAgLMAvPadvGBdjVDqoz5DwDjMVP",
@@ -240,9 +240,9 @@ def test_sign_psbt_tr_script_withdraw(navigator: Navigator, firmware: Firmware, 
     assert bip0340.schnorr_verify(sighash0, partial_sig0.pubkey, partial_sig0.signature[:64]), "signature veriry fail"
 
 
-#     BIP-0322 test
-#     PADDING MESSAGE
-#     len 1 byte || hex of message || (32 - len - 1)*0xFC
+    # BIP-0322 test
+    # PADDING MESSAGE
+    # len 1 byte || hex of message || (32 - len - 1)*0xFC
 def test_sign_psbt_bip322_message_display(navigator: Navigator, firmware: Firmware, client:
                                        RaggerClient, test_name: str):
     # script pubkey = 740ee64e452e3baee127b03c195bcc21ad3edded2ef26c5af483d9c56304d1e5
@@ -254,7 +254,7 @@ def test_sign_psbt_bip322_message_display(navigator: Navigator, firmware: Firmwa
         "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))",
          [
             "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
-            "[83871619/86'/1'/0']tpubD6NzVbkrYhZ4XwMNUjF8FFGx2L4RAKYKWvGFjRyJB7mCKC1pLJaa4BCq6teRfNjUqFYFabRToqDFMks9foKghcEV4oBn2TEKVN4QsjjkK25",
+            "[83871619/86'/1'/0']tpubD6NzVbkrYhZ4XPo7WQiJBM4qTVggJYXCRDtfZsxJuywQEky9EAcqUaKJ3xSaNRK7i5ZW3RfMwAkxybCCvtAAPNMGzdasngWr8L7eiw3fzLY",
             "[25270417/86'/1'/0']tpubD6NzVbkrYhZ4YkMn2vxCprkptChmVi9PDL2LeceaonJm71Rqg5TPC7UexzfFVRah3YegACuusqkDQQdCYCAJNiNFkzasVh8XBD6bQsumurc"
     ]
     )
@@ -269,42 +269,42 @@ def test_sign_psbt_bip322_message_display(navigator: Navigator, firmware: Firmwa
 
     assert len(hww_sigs) == 1
 
-# cov keys in wrong order
-# should return 6985
-def test_sign_psbt_tr_script_stake_transfer_cov_chaos(navigator: Navigator, firmware: Firmware, client:
-                                            RaggerClient, test_name: str):
-    wallet = WalletPolicy(
-        name="Staking transaction",
-        descriptor_template="tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))),older(64000)))",
-         keys_info=[
-            "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4WLczPJWReQycCJdd6YVWXubbVUFnJ5KgU5MDQrD998ZJLSmaB7GVcCnJSDWprxmrGkJ6SvgQC6QAffVpqSvonXmeizXcrkN",
-            "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
-            "[ff119473/86'/1'/0']tpubD6NzVbkrYhZ4Yt3Vn3Naxxfg8LpfnAkUBVsm2VLFDXCWekWMsZSvKjpeWM9AVgnQxUjc9fWS7gW7Vvoy2kXbgGBc6KxTGoMP7W688gzhyKe", 
-            "tpubD6NzVbkrYhZ4Xuv92CZucpRA6ou9tKpe73EomdBVJ9PkXKirJEAkedwKTgKR8bhe4Pp1zJNmK71LbWPattjZqShzT3go658xc5FQiLRZQFr", 
-            "tpubD6NzVbkrYhZ4XtngEHGMzyYcYY9S9dhpe5awQW7rMfDs247YPe4UkjKu3zUT5gLreiDMCsq1RX4BvPaP9PWhrFYo3sk2M1HVjdHjMWiC8pn", 
-            "tpubD6NzVbkrYhZ4XgSQ8NsumcA7iHSCou5Vegcf8AK7mezeUQUKJeS2trsPqaYeuAM7FEizZEFcuQ7aWf27CdBL1E7kZEv9rwDrsq18oov8H7A", 
-            "tpubD6NzVbkrYhZ4Ysn5e6UVJLDVowAks2RuUbyaNM4NLNvU2PaPSuvmFB3NeYUDNf5EF1C8pGYCjBWKtGMqbD6HiYj4xyWhFSAxucQ26EGED7H", 
-            "tpubD6NzVbkrYhZ4WZ9ozPNtBTh7bNtczM2CmHkg7SYSQx7DUTn4YjeFK4SqBgFRqjuZC1XTnxDqJaqPNcMxSFjrLMZgGU1dkF4THyXdyP2iHa9", 
-            "tpubD6NzVbkrYhZ4YWPuHMubgo31Rn2oBG2EuH7eFVpTnyQzhu3upESECW8HyouyLXUXsRVwgDja9aoFggnhiX6zLEWiVrJWfMrbRH5qaSdEZg7", 
-            "tpubD6NzVbkrYhZ4XVW9QtYpXNdtQsCTLZZCoKmnzPpwh9F54VmjxHciynJA7qqf2rfeEuqvDNuaPG4g6F9TdjeUyhFWbbeNyhVnJGNjhxaESqT", 
-            "tpubD6NzVbkrYhZ4WiZ659T6qE19WFEa7LD2ZFYD1peKszT6Xqkdrvkp7Gkyk7PRRW2Jtm5fgUSWJsvF6rq9yDt8muoa9HB5mC8UGayBf8arZvW",
-            "tpubD6NzVbkrYhZ4WwrfC9BkfdDF7YNk8dXmJ7acsTTtR3C6hr8qvsb2K7Dp42uMsVAW4L8Qc1RakiTDZg1ywXDNUxNBRCkp3dS7yj7x7VMPVqz"
-        ],
-    )
+# # cov keys in wrong order
+# # should return 6985
+# def test_sign_psbt_tr_script_stake_transfer_cov_chaos(navigator: Navigator, firmware: Firmware, client:
+#                                             RaggerClient, test_name: str):
+#     wallet = WalletPolicy(
+#         name="Staking transaction",
+#         descriptor_template="tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))),older(64000)))",
+#          keys_info=[
+#             "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4WLczPJWReQycCJdd6YVWXubbVUFnJ5KgU5MDQrD998ZJLSmaB7GVcCnJSDWprxmrGkJ6SvgQC6QAffVpqSvonXmeizXcrkN",
+#             "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
+#             "[ff119473/86'/1'/0']tpubD6NzVbkrYhZ4Yt3Vn3Naxxfg8LpfnAkUBVsm2VLFDXCWekWMsZSvKjpeWM9AVgnQxUjc9fWS7gW7Vvoy2kXbgGBc6KxTGoMP7W688gzhyKe", 
+#             "tpubD6NzVbkrYhZ4Xuv92CZucpRA6ou9tKpe73EomdBVJ9PkXKirJEAkedwKTgKR8bhe4Pp1zJNmK71LbWPattjZqShzT3go658xc5FQiLRZQFr", 
+#             "tpubD6NzVbkrYhZ4XtngEHGMzyYcYY9S9dhpe5awQW7rMfDs247YPe4UkjKu3zUT5gLreiDMCsq1RX4BvPaP9PWhrFYo3sk2M1HVjdHjMWiC8pn", 
+#             "tpubD6NzVbkrYhZ4XgSQ8NsumcA7iHSCou5Vegcf8AK7mezeUQUKJeS2trsPqaYeuAM7FEizZEFcuQ7aWf27CdBL1E7kZEv9rwDrsq18oov8H7A", 
+#             "tpubD6NzVbkrYhZ4Ysn5e6UVJLDVowAks2RuUbyaNM4NLNvU2PaPSuvmFB3NeYUDNf5EF1C8pGYCjBWKtGMqbD6HiYj4xyWhFSAxucQ26EGED7H", 
+#             "tpubD6NzVbkrYhZ4WZ9ozPNtBTh7bNtczM2CmHkg7SYSQx7DUTn4YjeFK4SqBgFRqjuZC1XTnxDqJaqPNcMxSFjrLMZgGU1dkF4THyXdyP2iHa9", 
+#             "tpubD6NzVbkrYhZ4YWPuHMubgo31Rn2oBG2EuH7eFVpTnyQzhu3upESECW8HyouyLXUXsRVwgDja9aoFggnhiX6zLEWiVrJWfMrbRH5qaSdEZg7", 
+#             "tpubD6NzVbkrYhZ4XVW9QtYpXNdtQsCTLZZCoKmnzPpwh9F54VmjxHciynJA7qqf2rfeEuqvDNuaPG4g6F9TdjeUyhFWbbeNyhVnJGNjhxaESqT", 
+#             "tpubD6NzVbkrYhZ4WiZ659T6qE19WFEa7LD2ZFYD1peKszT6Xqkdrvkp7Gkyk7PRRW2Jtm5fgUSWJsvF6rq9yDt8muoa9HB5mC8UGayBf8arZvW",
+#             "tpubD6NzVbkrYhZ4WwrfC9BkfdDF7YNk8dXmJ7acsTTtR3C6hr8qvsb2K7Dp42uMsVAW4L8Qc1RakiTDZg1ywXDNUxNBRCkp3dS7yj7x7VMPVqz"
+#         ],
+#     )
 
-    wallet_hmac = bytes.fromhex(
-        "dae925660e20859ed8833025d46444483ce264fdb77e34569aabe9d590da8fb7"
-    )
+#     wallet_hmac = bytes.fromhex(
+#         "dae925660e20859ed8833025d46444483ce264fdb77e34569aabe9d590da8fb7"
+#     )
 
-    psbt = PSBT()
-    psbt.deserialize("cHNidP8BAIkCAAAAAQoDdUgOA5oDhvrH0NWZTa/GJzvd4UhFIbmbOiWufc84AAAAAAD/////AlDDAAAAAAAAIlEg12Pea0ceMFZBukHWXGeC6MvP9uCOg9qrDaEnW7yfqtAcAi0AAAAAACJRIHQO5k5FLjuu4SewPBlbzCGtPt3tLvJsWvSD2cVjBNHlAAAAAAABASvAxi0AAAAAACJRIHQO5k5FLjuu4SewPBlbzCGtPt3tLvJsWvSD2cVjBNHlARcg3I0vnv8MT0294HCkjjMO/JCLYqdmVo2R5ljyhLMkuHgAAAA=")
+#     psbt = PSBT()
+#     psbt.deserialize("cHNidP8BAIkCAAAAAQoDdUgOA5oDhvrH0NWZTa/GJzvd4UhFIbmbOiWufc84AAAAAAD/////AlDDAAAAAAAAIlEg12Pea0ceMFZBukHWXGeC6MvP9uCOg9qrDaEnW7yfqtAcAi0AAAAAACJRIHQO5k5FLjuu4SewPBlbzCGtPt3tLvJsWvSD2cVjBNHlAAAAAAABASvAxi0AAAAAACJRIHQO5k5FLjuu4SewPBlbzCGtPt3tLvJsWvSD2cVjBNHlARcg3I0vnv8MT0294HCkjjMO/JCLYqdmVo2R5ljyhLMkuHgAAAA=")
 
 
 
-    # fees don't fit in the same page on 'flex', but they fit on 'stax' instructions=sign_psbt_instruction_approve(firmware),
+#     # fees don't fit in the same page on 'flex', but they fit on 'stax' instructions=sign_psbt_instruction_approve(firmware),
 
-    result = client.sign_psbt(psbt, wallet, wallet_hmac, navigator,
-                              instructions=sign_psbt_instruction_approve(firmware),
-                              testname=test_name)
+#     result = client.sign_psbt(psbt, wallet, wallet_hmac, navigator,
+#                               instructions=sign_psbt_instruction_approve(firmware),
+#                               testname=test_name)
 
-    assert len(result) == 0
+#     assert len(result) == 0

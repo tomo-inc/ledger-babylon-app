@@ -1750,7 +1750,7 @@ display_bbn_timelock(dispatcher_context_t *dc, sign_psbt_state_t *st) {
     if(st->psbt_timelock_state>0){
         snprintf(timelock_str, sizeof(timelock_str), "%u", st->psbt_timelock);
         PRINTF_BUF(timelock_str, 12);
-        if(!ui_confirm_bbn_timelock(dc, timelock_str ,"Staking timelock block count")){
+        if(!ui_confirm_bbn_timelock(dc, timelock_str ,"Timelock block count")){
             SEND_SW(dc, SW_DENY);
             return false;
         }

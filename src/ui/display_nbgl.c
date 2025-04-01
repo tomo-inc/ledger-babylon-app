@@ -116,7 +116,7 @@ static void generic_content_callback(int token, uint8_t index, int page) {
 
 static void finish_transaction_flow(bool choice) {
     if (choice) {
-        nbgl_useCaseReviewStreamingFinish("Sign transaction?",
+        nbgl_useCaseReviewStreamingFinish("Sign action?",
                                           start_processing_transaction_callback);
     } else {
         status_transaction_cancel();
@@ -523,7 +523,7 @@ void ui_display_spend_from_wallet_flow(void) {
         nbgl_useCaseReviewLight(TYPE_OPERATION,
                             &pairList,
                             &C_Babylon_64px,
-                            "Babylon\nconsent to slashing action",
+                            "Babylon action",
                             NULL,
                             "Confirm consent to slashing action",
                             status_operation_callback);
@@ -532,7 +532,7 @@ void ui_display_spend_from_wallet_flow(void) {
         nbgl_useCaseReviewLight(TYPE_OPERATION,
                                 &pairList,
                                 &C_Babylon_64px,
-                                "Babylon\nstaking transaction action",
+                                "Babylon action",
                                 NULL,
                                 "Confirm staking transaction action",
                                 status_operation_callback);
@@ -541,16 +541,16 @@ void ui_display_spend_from_wallet_flow(void) {
         nbgl_useCaseReviewLight(TYPE_OPERATION,
                                 &pairList,
                                 &C_Babylon_64px,
-                                "Babylon\nunbound action",
+                                "Babylon action",
                                 NULL,
-                                "Confirm unbound action",
+                                "Confirm unbounding action",
                                 status_operation_callback);
         break;
     case BBN_POLICY_WITHDRAW:
         nbgl_useCaseReviewLight(TYPE_OPERATION,
                                 &pairList,
                                 &C_Babylon_64px,
-                                "Babylon\nwithdraw action",
+                                "Babylon action",
                                 NULL,
                                 "Confirm withdraw action",
                                 status_operation_callback);
@@ -559,7 +559,7 @@ void ui_display_spend_from_wallet_flow(void) {
         nbgl_useCaseReviewLight(TYPE_OPERATION,
                                 &pairList,
                                 &C_Babylon_64px,
-                                "Babylon\nsign message action",
+                                "Babylon action",
                                 NULL,
                                 "Confirm sign message action",
                                 status_operation_callback);
@@ -682,9 +682,9 @@ void ui_confirm_bbn_timelock_flow(void){
     nbgl_useCaseReviewLight(TYPE_OPERATION,
                             &pairList,
                             &C_Babylon_64px,
-                            "Staking timelock block count",
+                            "Timelock block count",
                             NULL,
-                            "Confirm Staking\ntimelock block count",
+                            "Confirm timelock block count",
                             status_operation_callback);
 }
 
