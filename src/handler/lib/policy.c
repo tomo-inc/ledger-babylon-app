@@ -1046,9 +1046,9 @@ __attribute__((warn_unused_result)) static int process_multi_a_sortedmulti_a_nod
             update_output_u8(state, OP_CHECKSIGADD);
         }
     }
-    PRINTF("-----quorum %d\n",policy->k);
-    if(policy->k<4)
-        return -1;
+    // PRINTF("-----quorum %d\n",policy->k);
+    // if(policy->k<2)
+    //     return -1;
 
     state->st->psbt_quorum = policy->k;
     
