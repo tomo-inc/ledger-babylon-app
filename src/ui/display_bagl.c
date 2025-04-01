@@ -191,6 +191,12 @@ UX_STEP_NOCB(ux_finality_pk_step,
                  .title = "Finality provider",
                  .text = g_ui_state.finality_pk.pk,
              });
+UX_STEP_NOCB(ux_cov_pks_step0,
+            bnnn_paging,
+            {
+                .title = "Quorum",
+                .text = g_ui_state.cov_pk.quorum_str,
+            });
 
 UX_STEP_NOCB(ux_cov_pks_step1,
             bnnn_paging,
@@ -291,7 +297,7 @@ UX_STEP_NOCB(ux_display_spend_from_registered_wallet_step,
              {
                  &C_icon_wallet,
                  "Babylon",
-                 "Actions",
+                 "Action",
              });
 
 // Step with "Wallet name:", followed by the wallet name
@@ -527,6 +533,7 @@ UX_FLOW(ux_confim_finality_pk_flow,
 //     &ux_display_reject_step);
 
 UX_FLOW(ux_confim_cov_pks_flow,
+     &ux_cov_pks_step0,
      &ux_cov_pks_step1,
      &ux_cov_pks_step2,
      &ux_cov_pks_step3,
@@ -648,11 +655,16 @@ void ui_confirm_finality_pk_flow(void) {
     ux_flow_init(0, ux_confim_finality_pk_flow, NULL);
 }
 
-void ui_confirm_cov_pks_flow(int count) {
+void ui_confirm_cov_pks_flow(int count, int quorum) {
     count = 0;
+    quorum = 0;
     ux_flow_init(0, ux_confim_cov_pks_flow, NULL);
 }
-void ui_confirm_bbn_value_flow(void) {
+void ui_confirm_bbn_timelock_flow(void) {
+    ux_flow_init(0, ux_confim_bbn_value_flow, NULL);
+}
+
+void ui_confirm_bbn_message_flow(void) {
     ux_flow_init(0, ux_confim_bbn_value_flow, NULL);
 }
 

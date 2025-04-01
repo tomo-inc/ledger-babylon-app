@@ -343,7 +343,7 @@ static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_st
     // }
     PRINTF("message_str %s\n", message_str);
     PRINTF_BUF(message_str, 64);
-    if(!ui_confirm_bbn_value(dc, message_str, "message")){
+    if(!ui_confirm_bbn_message(dc, message_str, "message")){
         SEND_SW(dc, SW_DENY);
         return false;
     }
@@ -1706,6 +1706,9 @@ static bool __attribute__((noinline)) display_external_outputs(
 
 static bool __attribute__((noinline))
 display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
+    if( get_action_step(st->wallet_header.name) == BBN_POLICY_WITHDRAW ||
+        get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322)
+        return true;
 
     if(0 < st->psbt_finality_pk_state && !ui_confirm_finality_pk(dc, st->psbt_finality_pk)){
         SEND_SW(dc, SW_DENY);
@@ -1724,7 +1727,13 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
         }
     }
 
-    if( cov_counts>0 && !ui_confirm_cov_pks(dc, st->psbt_covenant_pk, cov_counts)){
+    if(st->psbt_quorum>0 && st->psbt_quorum<BBN_MIN_QUORUM){
+        PRINTF("Invalid quorum %d\n",  st->psbt_quorum);
+        SEND_SW(dc, SW_DENY);
+        return false;
+    }
+    
+    if( !ui_confirm_cov_pks(dc, st->psbt_covenant_pk, cov_counts, st->psbt_quorum)){
         SEND_SW(dc, SW_DENY);
         return false;
     }
@@ -1732,32 +1741,20 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
 }
 
 static bool __attribute__((noinline))
-display_bbn_value(dispatcher_context_t *dc, sign_psbt_state_t *st) {
-
-    char psbt_quorum_str[12]; // Enough to hold the maximum 32-bit integer value in decimal
-    if(st->psbt_quorum>0){
-        if(st->psbt_quorum<BBN_MIN_QUORUM){
-            PRINTF("Invalid quorum %d\n", st->psbt_quorum);
-            SEND_SW(dc, SW_DENY);
-            return false;
-        }
-        snprintf(psbt_quorum_str, sizeof(psbt_quorum_str), "%u", st->psbt_quorum);
-        if(!ui_confirm_bbn_value(dc, psbt_quorum_str ,"Covenant quorum")){
-            SEND_SW(dc, SW_DENY);
-            return false;
-        }
-    }
-
+display_bbn_timelock(dispatcher_context_t *dc, sign_psbt_state_t *st) {
+    if( get_action_step(st->wallet_header.name) == BBN_POLICY_WITHDRAW ||
+        get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322  ||
+        get_action_step(st->wallet_header.name) == BBN_POLICY_SLASHING)
+        return true;
     char timelock_str[12]; // Enough to hold the maximum 32-bit integer value in decimal
     if(st->psbt_timelock_state>0){
         snprintf(timelock_str, sizeof(timelock_str), "%u", st->psbt_timelock);
         PRINTF_BUF(timelock_str, 12);
-        if(!ui_confirm_bbn_value(dc, timelock_str ,"Timelock block count")){
+        if(!ui_confirm_bbn_timelock(dc, timelock_str ,"Staking timelock block count")){
             SEND_SW(dc, SW_DENY);
             return false;
         }
     }
-
     return true;
 }
 
@@ -1874,8 +1871,8 @@ static bool __attribute__((noinline)) display_transaction(
         }
 
        
-        if (!display_bbn_value(dc, st)) {
-            PRINTF("display_bbn_value fail \n");
+        if (!display_bbn_timelock(dc, st)) {
+            PRINTF("display_bbn_timelock fail \n");
             return false;
         }
         
@@ -1980,9 +1977,9 @@ static bool __attribute__((noinline)) display_transaction(
             return false;
         }
 
-        PRINTF("display_bbn_value\n");
-        if (!display_bbn_value(dc, st)) {
-            PRINTF("display_bbn_value fail \n");
+        PRINTF("display_bbn_timelock\n");
+        if (!display_bbn_timelock(dc, st)) {
+            PRINTF("display_bbn_timelock fail \n");
             return false;
         }
         

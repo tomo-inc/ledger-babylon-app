@@ -76,9 +76,10 @@ typedef struct {
 typedef struct {
     char name[BBN_COV_PUBKEY_MAX_COUNT][20];
     char pk[BBN_COV_PUBKEY_MAX_COUNT][BBN_FINALITY_PK_STR_LEN];
+    char quorum_str[16];
 } ui_cov_pk_state_t;
 typedef struct {
-    uint8_t name[32];
+    uint8_t name[64];
     uint8_t value[128];
 } ui_bbn_value_state_t;
 
@@ -218,9 +219,12 @@ bool ui_confirm_leafhash(dispatcher_context_t *context, uint8_t *leaf_hash);
 
 bool ui_confirm_finality_pk(dispatcher_context_t *context, uint8_t *pk);
 
-bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t pk[][32], uint32_t count);
+bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t pk[][32], uint32_t count, int quorum);
 
-bool ui_confirm_bbn_value(dispatcher_context_t *context,  const char *value, const char *name);
+
+bool ui_confirm_bbn_timelock(dispatcher_context_t *context,  const char *value, const char *name);
+
+bool ui_confirm_bbn_message(dispatcher_context_t *context,  const char *value, const char *name);
 
 bool ui_validate_transaction(dispatcher_context_t *context,
                              const char *coin_name,
@@ -277,9 +281,11 @@ void ui_confim_leaf_hash_flow(void);
 
 void ui_confirm_finality_pk_flow(void);
 
-void ui_confirm_cov_pks_flow(int count);
+void ui_confirm_cov_pks_flow(int count, int quorum);
 
-void ui_confirm_bbn_value_flow(void);
+void ui_confirm_bbn_timelock_flow(void);
+
+void ui_confirm_bbn_message_flow(void);
 
 void ui_accept_transaction_flow(bool is_self_transfer);
 

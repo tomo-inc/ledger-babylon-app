@@ -416,7 +416,7 @@ bool ui_confirm_finality_pk(dispatcher_context_t *context, uint8_t *pk) {
 
 
 
-bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t pk[][32], uint32_t count) {
+bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t pk[][32], uint32_t count, int quorum) {
     #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
         return true;
     #endif
@@ -432,23 +432,39 @@ bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t pk[][32], uint32_
         PRINTF("ui_confirm_cov_pks %d %s\n",j, state->pk[j]);
     }
     PRINTF("ui_confirm_cov_pks for for\n");
-    ui_confirm_cov_pks_flow(count);
+    snprintf(state->quorum_str, sizeof(state->quorum_str), "%u", quorum);
+
+    ui_confirm_cov_pks_flow(count, quorum);
         
     return io_ui_process(context, SET_UX_DIRTY);
 }
 
-bool ui_confirm_bbn_value(dispatcher_context_t *context,  const char *value, const char *name){
+bool ui_confirm_bbn_timelock(dispatcher_context_t *context,  const char *value, const char *name){
     #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
         return true;
     #endif
-    PRINTF("ENTER ui_confirm_bbn_value\n");
+    PRINTF("ENTER ui_confirm_bbn_timelock\n");
     ui_bbn_value_state_t *state = (ui_bbn_value_state_t *) &g_ui_state;
     snprintf((char *)state->value, sizeof(state->value), "%s", value);
     snprintf((char *)state->name, sizeof(state->name), "%s", name);
-    ui_confirm_bbn_value_flow();
+    ui_confirm_bbn_timelock_flow();
 
     return io_ui_process(context, SET_UX_DIRTY);
 }
+
+bool ui_confirm_bbn_message(dispatcher_context_t *context,  const char *value, const char *name){
+    #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
+    return true;
+    #endif
+    PRINTF("ENTER ui_confirm_bbn_message_flow\n");
+    ui_bbn_value_state_t *state = (ui_bbn_value_state_t *) &g_ui_state;
+    snprintf((char *)state->value, sizeof(state->value), "%s", value);
+    snprintf((char *)state->name, sizeof(state->name), "%s", name);
+    ui_confirm_bbn_message_flow();
+
+    return io_ui_process(context, SET_UX_DIRTY);
+}
+
 
 
 
