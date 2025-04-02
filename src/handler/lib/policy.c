@@ -2210,6 +2210,8 @@ int get_action_step(const char* name){
     PRINTF("--get_action_step %s\n", name);
     if (memcmp(name, BBN_POLICY_NAME_SLASHING, strlen(BBN_POLICY_NAME_SLASHING)) == 0){
         return BBN_POLICY_SLASHING;
+    }else if(memcmp(name, BBN_POLICY_NAME_SLASHING_UNBOUNDING, strlen(BBN_POLICY_NAME_SLASHING_UNBOUNDING)) == 0){
+        return BBN_POLICY_SLASHING_UNBOUNDING;
     }else if(memcmp(name, BBN_POLICY_NAME_STAKE_TRANSFER, strlen(BBN_POLICY_NAME_STAKE_TRANSFER)) == 0){
         return BBN_POLICY_STAKE_TRANSFER;
     }else if(memcmp(name, BBN_POLICY_NAME_UNBOUND, strlen(BBN_POLICY_NAME_UNBOUND)) == 0){
@@ -2228,6 +2230,8 @@ bool check_descriptor(const char* descriptor, bbn_policy_type_t type){
     switch (type) {
         case BBN_POLICY_SLASHING:
             return memcmp(descriptor, BBN_DESCRIPTOR_SLASHING,53) == 0;
+        case BBN_POLICY_SLASHING_UNBOUNDING:
+            return memcmp(descriptor, BBN_DESCRIPTOR_SLASHING_UNBOUNDING,53) == 0;
         case BBN_POLICY_STAKE_TRANSFER:
             return memcmp(descriptor, BBN_DESCRIPTOR_STAKE_TRANSFER,59) == 0;
         case BBN_POLICY_UNBOUND:

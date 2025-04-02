@@ -1743,8 +1743,10 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
 static bool __attribute__((noinline))
 display_bbn_timelock(dispatcher_context_t *dc, sign_psbt_state_t *st) {
     if( get_action_step(st->wallet_header.name) == BBN_POLICY_WITHDRAW ||
-        get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322  ||
-        get_action_step(st->wallet_header.name) == BBN_POLICY_SLASHING)
+        get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322   ||
+        get_action_step(st->wallet_header.name) == BBN_POLICY_SLASHING ||
+        get_action_step(st->wallet_header.name) == BBN_POLICY_SLASHING_UNBOUNDING
+    )
         return true;
     char timelock_str[12]; // Enough to hold the maximum 32-bit integer value in decimal
     if(st->psbt_timelock_state>0){

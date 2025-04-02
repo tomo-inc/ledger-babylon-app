@@ -285,6 +285,7 @@ typedef enum{
 }BBN_FingerPrintType;
 
 #define BBN_POLICY_NAME_SLASHING                "Consent to slashing"
+#define BBN_POLICY_NAME_SLASHING_UNBOUNDING     "Consent to slashing during unbonding"
 #define BBN_POLICY_NAME_STAKE_TRANSFER          "Staking transaction"
 #define BBN_POLICY_NAME_UNBOUND                 "Unbonding"
 #define BBN_POLICY_NAME_WITHDRAW                "Withdraw"
@@ -293,6 +294,7 @@ typedef enum{
 typedef enum {
     BBN_POLICY_UNKNOWN = -1,
     BBN_POLICY_SLASHING,
+    BBN_POLICY_SLASHING_UNBOUNDING,
     BBN_POLICY_STAKE_TRANSFER,
     BBN_POLICY_UNBOUND,
     BBN_POLICY_WITHDRAW,
@@ -304,6 +306,7 @@ BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]);
 int get_action_step(const char* name);
 
 #define BBN_DESCRIPTOR_SLASHING                "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_SLASHING_UNBOUNDING     "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_STAKE_TRANSFER          "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_UNBOUND                 "tr(@0/**,and_v(pk_k(@1/**),multi_a("
 #define BBN_DESCRIPTOR_WITHDRAW                "tr(@0/**,and_v(pk_k(@1/**),older"
