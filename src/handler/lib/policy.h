@@ -27,6 +27,7 @@
 // TODO: we should distinguish actual errors from just "policy too big to fit in memory"
 __attribute__((warn_unused_result)) int read_and_parse_wallet_policy(
     dispatcher_context_t *dispatcher_context,
+    sign_psbt_state_t *st,
     buffer_t *buf,
     policy_map_wallet_header_t *wallet_header,
     uint8_t policy_map_descriptor[static MAX_DESCRIPTOR_TEMPLATE_LENGTH],

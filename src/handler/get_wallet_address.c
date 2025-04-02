@@ -111,6 +111,7 @@ void handler_get_wallet_address(dispatcher_context_t *dc, uint8_t protocol_versi
 
         uint8_t policy_map_descriptor[MAX_DESCRIPTOR_TEMPLATE_LENGTH];
         if (0 > read_and_parse_wallet_policy(dc,
+                                             NULL,
                                              &serialized_wallet_policy_buf,
                                              &wallet_header,
                                              policy_map_descriptor,

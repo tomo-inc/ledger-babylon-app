@@ -327,6 +327,7 @@ static const generic_processor_command_t commands_u[] = {{CMD_CODE_OP, OP_IF},
 
 int read_and_parse_wallet_policy(
     dispatcher_context_t *dispatcher_context,
+    sign_psbt_state_t *st,
     buffer_t *buf,
     policy_map_wallet_header_t *wallet_header,
     uint8_t policy_map_descriptor_template[MAX_DESCRIPTOR_TEMPLATE_LENGTH],
@@ -358,13 +359,19 @@ int read_and_parse_wallet_policy(
 
     buffer_t policy_map_buffer =
         buffer_create(policy_map_descriptor_template, wallet_header->descriptor_template_len);
-    PRINTF("--descriptor-- %d\n",wallet_header->descriptor_template_len);
-    PRINTF_BUF(policy_map_descriptor_template, wallet_header->descriptor_template_len);
+    
+    //chester
+    //set action here
     if(is_sign){
-         if(0 > get_action_step(wallet_header->name)){
+        if(st == NULL){
+            return WITH_ERROR(-1, "Failed to get_action_step");
+        }
+        st->bbn_action_type = get_action_type(wallet_header->name);
+         if(0 > st->bbn_action_type){
             return WITH_ERROR(-1, "Failed  to get_action_step");
         }else{
-        if(!check_descriptor((const char *)policy_map_descriptor_template, get_action_step(wallet_header->name))){
+        if(!check_descriptor((const char *)policy_map_descriptor_template, st->bbn_action_type)){
+                PRINTF("--descriptor-- %d %s\n",wallet_header->descriptor_template_len, policy_map_descriptor_template);
                 PRINTF("check_descriptor fail \n");
                 return WITH_ERROR(-1, "Failed  to check descriptor template");
             }   
@@ -2207,7 +2214,7 @@ BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]){
 }
 
 
-int get_action_step(const char* name){
+int get_action_type(const char* name){
     PRINTF("--get_action_step %s\n", name);
     if (memcmp(name, BBN_POLICY_NAME_SLASHING, strlen(BBN_POLICY_NAME_SLASHING)) == 0){
         return BBN_POLICY_SLASHING;

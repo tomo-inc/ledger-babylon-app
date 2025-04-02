@@ -365,8 +365,7 @@ static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_st
     char message[64] = { 0 }; 
     size_t message_len = 0;
     char message_str[128] = { 0 };
-    if(get_action_step(st->wallet_header.name) != BBN_POLICY_BIP322)
-        return true;
+
     compute_bip322_txid_by_message(st->psbt_leafhash+1, st->psbt_leafhash_state, st->psbt_finality_pk, txid);
     PRINTF("txid\n");
     PRINTF_BUF(txid, 32);
@@ -820,6 +819,7 @@ init_global_state(dispatcher_context_t *dc, sign_psbt_state_t *st) {
         uint8_t policy_map_descriptor[MAX_DESCRIPTOR_TEMPLATE_LENGTH];
 
         int desc_temp_len = read_and_parse_wallet_policy(dc,
+                                                         st,
                                                          &serialized_wallet_policy_buf,
                                                          &st->wallet_header,
                                                          policy_map_descriptor,
@@ -1252,7 +1252,6 @@ preprocess_inputs(dispatcher_context_t *dc,
         }
 
         if (input.has_witnessUtxo) {
-            PRINTF("======== has_witnessUtxo\n");  
             size_t wit_utxo_scriptPubkey_len;
             uint8_t wit_utxo_scriptPubkey[MAX_PREVOUT_SCRIPTPUBKEY_LEN];
             uint64_t wit_utxo_prevout_amount;
@@ -1274,10 +1273,9 @@ preprocess_inputs(dispatcher_context_t *dc,
                     PRINTF(
                         "scriptPubKey or amount in non-witness utxo doesn't match with witness "
                         "utxo\n");
-                    SEND_SW_EC(dc, 0xC006, EC_SIGN_PSBT_NONWITNESSUTXO_AND_WITNESSUTXO_MISMATCH);
-                    // SEND_SW_EC(dc,
-                    //            SW_INCORRECT_DATA,
-                    //            EC_SIGN_PSBT_NONWITNESSUTXO_AND_WITNESSUTXO_MISMATCH);
+                    SEND_SW_EC(dc,
+                               SW_INCORRECT_DATA,
+                               EC_SIGN_PSBT_NONWITNESSUTXO_AND_WITNESSUTXO_MISMATCH);
                     return false;
                 }
             } else {
@@ -1290,22 +1288,6 @@ preprocess_inputs(dispatcher_context_t *dc,
             }
         }
 
-        // check if the input is internal; if not, continue
-        // chester
-        // this check fails in bip322 message, close it for now
-        // int is_internal = is_in_out_internal(dc, st, sign_psbt_cache, &input.in_out, true);
-
-        // if (is_internal < 0) {
-        //     PRINTF("Error checking if input %d is internal\n", cur_input_index);
-        //     SEND_SW(dc,0xC007);// SW_INCORRECT_DATA);
-        //     return false;
-        // } else if (is_internal == 0) {
-        //     ++st->n_external_inputs;
-
-        //     PRINTF("INPUT %d is external\n", cur_input_index);
-        //     continue;
-        // }
-
         bitvector_set(internal_inputs, cur_input_index, 1);
 
         int segwit_version = get_policy_segwit_version(st->wallet_policy_map);
@@ -1316,11 +1298,10 @@ preprocess_inputs(dispatcher_context_t *dc,
         if (segwit_version == -1) {
             if (!input.has_nonWitnessUtxo || input.has_witnessUtxo) {
                 PRINTF("Legacy inputs must have the non-witness utxo, but no witness utxo.\n");
-                SEND_SW_EC(dc, 0xC007, EC_SIGN_PSBT_MISSING_NONWITNESSUTXO_OR_UNEXPECTED_WITNESSUTXO_FOR_LEGACY);
-                // SEND_SW_EC(
-                //     dc,
-                //     SW_INCORRECT_DATA,
-                //     EC_SIGN_PSBT_MISSING_NONWITNESSUTXO_OR_UNEXPECTED_WITNESSUTXO_FOR_LEGACY);
+                SEND_SW_EC(
+                    dc,
+                    SW_INCORRECT_DATA,
+                    EC_SIGN_PSBT_MISSING_NONWITNESSUTXO_OR_UNEXPECTED_WITNESSUTXO_FOR_LEGACY);
                 return false;
             }
         }
@@ -1335,8 +1316,7 @@ preprocess_inputs(dispatcher_context_t *dc,
         // For all segwit transactions, the witness utxo must be present
         if (segwit_version >= 0 && !input.has_witnessUtxo) {
             PRINTF("Witness utxo missing for segwit input\n");
-            SEND_SW_EC(dc, 0xC008, EC_SIGN_PSBT_MISSING_WITNESSUTXO_FOR_SEGWIT);
-            //SEND_SW_EC(dc, SW_INCORRECT_DATA, EC_SIGN_PSBT_MISSING_WITNESSUTXO_FOR_SEGWIT);
+            SEND_SW_EC(dc, SW_INCORRECT_DATA, EC_SIGN_PSBT_MISSING_WITNESSUTXO_FOR_SEGWIT);
             return false;
         }
 
@@ -1355,7 +1335,7 @@ preprocess_inputs(dispatcher_context_t *dc,
                                                       &input.sighash_type)) {
             PRINTF("Malformed PSBT_IN_SIGHASH_TYPE for input %d\n", cur_input_index);
             
-            SEND_SW(dc, 0xC009);//SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA);
             return false;
         }
 
@@ -1373,26 +1353,17 @@ preprocess_inputs(dispatcher_context_t *dc,
             st->warnings.non_default_sighash = true;
         } else {
             PRINTF("Unsupported sighash\n");
-            SEND_SW(dc, 0xC00A);//SW_INCORRECT_DATA);
-            //SEND_SW(dc, SW_NOT_SUPPORTED);
+            SEND_SW(dc, SW_NOT_SUPPORTED);
             return false;
         }
 
         if (((input.sighash_type & SIGHASH_SINGLE) == SIGHASH_SINGLE) &&
             (cur_input_index >= st->n_outputs)) {
             PRINTF("SIGHASH_SINGLE with input idx >= n_output is not allowed \n");
-            SEND_SW_EC(dc, 0xC00B,EC_SIGN_PSBT_UNALLOWED_SIGHASH_SINGLE);//SW_INCORRECT_DATA);
-            //SEND_SW_EC(dc, SW_NOT_SUPPORTED, EC_SIGN_PSBT_UNALLOWED_SIGHASH_SINGLE);
+            SEND_SW_EC(dc, SW_NOT_SUPPORTED, EC_SIGN_PSBT_UNALLOWED_SIGHASH_SINGLE);
             return false;
         }
     }
-    // if (st->n_external_inputs == st->n_inputs) {
-    //     // no internal inputs, nothing to sign
-    //     PRINTF("No internal inputs. Aborting\n");
-    //     SEND_SW(dc,0xC00C);// SW_INCORRECT_DATA);
-    //     return false;
-    // }
-
     return true;
 }
 
@@ -1869,30 +1840,8 @@ static bool __attribute__((noinline)) display_transaction(
             }
         }
 
-        // /** TRANSACTION CONFIRMATION
-        //  *
-        //  *  Show transaction amount, destination and fees, ask for final confirmation
-        //  */
-        // if (!ui_validate_transaction_simplified(
-        //         dc,
-        //         COIN_COINID_SHORT,
-        //         st->is_wallet_default ? NULL : st->wallet_header.name,
-        //         is_self_transfer ? 0 : st->outputs.output_amounts[0],
-        //         is_self_transfer ? NULL : output_description,
-        //         st->warnings,
-        //         fee)) {
-        //     SEND_SW(dc, SW_DENY);
-        //     return false;
-        // }
+        // /** TRANSACTION CONFIRMATIONs
         if (!st->is_wallet_default) {
-            PRINTF("wallet name %s \n", st->wallet_header.name);
-            if(0 > get_action_step(st->wallet_header.name)){
-                PRINTF("get_action_step fail \n");
-                SEND_SW(dc, SW_DENY);
-                return false;
-            }
-
-            PRINTF("ui_authorize_wallet_spend\n");
             if(!ui_authorize_wallet_spend(dc, st->wallet_header.name)){
                 PRINTF("ui_authorize_wallet_spend fail \n");
                 SEND_SW(dc, SW_DENY);
@@ -1900,20 +1849,21 @@ static bool __attribute__((noinline)) display_transaction(
             }
         }
         //chester
+        //bbn checks
+        if (st->bbn_action_type == BBN_POLICY_BIP322 && !bbn_check_and_display_message(dc, st)) {
+            PRINTF("bbn_check_and_display_message fail\n");
+            return false;
+        }
+
         /** FINALITY PK CONFIRMATION
          *
          *  Display finality pk, this is the most important infomation for all the babylon actions
          */
-        PRINTF("display_bbn_pk\n");
         if (!display_bbn_pk(dc, st)) {
             PRINTF("display_bbn_pk fail \n");
             return false;
         }
-        PRINTF("bbn_check_and_display_message\n");
-        if(!bbn_check_and_display_message(dc,st)){
-            PRINTF("bbn_check_and_display_message fail\n");
-            return false;
-        }
+
 
        
         if (!display_bbn_timelock(dc, st)) {
@@ -1987,13 +1937,6 @@ static bool __attribute__((noinline)) display_transaction(
         // check if the name in list, if not deny
         // then display it to user for confirmation
         if (!st->is_wallet_default) {
-            PRINTF("wallet name %s \n", st->wallet_header.name);
-            if(0 > get_action_step(st->wallet_header.name)){
-                PRINTF("get_action_step fail \n");
-                SEND_SW(dc, SW_DENY);
-                return false;
-            }
-
             PRINTF("ui_authorize_wallet_spend\n");
             if(!ui_authorize_wallet_spend(dc, st->wallet_header.name)){
                 PRINTF("ui_authorize_wallet_spend fail \n");
@@ -3322,7 +3265,6 @@ void handler_sign_psbt(dispatcher_context_t *dc, uint8_t protocol_version) {
      *  - detect internal inputs that should be signed, and if there are external inputs or unusual
      * sighashes
      */
-    
     if (!preprocess_inputs(dc, &st, cache, internal_inputs)) return;
     /** OUTPUTS VERIFICATION FLOW
      *
@@ -3342,16 +3284,11 @@ void handler_sign_psbt(dispatcher_context_t *dc, uint8_t protocol_version) {
     * For each internal key expression, and for each internal input, sign using the
     * appropriate algorithm.
     */
-
-
     int sign_result = sign_transaction(dc, &st, cache, &signing_state, internal_outputs);
-
     ui_post_processing_confirm_transaction(dc, sign_result);
     if (!sign_result) {
         return;
     }
-      
-   
 
     SEND_SW(dc, SW_OK);
 }

@@ -155,16 +155,22 @@ typedef struct {
 
     tx_ux_warning_t warnings;
 
-    //babylon script raw data buffers
+    //babylon data defines
+    uint32_t bbn_action_type;
+
     uint8_t psbt_leafhash[BBN_LEAF_HASH_LEN];
     uint32_t psbt_leafhash_state;
+
     uint8_t psbt_staker_pk[BBN_PUBKEY_IN_SCRIPT_LEN];
     uint32_t psbt_staker_pk_state;
+
     uint8_t psbt_finality_pk[BBN_PUBKEY_IN_SCRIPT_LEN];
     uint32_t psbt_finality_pk_state;
+
     uint8_t psbt_covenant_pk[BBN_COV_PUBKEY_MAX_COUNT][BBN_PUBKEY_IN_SCRIPT_LEN];
     uint32_t psbt_covenant_pk_state[BBN_COV_PUBKEY_MAX_COUNT];
     uint32_t psbt_quorum;
+
     uint32_t psbt_timelock_state;
     uint32_t psbt_timelock;
 } sign_psbt_state_t;
