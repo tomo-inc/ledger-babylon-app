@@ -665,7 +665,8 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                         //fill finality
                    //if unbounding 
                    //fill the finality once
-                   if( get_action_step(state->st->wallet_header.name)==BBN_POLICY_STAKE_TRANSFER){
+                   if( get_action_step(state->st->wallet_header.name)==BBN_POLICY_STAKE_TRANSFER || 
+                       get_action_step(state->st->wallet_header.name)==BBN_POLICY_UNBOUND){
                         PRINTF("BBN_POLICY_SLASHING\n");
                         if(state->st->psbt_staker_pk_state==0 || state->st->psbt_finality_pk_state==0){
                             if(state->st->psbt_staker_pk_state==0){

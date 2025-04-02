@@ -308,7 +308,7 @@ int get_action_step(const char* name);
 #define BBN_DESCRIPTOR_SLASHING                "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_SLASHING_UNBOUNDING     "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_STAKE_TRANSFER          "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
-#define BBN_DESCRIPTOR_UNBOUND                 "tr(@0/**,and_v(pk_k(@1/**),multi_a("
+#define BBN_DESCRIPTOR_UNBOUND                 "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_WITHDRAW                "tr(@0/**,and_v(pk_k(@1/**),older"
 #define BBN_DESCRIPTOR_BIP322                  "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))"
 
