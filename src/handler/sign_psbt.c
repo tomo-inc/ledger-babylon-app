@@ -314,6 +314,13 @@ static bool bbn_check_address(dispatcher_context_t *dc, sign_psbt_state_t *st){
     return true;
 }
 
+/*
+           address
+          /      \
+        root --- pub
+        /  \
+    slasing timelock       
+*/
 static void compute_bbn_unbond_root(sign_psbt_state_t *st, uint8_t* roothash){
     uint8_t slashing_leafhash[32];
     uint8_t timelock_leafhash[32];
@@ -355,7 +362,7 @@ static bool bbn_check_unbond(dispatcher_context_t *dc, sign_psbt_state_t *st){
     PRINTF_BUF(out_scriptPubKey+2, 32);
     if (memcmp(out_scriptPubKey+2, tweaked_pubkey, 32)) {
         PRINTF("bbn_check_unbond tweak public key cmp fail\n");
-        //return false;
+        return false;
     }
     return true;   
 }

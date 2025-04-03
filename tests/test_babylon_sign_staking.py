@@ -192,7 +192,8 @@ def open_psbt_from_file(filename: str) -> PSBT:
 #     #use pub in scriptPubKey
 #     pubkey = bytes.fromhex("740ee64e452e3baee127b03c195bcc21ad3edded2ef26c5af483d9c56304d1e5")
 #     assert bip0340.schnorr_verify(sighash0, pubkey, partial_sig0.signature[:64]), "signature veriry fail"
-
+#     tpubD6NzVbkrYhZ4YaL8V9jDXSVBuoXYZ8fM4M8ykTRbipQ1wGCm1FCbvZfQaZUZxkxEwF3LJbiMNo6TCB6uU9hBvEZvuEqhKkExeTxmwMLwCtw
+#     tpubD6NzVbkrYhZ4Yt3Vn3Naxxfg8LpfnAkUBVsm2VLFDXCWekWMsZSvKjpeWM9AVgnQxUjc9fWS7gW7Vvoy2kXbgGBc6KxTGoMP7W688gzhyKe
 def test_sign_psbt_tr_script_unbounding(navigator: Navigator, firmware: Firmware, client:
                                             RaggerClient, test_name: str):
 
@@ -202,7 +203,7 @@ def test_sign_psbt_tr_script_unbounding(navigator: Navigator, firmware: Firmware
         keys_info=[
            "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4XWi3SqSnoi6YERXhkUcjv6qJxF8Ujdk4HDY6oyr6gxA56UVRr3TbnwK9pPchZgVzh9RwAgLMAvPadvGBdjVDqoz5DwDjMVP",
             "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
-            "[ff119473/86'/1'/0']tpubD6NzVbkrYhZ4Yt3Vn3Naxxfg8LpfnAkUBVsm2VLFDXCWekWMsZSvKjpeWM9AVgnQxUjc9fWS7gW7Vvoy2kXbgGBc6KxTGoMP7W688gzhyKe", 
+            "[ff119473/86'/1'/0']tpubD6NzVbkrYhZ4YaL8V9jDXSVBuoXYZ8fM4M8ykTRbipQ1wGCm1FCbvZfQaZUZxkxEwF3LJbiMNo6TCB6uU9hBvEZvuEqhKkExeTxmwMLwCtw", 
             "tpubD6NzVbkrYhZ4WwrfC9BkfdDF7YNk8dXmJ7acsTTtR3C6hr8qvsb2K7Dp42uMsVAW4L8Qc1RakiTDZg1ywXDNUxNBRCkp3dS7yj7x7VMPVqz", 
             "tpubD6NzVbkrYhZ4Xuv92CZucpRA6ou9tKpe73EomdBVJ9PkXKirJEAkedwKTgKR8bhe4Pp1zJNmK71LbWPattjZqShzT3go658xc5FQiLRZQFr", 
             "tpubD6NzVbkrYhZ4XtngEHGMzyYcYY9S9dhpe5awQW7rMfDs247YPe4UkjKu3zUT5gLreiDMCsq1RX4BvPaP9PWhrFYo3sk2M1HVjdHjMWiC8pn", 
