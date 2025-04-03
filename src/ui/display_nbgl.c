@@ -517,7 +517,7 @@ void ui_display_spend_from_wallet_flow(void) {
     pairList.nbPairs = 1;
     pairList.pairs = pairs;
 
-    int action = get_action_step(g_ui_state.wallet.wallet_name);
+    int action = get_action_type(g_ui_state.wallet.wallet_name);
     switch (action) { 
     case BBN_POLICY_SLASHING:
         nbgl_useCaseReviewLight(TYPE_OPERATION,

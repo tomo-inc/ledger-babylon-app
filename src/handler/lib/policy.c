@@ -364,11 +364,11 @@ int read_and_parse_wallet_policy(
     //set action here
     if(is_sign){
         if(st == NULL){
-            return WITH_ERROR(-1, "Failed to get_action_step");
+            return WITH_ERROR(-1, "Failed to is_sign st NULL");
         }
         st->bbn_action_type = get_action_type(wallet_header->name);
          if(0 > st->bbn_action_type){
-            return WITH_ERROR(-1, "Failed  to get_action_step");
+            return WITH_ERROR(-1, "Failed  to get_action_type");
         }else{
         if(!check_descriptor((const char *)policy_map_descriptor_template, st->bbn_action_type)){
                 PRINTF("--descriptor-- %d %s\n",wallet_header->descriptor_template_len, policy_map_descriptor_template);
@@ -664,24 +664,13 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                     update_output_u8(state, 33);  // PUSH 33 bytes
                     update_output(state, compressed_pubkey, 33);
                 } else {
-                    //PRINTF_BUF(state->st->wallet_header.name,65);
-                    //PRINTF("----------push pk 32 %s\n",state->st->wallet_header.name);
-                    //chester should know which one is staker pk
-                   //state->st->psbt_action_name
-                        //fill staker
-                        //fill finality
-                   //if unbounding 
-                   //fill the finality once
-                   if( get_action_step(state->st->wallet_header.name)==BBN_POLICY_STAKE_TRANSFER || 
-                       get_action_step(state->st->wallet_header.name)==BBN_POLICY_UNBOUND){
-                        PRINTF("BBN_POLICY_SLASHING\n");
+                   if( state->st->bbn_action_type==BBN_POLICY_STAKE_TRANSFER || 
+                       state->st->bbn_action_type==BBN_POLICY_UNBOUND){
                         if(state->st->psbt_staker_pk_state==0 || state->st->psbt_finality_pk_state==0){
                             if(state->st->psbt_staker_pk_state==0){
-                                PRINTF("BBN_POLICY_SLASHING psbt_staker_pk\n");
                                 memcpy(state->st->psbt_staker_pk,compressed_pubkey+1,32);
                                 state->st->psbt_staker_pk_state = 1;
                             }else{
-                                PRINTF("BBN_POLICY_SLASHING psbt_finality_pk\n");
                                 memcpy(state->st->psbt_finality_pk,compressed_pubkey,32);
                                 state->st->psbt_finality_pk_state = 1;
                             }   
@@ -694,7 +683,6 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                 break;
             }
             case CMD_CODE_PUSH_PKH: {
-                PRINTF("----------push pkh\n");
                 const policy_node_with_key_t *policy =
                     (const policy_node_with_key_t *) node->policy_node;
                 uint8_t compressed_pubkey[33];
@@ -720,7 +708,6 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                     (const policy_node_with_uint32_t *) node->policy_node;
                 update_output_push_u32(state, policy->n);
                 if(state->st->psbt_timelock_state==1){
-                    PRINTF("----------push timelock %x\n",state->st->psbt_timelock);
                     state->st->psbt_timelock = policy->n;
                     state->st->psbt_timelock_state = 2;
                 }
@@ -2215,7 +2202,7 @@ BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]){
 
 
 int get_action_type(const char* name){
-    PRINTF("--get_action_step %s\n", name);
+    PRINTF("--get_action_type %s\n", name);
     if (memcmp(name, BBN_POLICY_NAME_SLASHING, strlen(BBN_POLICY_NAME_SLASHING)) == 0){
         return BBN_POLICY_SLASHING;
     }else if(memcmp(name, BBN_POLICY_NAME_SLASHING_UNBOUNDING, strlen(BBN_POLICY_NAME_SLASHING_UNBOUNDING)) == 0){

@@ -304,7 +304,7 @@ typedef enum {
 
 BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]);
 
-int get_action_step(const char* name);
+int get_action_type(const char* name);
 
 #define BBN_DESCRIPTOR_SLASHING                "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_SLASHING_UNBOUNDING     "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("

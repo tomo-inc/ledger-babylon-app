@@ -1171,7 +1171,7 @@ static bool fill_internal_key_expressions(dispatcher_context_t *dc, sign_psbt_st
 static bool __attribute__((noinline))
 preprocess_inputs(dispatcher_context_t *dc,
                   sign_psbt_state_t *st,
-                  sign_psbt_cache_t *sign_psbt_cache,
+                  sign_psbt_state_t *cache,
                   uint8_t internal_inputs[static BITVECTOR_REAL_SIZE(MAX_N_INPUTS_CAN_SIGN)]) {
     LOG_PROCESSOR(__FILE__, __LINE__, __func__);
                 
@@ -1196,20 +1196,19 @@ preprocess_inputs(dispatcher_context_t *dc,
             &input.in_out.map);
         if (res < 0) {
             PRINTF("Failed to process input map\n");
-            SEND_SW(dc, 0xC001);//SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA);
             return false;
         }
         if (input.in_out.unexpected_pubkey_error) {
             PRINTF("Unexpected pubkey length\n");  // only compressed pubkeys are supported
-             SEND_SW(dc, 0xC002);//SW_INCORRECT_DATA);
+             SEND_SW(dc, SW_INCORRECT_DATA);
             return false;
         }
 
         // either witness utxo or non-witness utxo (or both) must be present.
         if (!input.has_nonWitnessUtxo && !input.has_witnessUtxo) {
             PRINTF("No witness utxo nor non-witness utxo present in input.\n");
-            SEND_SW_EC(dc, 0xC003, EC_SIGN_PSBT_MISSING_NONWITNESSUTXO_AND_WITNESSUTXO);
-            //SEND_SW_EC(dc, SW_INCORRECT_DATA, EC_SIGN_PSBT_MISSING_NONWITNESSUTXO_AND_WITNESSUTXO);
+            SEND_SW_EC(dc, SW_INCORRECT_DATA, EC_SIGN_PSBT_MISSING_NONWITNESSUTXO_AND_WITNESSUTXO);
             return false;
         }
 
@@ -1217,7 +1216,6 @@ preprocess_inputs(dispatcher_context_t *dc,
 
         if (input.has_nonWitnessUtxo) {
             uint8_t prevout_hash[32];
-            PRINTF("======== has_nonWitnessUtxo\n");  
             // check if the prevout_hash of the transaction matches the computed one from the
             // non-witness utxo
             if (0 > call_get_merkleized_map_value(dc,
@@ -1226,15 +1224,9 @@ preprocess_inputs(dispatcher_context_t *dc,
                                                   1,
                                                   prevout_hash,
                                                   sizeof(prevout_hash))) {
-                SEND_SW(dc, 0xC004);//SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA);
                 return false;
             }
-            PRINTF("==========prevout_hash %s\n", st->wallet_header.name);
-            PRINTF_BUF(prevout_hash, 32);
-            if(get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322){
-                memcpy(st->psbt_staker_pk, prevout_hash,32);//to save memory
-            }
-            
             // request non-witness utxo, and get the prevout's value and scriptpubkey
             // Also checks that the recomputed transaction hash matches with prevout_hash.
             if (0 > get_amount_scriptpubkey_from_psbt_nonwitness(dc,
@@ -1243,8 +1235,7 @@ preprocess_inputs(dispatcher_context_t *dc,
                                                                  input.in_out.scriptPubKey,
                                                                  &input.in_out.scriptPubKey_len,
                                                                  prevout_hash)) {
-                SEND_SW_EC(dc, 0xC005, EC_SIGN_PSBT_NONWITNESSUTXO_CHECK_FAILED);
-                //SEND_SW_EC(dc, SW_INCORRECT_DATA, EC_SIGN_PSBT_NONWITNESSUTXO_CHECK_FAILED);
+                SEND_SW_EC(dc, SW_INCORRECT_DATA, EC_SIGN_PSBT_NONWITNESSUTXO_CHECK_FAILED);
                 return false;
             }
 
@@ -1577,9 +1568,7 @@ display_output(dispatcher_context_t *dc,
     //if it is the sign message in BIP322
     //to avoid it is mis-used(attacked) for normal transaction
     //we check amount=0, address=OP_RETURN
-    PRINTF("=====get_action_step %s\n",st->wallet_header.name);
-    PRINTF("=====out_amount %d\n",out_amount);  
-    if(get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322){
+    if(st->bbn_action_type == BBN_POLICY_BIP322){
         if(!is_opreturn(out_scriptPubKey,out_scriptPubKey_len) || out_amount != 0){
             SEND_SW(dc, SW_NOT_SUPPORTED);
             return false;
@@ -1721,16 +1710,11 @@ static bool __attribute__((noinline)) display_external_outputs(
 
 static bool __attribute__((noinline))
 display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
-    if( get_action_step(st->wallet_header.name) == BBN_POLICY_WITHDRAW ||
-        get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322)
-        return true;
-
     if(0 < st->psbt_finality_pk_state && !ui_confirm_finality_pk(dc, st->psbt_finality_pk)){
         SEND_SW(dc, SW_DENY);
         return false;
     }
-    //if(get_action_step(st->wallet_header.name) != BBN_POLICY_STAKE_TRANSFER)
-    //    return true;
+
     int cov_counts = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
     for (int i = 0; i < cov_counts; i++) {
         for (int j = i + 1; j < cov_counts; j++) {
@@ -1757,11 +1741,6 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
 
 static bool __attribute__((noinline))
 display_bbn_timelock(dispatcher_context_t *dc, sign_psbt_state_t *st) {
-    if( get_action_step(st->wallet_header.name) == BBN_POLICY_WITHDRAW ||
-        get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322   ||
-        get_action_step(st->wallet_header.name) == BBN_POLICY_SLASHING 
-    )
-        return true;
     char timelock_str[12]; // Enough to hold the maximum 32-bit integer value in decimal
     if(st->psbt_timelock_state>0){
         snprintf(timelock_str, sizeof(timelock_str), "%u", st->psbt_timelock);
@@ -1777,15 +1756,6 @@ display_bbn_timelock(dispatcher_context_t *dc, sign_psbt_state_t *st) {
 
 static bool __attribute__((noinline))
 display_warnings(dispatcher_context_t *dc, sign_psbt_state_t *st) {
-    // If there are external inputs, it is unsafe to sign, therefore we warn the user
-
-    //chester
-    //close since there is always external_inputs
-    // if (st->n_external_inputs > 0 && !ui_warn_external_inputs(dc)) {
-    //     SEND_SW(dc, SW_DENY);
-    //     return false;
-    // }
-
     // If any segwitv0 input is missing the non-witness-utxo, we warn the user and ask for
     // confirmation
     if (st->warnings.missing_nonwitnessutxo && !ui_warn_unverified_segwit_inputs(dc)) {
@@ -1821,157 +1791,91 @@ static bool __attribute__((noinline)) display_transaction(
     st->warnings.high_fee = 10 * fee >= st->inputs_total_amount && st->inputs_total_amount > 100000;
 
 #ifdef HAVE_NBGL
-    if (st->n_external_outputs == 0 || st->n_external_outputs == 1) {
-        // A simplified flow for most transactions: show everything in a single screen if there is
-        // exactly 0 (self-transfer) or 1 external output to show to the user
+    // if (st->n_external_outputs == 0 || st->n_external_outputs == 1) {
+    //     // A simplified flow for most transactions: show everything in a single screen if there is
+    //     // exactly 0 (self-transfer) or 1 external output to show to the user
 
-        bool is_self_transfer = st->n_external_outputs == 0;
+    //     bool is_self_transfer = st->n_external_outputs == 0;
 
-        // show this output's address
-        char output_description[MAX_OUTPUT_SCRIPT_DESC_SIZE];
+    //     // show this output's address
+    //     char output_description[MAX_OUTPUT_SCRIPT_DESC_SIZE];
 
-        if (!is_self_transfer) {
-            if (!format_script(st->outputs.output_scripts[0],
-                               st->outputs.output_script_lengths[0],
-                               output_description)) {
-                PRINTF("Invalid or unsupported script for external output\n");
-                SEND_SW(dc, SW_NOT_SUPPORTED);
-                return false;
-            }
-        }
+    //     if (!is_self_transfer) {
+    //         if (!format_script(st->outputs.output_scripts[0],
+    //                            st->outputs.output_script_lengths[0],
+    //                            output_description)) {
+    //             PRINTF("Invalid or unsupported script for external output\n");
+    //             SEND_SW(dc, SW_NOT_SUPPORTED);
+    //             return false;
+    //         }
+    //     }
 
-        // /** TRANSACTION CONFIRMATIONs
-        if (!st->is_wallet_default) {
-            if(!ui_authorize_wallet_spend(dc, st->wallet_header.name)){
-                PRINTF("ui_authorize_wallet_spend fail \n");
-                SEND_SW(dc, SW_DENY);
-                return false;
-            }
-        }
-        //chester
-        //bbn checks
-        if (st->bbn_action_type == BBN_POLICY_BIP322 && !bbn_check_and_display_message(dc, st)) {
-            PRINTF("bbn_check_and_display_message fail\n");
-            return false;
-        }
+    //     // /** TRANSACTION CONFIRMATIONs
+    //     if (!st->is_wallet_default) {
+    //         if(!ui_authorize_wallet_spend(dc, st->wallet_header.name)){
+    //             PRINTF("ui_authorize_wallet_spend fail \n");
+    //             SEND_SW(dc, SW_DENY);
+    //             return false;
+    //         }
+    //     }
+    //     //chester
+    //     //bbn checks
+    //     if (st->bbn_action_type == BBN_POLICY_BIP322 && !bbn_check_and_display_message(dc, st)) {
+    //         PRINTF("bbn_check_and_display_message fail\n");
+    //         return false;
+    //     }
 
-        /** FINALITY PK CONFIRMATION
-         *
-         *  Display finality pk, this is the most important infomation for all the babylon actions
-         */
-        if (!display_bbn_pk(dc, st)) {
-            PRINTF("display_bbn_pk fail \n");
-            return false;
-        }
+    //     /** FINALITY PK CONFIRMATION
+    //      *
+    //      *  Display finality pk, this is the most important infomation for all the babylon actions
+    //      */
+    //     if (!display_bbn_pk(dc, st)) {
+    //         PRINTF("display_bbn_pk fail \n");
+    //         return false;
+    //     }
 
 
        
-        if (!display_bbn_timelock(dc, st)) {
-            PRINTF("display_bbn_timelock fail \n");
-            return false;
-        }
+    //     if (!display_bbn_timelock(dc, st)) {
+    //         PRINTF("display_bbn_timelock fail \n");
+    //         return false;
+    //     }
         
-        if (!display_external_outputs(dc, st, internal_outputs)) {
-            PRINTF("display_external_outputs fail \n");
-            return false;
-        }
-        PRINTF("ui_warn_high_fee\n");
-        if (st->warnings.high_fee && !ui_warn_high_fee(dc)) {
-            PRINTF("ui_warn_high_fee fail \n");
-            SEND_SW(dc, SW_DENY);
-            return false;
-        }
+    //     if (!display_external_outputs(dc, st, internal_outputs)) {
+    //         PRINTF("display_external_outputs fail \n");
+    //         return false;
+    //     }
+    //     PRINTF("ui_warn_high_fee\n");
+    //     if (st->warnings.high_fee && !ui_warn_high_fee(dc)) {
+    //         PRINTF("ui_warn_high_fee fail \n");
+    //         SEND_SW(dc, SW_DENY);
+    //         return false;
+    //     }
 
-        /** TRANSACTION CONFIRMATION
-         *
-         *  Show summary info to the user (transaction fees), ask for final confirmation
-         */
-        // Show final user validation UI
-        PRINTF("-------------ui_validate_transaction\n");
-        if (!ui_validate_transaction(dc, COIN_COINID_SHORT, fee, false)) {
-            PRINTF("ui_validate_transaction fail \n");
-            SEND_SW(dc, SW_DENY);
-            return false;
-        }
-    }
+    //     /** TRANSACTION CONFIRMATION
+    //      *
+    //      *  Show summary info to the user (transaction fees), ask for final confirmation
+    //      */
+    //     // Show final user validation UI
+    //     PRINTF("-------------ui_validate_transaction\n");
+    //     if (!ui_validate_transaction(dc, COIN_COINID_SHORT, fee, false)) {
+    //         PRINTF("ui_validate_transaction fail \n");
+    //         SEND_SW(dc, SW_DENY);
+    //         return false;
+    //     }
+    //}
 #else
-    if (st->n_external_outputs == 0) {
-        // self-transfer: all the outputs are going to change addresses.
-        // No output to show, the user only needs to validate the fees.
 
-        if (!display_warnings(dc, st)) {
-            return false;
-        }
-
-        if (st->warnings.high_fee && !ui_warn_high_fee(dc)) {
-            SEND_SW(dc, SW_DENY);
-            return false;
-        }
-
-        if (!ui_validate_transaction(dc, COIN_COINID_SHORT, fee, true)) {
-            SEND_SW(dc, SW_DENY);
-            return false;
-        }
-    }
 #endif
-    else {
-        // Transactions with more than one external output; show one output per page,
-        // using the streaming NBGL API.
+    //else {
+     
 
-#ifdef HAVE_NBGL
-        // On NBGL devices, show the pre-approval screen
-        // "Review transaction to send Bitcoin"
-        
-        //chester: close it
-        //since nothing known get here
-
-        // if (!ui_transaction_prompt(dc)) {
-        //     SEND_SW(dc, SW_DENY);
-        //     return false;
-        // }
-#endif
-        // If it's not a default wallet policy, ask the user for confirmation, and abort if they
-        // deny
-        //chester: babylon won't be default policy so
-       
-        // check if the name in list, if not deny
-        // then display it to user for confirmation
-        if (!st->is_wallet_default) {
-            PRINTF("ui_authorize_wallet_spend\n");
-            if(!ui_authorize_wallet_spend(dc, st->wallet_header.name)){
-                PRINTF("ui_authorize_wallet_spend fail \n");
-                SEND_SW(dc, SW_DENY);
-                return false;
-            }
-        }
         PRINTF("display_warnings\n");
         if (!display_warnings(dc, st)) {
             PRINTF("display_warnings fail \n");
             return false;
         }
-        //chester
-        /** FINALITY PK CONFIRMATION
-         *
-         *  Display finality pk, this is the most important information for all the babylon actions
-         */
-        PRINTF("display_bbn_pk\n");
-        if (!display_bbn_pk(dc, st)) {
-            PRINTF("display_bbn_pk fail \n");
-            return false;
-        }
-        PRINTF("bbn_check_and_display_message\n");
-        if(!bbn_check_and_display_message(dc,st)){
-            PRINTF("bbn_check_and_display_message fail\n");
-            return false;
-        }
 
-        PRINTF("display_bbn_timelock\n");
-        if (!display_bbn_timelock(dc, st)) {
-            PRINTF("display_bbn_timelock fail \n");
-            return false;
-        }
-        
-        PRINTF("display_external_outputs\n");
         /** OUTPUTS CONFIRMATION
          *
          *  Display each non-change output, and transaction fees, and acquire user confirmation,
@@ -1997,14 +1901,12 @@ static bool __attribute__((noinline)) display_transaction(
          *  Show summary info to the user (transaction fees), ask for final confirmation
          */
         // Show final user validation UI
-        PRINTF("-------------ui_validate_transaction\n");
         if (!ui_validate_transaction(dc, COIN_COINID_SHORT, fee, false)) {
             PRINTF("ui_validate_transaction fail \n");
             SEND_SW(dc, SW_DENY);
             return false;
         }
-    }
-    PRINTF("display return true\n");
+    //}
     return true;
 }
 
@@ -2369,8 +2271,7 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
     //not script spend for stake transaction
 
     // ext_flag
-    PRINTF("--------is_tapscript=%d\n",keyexpr_info->is_tapscript);
-    if( get_action_step(st->wallet_header.name) == BBN_POLICY_STAKE_TRANSFER || get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322){
+    if( st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER || st->bbn_action_type == BBN_POLICY_BIP322){
         keyexpr_info->is_tapscript = 0;
         PRINTF("-------- change is_tapscript=%d\n",keyexpr_info->is_tapscript);
     }
@@ -2379,7 +2280,6 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
     // annex is not supported
     const uint8_t annex_present = 0;
     uint8_t spend_type = ext_flag * 2 + annex_present;
-    PRINTF("-------spend_type=%d\n",spend_type);
     crypto_hash_update_u8(&sighash_context.header, spend_type);
 
     if ((sighash_byte & 0x80) == SIGHASH_ANYONECANPAY) {
@@ -2467,12 +2367,9 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
     if (keyexpr_info->is_tapscript) {
         // If spending a tapscript, append the Common Signature Message Extension per BIP-0342
         if(st->psbt_leafhash_state!=BBN_LEAF_HASH_NULL ){
-            if(get_action_step(st->wallet_header.name) == BBN_POLICY_UNBOUND){
+            if(st->bbn_action_type == BBN_POLICY_UNBOUND){
                  memcpy(keyexpr_info->tapleaf_hash,st->psbt_leafhash,32);//
              }else{
-                PRINTF("--checkleaf-- checking\n");
-                PRINTF_BUF(keyexpr_info->tapleaf_hash, 32);
-                PRINTF_BUF(st->psbt_leafhash, 32);
                 if(memcmp(keyexpr_info->tapleaf_hash,st->psbt_leafhash,32)){
                     PRINTF("check leaf_hash wrong\n");
                     SEND_SW(dc, SW_INCORRECT_DATA);
@@ -2658,10 +2555,9 @@ static bool __attribute__((noinline)) sign_sighash_schnorr_and_yield(dispatcher_
         }
 
         policy_node_tr_t *policy = (policy_node_tr_t *) st->wallet_policy_map;
-        PRINTF("keyexpr_info->is_tapscript %x\n",keyexpr_info->is_tapscript);
 
         if (!keyexpr_info->is_tapscript) {
-            if (isnull_policy_node_tree(&policy->tree) ||  get_action_step(st->wallet_header.name) == BBN_POLICY_STAKE_TRANSFER || get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322) {
+            if (isnull_policy_node_tree(&policy->tree) ||  st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER || st->bbn_action_type == BBN_POLICY_BIP322) {
                 PRINTF("crypto_tr_tweak_seckey BIP-86 \n");
                 // tweak as specified in BIP-86 and BIP-386
                 crypto_tr_tweak_seckey(seckey, (uint8_t[]){}, 0, seckey);
@@ -2684,19 +2580,13 @@ static bool __attribute__((noinline)) sign_sighash_schnorr_and_yield(dispatcher_
             error = true;
             break;
         }
-        PRINTF("private_key %d\n",private_key.d_len);
-        PRINTF_BUF(private_key.d,32);
-
-        PRINTF("cx_ecschnorr_sign_no_throw\n");
         err = cx_ecschnorr_sign_no_throw(&private_key,
                                          CX_ECSCHNORR_BIP0340 | CX_RND_TRNG,
                                          CX_SHA256,
                                          sighash,
                                          32,
                                          sig,
-                                         &sig_len);
-        PRINTF("sig_len %d\n", sig_len);                                 
-        PRINTF_BUF(sig,sig_len);                                        
+                                         &sig_len);                                    
         if (err != CX_OK) {
             error = true;
         }
@@ -2765,14 +2655,13 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
                                                     (uint8_t[]){PSBT_IN_PREVIOUS_TXID},
                                                     1,
                                                     ith_prevout_hash,
-                                                    32)) {
-                SEND_SW(dc, 0xE002);                                                
-                //SEND_SW(dc, SW_INCORRECT_DATA);
+                                                    32)) {                                             
+                SEND_SW(dc, SW_INCORRECT_DATA);
                 return false;
             }
-            PRINTF("ith_prevout_hash\n");
-            PRINTF_BUF(ith_prevout_hash,32);
-            if(get_action_step(st->wallet_header.name) == BBN_POLICY_BIP322){
+            //chester
+            //get txid for bip322 message
+            if(st->bbn_action_type == BBN_POLICY_BIP322){
                 memcpy(st->psbt_staker_pk, ith_prevout_hash,32);//to save memory
             }
 
@@ -3181,9 +3070,18 @@ sign_transaction(dispatcher_context_t *dc,
                                                sign_psbt_cache)) {
                     return false;
                 }
+
+                // check if the name in list, if not deny
+                // then display it to user for confirmation
+                if (!st->is_wallet_default) {
+                    if(!ui_authorize_wallet_spend(dc, st->wallet_header.name)){
+                        PRINTF("ui_authorize_wallet_spend fail \n");
+                        SEND_SW(dc, SW_DENY);
+                        return false;
+                    }
+                }
                 //chester
-                //
-                if(get_action_step(st->wallet_header.name) == BBN_POLICY_STAKE_TRANSFER){
+                if(st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER){
                     if(!bbn_check_address(dc,st)){
                         PRINTF("bbn_check_address fail\n");
                         SEND_SW(dc, SW_DENY);
@@ -3191,7 +3089,7 @@ sign_transaction(dispatcher_context_t *dc,
                     }
                 }
 
-                if(get_action_step(st->wallet_header.name) == BBN_POLICY_UNBOUND){
+                if(st->bbn_action_type == BBN_POLICY_UNBOUND){
                     if(!bbn_check_unbound(dc,st)){
                         PRINTF("bbn_check_unbound fail\n");
                         SEND_SW(dc, SW_DENY);
@@ -3206,12 +3104,34 @@ sign_transaction(dispatcher_context_t *dc,
                     }
                     memcpy(st->psbt_leafhash, unbound_leafhash, 32);
                     st->psbt_leafhash_state = BBN_LEAF_HASH_CHECK;
-                }        
-                   
+                }
+
+                if( st->bbn_action_type == BBN_POLICY_BIP322 && !bbn_check_and_display_message(dc,st)){
+                    PRINTF("bbn_check_and_display_message fail\n");
+                    return false;
+                }
+                
+                if( st->bbn_action_type == BBN_POLICY_SLASHING ||
+                    st->bbn_action_type == BBN_POLICY_SLASHING_UNBOUNDING ||
+                    st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
+                    st->bbn_action_type == BBN_POLICY_UNBOUND){
+                    if (!display_bbn_pk(dc, st)) {
+                        PRINTF("display_bbn_pk fail \n");
+                        return false;
+                    }
+                }
+                
+                if( st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
+                    st->bbn_action_type == BBN_POLICY_UNBOUND){
+                     if ( !display_bbn_timelock(dc, st)) {
+                        PRINTF("display_bbn_timelock fail \n");
+                        return false;
+                    }
+                } 
+
                 if (!display_transaction(dc, st, internal_outputs)) return false;
                 // Signing always takes some time, so we rather not wait before showing the spinner
                 io_show_processing_screen();
-                PRINTF("sign_transaction_input %d\n", i);
                 if (!sign_transaction_input(dc,
                                             st,
                                             sign_psbt_cache,
