@@ -37,8 +37,8 @@ static void exit(void) {
 
 void ui_menu_main_flow_bitcoin(void) {
     nbgl_useCaseHomeAndSettings(APPNAME,
-                                &C_Bitcoin_64px,
-                                NULL,
+                                &C_Babylon_64px,
+                                "Powered by Tomo Connect",
                                 INIT_HOME_PAGE,
                                 NULL,
                                 &infoList,
