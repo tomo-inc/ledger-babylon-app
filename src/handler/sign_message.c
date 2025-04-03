@@ -109,7 +109,6 @@ void handler_sign_message(dispatcher_context_t* dc, uint8_t protocol_version) {
     uint64_t message_length;
     uint8_t message_merkle_root[32];
     bool printable = true;
-    PRINTF("sign message\n");
     if (!buffer_read_u8(&dc->read_buffer, &bip32_path_len) ||
         !buffer_read_bip32_path(&dc->read_buffer, bip32_path, bip32_path_len) ||
         !buffer_read_varint(&dc->read_buffer, &message_length) ||
@@ -182,8 +181,7 @@ void handler_sign_message(dispatcher_context_t* dc, uint8_t protocol_version) {
 
 #ifndef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
     ui_pre_processing_message();
-    if (printable) {
-        PRINTF("display_message_content_and_confirm\n");
+    if(printable) {
         if (!display_message_content_and_confirm(dc,
                                                  message_merkle_root,
                                                  n_chunks,
@@ -192,7 +190,6 @@ void handler_sign_message(dispatcher_context_t* dc, uint8_t protocol_version) {
             return;
         }
     } else {
-        PRINTF("ui_display_message_path_hash_and_confirm\n");
         if (!ui_display_message_path_hash_and_confirm(dc, path_str, message_hash_str)) {
             SEND_SW(dc, SW_DENY);
             return;
@@ -200,7 +197,6 @@ void handler_sign_message(dispatcher_context_t* dc, uint8_t protocol_version) {
     }
 #endif
     uint8_t sig[MAX_DER_SIG_LEN];
-    PRINTF("crypto_ecdsa_sign_sha256_hash_with_key\n");
     uint32_t info;
     int sig_len = crypto_ecdsa_sign_sha256_hash_with_key(bip32_path,
                                                          bip32_path_len,

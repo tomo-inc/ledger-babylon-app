@@ -655,9 +655,8 @@ void ui_confirm_finality_pk_flow(void) {
     ux_flow_init(0, ux_confim_finality_pk_flow, NULL);
 }
 
-void ui_confirm_cov_pks_flow(int count, int quorum) {
+void ui_confirm_cov_pks_flow(int count) {
     count = 0;
-    quorum = 0;
     ux_flow_init(0, ux_confim_cov_pks_flow, NULL);
 }
 void ui_confirm_bbn_timelock_flow(void) {

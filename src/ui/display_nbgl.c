@@ -640,7 +640,7 @@ void ui_confirm_finality_pk_flow(void) {
 }
 
 
-void ui_confirm_cov_pks_flow(int count, int quorum) {
+void ui_confirm_cov_pks_flow(int count) {
     confirmed_status = "Action\nconfirmed";
     rejected_status = "Action rejected";
     pairs[0].item = "quorum";

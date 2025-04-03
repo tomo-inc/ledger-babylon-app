@@ -281,7 +281,7 @@ void ui_confim_leaf_hash_flow(void);
 
 void ui_confirm_finality_pk_flow(void);
 
-void ui_confirm_cov_pks_flow(int count, int quorum);
+void ui_confirm_cov_pks_flow(int count);
 
 void ui_confirm_bbn_timelock_flow(void);
 
