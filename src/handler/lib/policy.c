@@ -665,7 +665,7 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                     update_output(state, compressed_pubkey, 33);
                 } else {
                    if( state->st->bbn_action_type==BBN_POLICY_STAKE_TRANSFER || 
-                       state->st->bbn_action_type==BBN_POLICY_UNBOUND){
+                       state->st->bbn_action_type==BBN_POLICY_UNBOND){
                         if(state->st->psbt_staker_pk_state==0 || state->st->psbt_finality_pk_state==0){
                             if(state->st->psbt_staker_pk_state==0){
                                 memcpy(state->st->psbt_staker_pk,compressed_pubkey+1,32);
@@ -2205,12 +2205,12 @@ int get_action_type(const char* name){
     PRINTF("--get_action_type %s\n", name);
     if (memcmp(name, BBN_POLICY_NAME_SLASHING, strlen(BBN_POLICY_NAME_SLASHING)) == 0){
         return BBN_POLICY_SLASHING;
-    }else if(memcmp(name, BBN_POLICY_NAME_SLASHING_UNBOUNDING, strlen(BBN_POLICY_NAME_SLASHING_UNBOUNDING)) == 0){
-        return BBN_POLICY_SLASHING_UNBOUNDING;
+    }else if(memcmp(name, BBN_POLICY_NAME_SLASHING_UNBONDING, strlen(BBN_POLICY_NAME_SLASHING_UNBONDING)) == 0){
+        return BBN_POLICY_SLASHING_UNBONDING;
     }else if(memcmp(name, BBN_POLICY_NAME_STAKE_TRANSFER, strlen(BBN_POLICY_NAME_STAKE_TRANSFER)) == 0){
         return BBN_POLICY_STAKE_TRANSFER;
-    }else if(memcmp(name, BBN_POLICY_NAME_UNBOUND, strlen(BBN_POLICY_NAME_UNBOUND)) == 0){
-        return BBN_POLICY_UNBOUND;
+    }else if(memcmp(name, BBN_POLICY_NAME_UNBOND, strlen(BBN_POLICY_NAME_UNBOND)) == 0){
+        return BBN_POLICY_UNBOND;
     }else if(memcmp(name, BBN_POLICY_NAME_WITHDRAW, strlen(BBN_POLICY_NAME_WITHDRAW)) == 0){
         return BBN_POLICY_WITHDRAW;
     }else if(memcmp(name, BBN_POLICY_NAME_BIP322_MESSAGE, strlen(BBN_POLICY_NAME_BIP322_MESSAGE)) == 0){
@@ -2225,12 +2225,12 @@ bool check_descriptor(const char* descriptor, bbn_policy_type_t type){
     switch (type) {
         case BBN_POLICY_SLASHING:
             return memcmp(descriptor, BBN_DESCRIPTOR_SLASHING,53) == 0;
-        case BBN_POLICY_SLASHING_UNBOUNDING:
-            return memcmp(descriptor, BBN_DESCRIPTOR_SLASHING_UNBOUNDING,53) == 0;
+        case BBN_POLICY_SLASHING_UNBONDING:
+            return memcmp(descriptor, BBN_DESCRIPTOR_SLASHING_UNBONDING,53) == 0;
         case BBN_POLICY_STAKE_TRANSFER:
             return memcmp(descriptor, BBN_DESCRIPTOR_STAKE_TRANSFER,59) == 0;
-        case BBN_POLICY_UNBOUND:
-            return memcmp(descriptor, BBN_DESCRIPTOR_UNBOUND,35) == 0;
+        case BBN_POLICY_UNBOND:
+            return memcmp(descriptor, BBN_DESCRIPTOR_UNBOND,35) == 0;
         case BBN_POLICY_WITHDRAW:
             return memcmp(descriptor, BBN_DESCRIPTOR_WITHDRAW, 32) == 0;
         case BBN_POLICY_BIP322:

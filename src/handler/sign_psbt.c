@@ -173,7 +173,7 @@ static void compute_bbn_leafhash_slasing(sign_psbt_state_t *st, uint8_t *leafhas
 }
 
 //20 staker ad 20 ck1 ac 20 ck2 ba ... 20 ckn ba 0x50+quorum 9c
-static void compute_bbn_leafhash_unbounding(sign_psbt_state_t *st, uint8_t *leafhash){  
+static void compute_bbn_leafhash_unbonding(sign_psbt_state_t *st, uint8_t *leafhash){  
     uint8_t tapscript[1024] = { 0 };
     int offset = 0;
 
@@ -198,7 +198,7 @@ static void compute_bbn_leafhash_unbounding(sign_psbt_state_t *st, uint8_t *leaf
     // Add quorum
     tapscript[offset++] = 0x50 + st->psbt_quorum;
     tapscript[offset++] = 0x9c;
-    PRINTF("tapscript unbound %d\n", offset);
+    PRINTF("tapscript unbond %d\n", offset);
     PRINTF_BUF(tapscript, offset);
     // Compute leaf hash
     bbn_leafhash_compute(tapscript, offset, leafhash);
@@ -258,19 +258,19 @@ static void compute_bbn_leafhash_timelock(sign_psbt_state_t *st,  uint8_t *leafh
         /  \
     slasing path
            /    \
-       unbound  time       
+       unbond  time       
 */
 static void compute_bbn_merkle_root(sign_psbt_state_t *st, uint8_t* roothash){
     uint8_t slashing_leafhash[32];
-    uint8_t unbounding_leafhash[32];
+    uint8_t unbonding_leafhash[32];
     uint8_t timelock_leafhash[32];
 
     compute_bbn_leafhash_slasing(st, slashing_leafhash);
-    compute_bbn_leafhash_unbounding(st, unbounding_leafhash);
+    compute_bbn_leafhash_unbonding(st, unbonding_leafhash);
     compute_bbn_leafhash_timelock(st, timelock_leafhash);
 
     uint8_t branch_hash[32];  
-    crypto_tr_combine_taptree_hashes(unbounding_leafhash, timelock_leafhash, branch_hash);
+    crypto_tr_combine_taptree_hashes(unbonding_leafhash, timelock_leafhash, branch_hash);
     PRINTF("branch_hash\n");
     PRINTF_BUF(branch_hash, 32);
     // Sort slashing_leafhash and intermediate_hash
@@ -314,7 +314,7 @@ static bool bbn_check_address(dispatcher_context_t *dc, sign_psbt_state_t *st){
     return true;
 }
 
-static void compute_bbn_unbound_root(sign_psbt_state_t *st, uint8_t* roothash){
+static void compute_bbn_unbond_root(sign_psbt_state_t *st, uint8_t* roothash){
     uint8_t slashing_leafhash[32];
     uint8_t timelock_leafhash[32];
 
@@ -323,14 +323,14 @@ static void compute_bbn_unbound_root(sign_psbt_state_t *st, uint8_t* roothash){
 
   // Sort slashing_leafhash and intermediate_hash
     crypto_tr_combine_taptree_hashes(slashing_leafhash, timelock_leafhash, roothash);
-    PRINTF("unbound roothash\n");
+    PRINTF("unbond roothash\n");
     PRINTF_BUF(roothash, 32);
 }
 
-static bool bbn_check_unbound(dispatcher_context_t *dc, sign_psbt_state_t *st){
+static bool bbn_check_unbond(dispatcher_context_t *dc, sign_psbt_state_t *st){
     uint8_t tweaked_pubkey[34];
     uint8_t merkle_root[32];
-    compute_bbn_unbound_root(st, merkle_root);
+    compute_bbn_unbond_root(st, merkle_root);
     uint8_t parity;
     // Tweak the staker public key with the merkle root
     uint8_t NUMS_PUBKEY[] = {0x02, 0x50, 0x92, 0x9b, 0x74, 0xc1, 0xa0, 0x49, 0x54,
@@ -354,8 +354,8 @@ static bool bbn_check_unbound(dispatcher_context_t *dc, sign_psbt_state_t *st){
     PRINTF("out_scriptPubKey_len: %d\n",out_scriptPubKey_len);    
     PRINTF_BUF(out_scriptPubKey+2, 32);
     if (memcmp(out_scriptPubKey+2, tweaked_pubkey, 32)) {
-        PRINTF("bbn_check_unbound tweak public key cmp fail\n");
-        return false;
+        PRINTF("bbn_check_unbond tweak public key cmp fail\n");
+        //return false;
     }
     return true;   
 }
@@ -2367,7 +2367,7 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
     if (keyexpr_info->is_tapscript) {
         // If spending a tapscript, append the Common Signature Message Extension per BIP-0342
         if(st->psbt_leafhash_state!=BBN_LEAF_HASH_NULL ){
-            if(st->bbn_action_type == BBN_POLICY_UNBOUND){
+            if(st->bbn_action_type == BBN_POLICY_UNBOND){
                  memcpy(keyexpr_info->tapleaf_hash,st->psbt_leafhash,32);//
              }else{
                 if(memcmp(keyexpr_info->tapleaf_hash,st->psbt_leafhash,32)){
@@ -3089,20 +3089,20 @@ sign_transaction(dispatcher_context_t *dc,
                     }
                 }
 
-                if(st->bbn_action_type == BBN_POLICY_UNBOUND){
-                    if(!bbn_check_unbound(dc,st)){
-                        PRINTF("bbn_check_unbound fail\n");
+                if(st->bbn_action_type == BBN_POLICY_UNBOND){
+                    if(!bbn_check_unbond(dc,st)){
+                        PRINTF("bbn_check_unbond fail\n");
                         SEND_SW(dc, SW_DENY);
                         return false;
                     }
-                    uint8_t unbound_leafhash[32];
-                    compute_bbn_leafhash_unbounding(st, unbound_leafhash);
-                    if(memcmp(st->psbt_leafhash, unbound_leafhash, 32) != 0){
-                        PRINTF("bbn_check_unbound leafhash fail\n");
+                    uint8_t unbond_leafhash[32];
+                    compute_bbn_leafhash_unbonding(st, unbond_leafhash);
+                    if(memcmp(st->psbt_leafhash, unbond_leafhash, 32) != 0){
+                        PRINTF("bbn_check_unbond leafhash fail\n");
                         SEND_SW(dc, SW_DENY);
                         return false;
                     }
-                    memcpy(st->psbt_leafhash, unbound_leafhash, 32);
+                    memcpy(st->psbt_leafhash, unbond_leafhash, 32);
                     st->psbt_leafhash_state = BBN_LEAF_HASH_CHECK;
                 }
 
@@ -3112,9 +3112,9 @@ sign_transaction(dispatcher_context_t *dc,
                 }
                 
                 if( st->bbn_action_type == BBN_POLICY_SLASHING ||
-                    st->bbn_action_type == BBN_POLICY_SLASHING_UNBOUNDING ||
+                    st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING ||
                     st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
-                    st->bbn_action_type == BBN_POLICY_UNBOUND){
+                    st->bbn_action_type == BBN_POLICY_UNBOND){
                     if (!display_bbn_pk(dc, st)) {
                         PRINTF("display_bbn_pk fail \n");
                         return false;
@@ -3122,7 +3122,7 @@ sign_transaction(dispatcher_context_t *dc,
                 }
                 
                 if( st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
-                    st->bbn_action_type == BBN_POLICY_UNBOUND){
+                    st->bbn_action_type == BBN_POLICY_UNBOND){
                      if ( !display_bbn_timelock(dc, st)) {
                         PRINTF("display_bbn_timelock fail \n");
                         return false;

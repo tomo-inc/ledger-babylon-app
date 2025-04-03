@@ -537,13 +537,13 @@ void ui_display_spend_from_wallet_flow(void) {
                                 "Confirm staking transaction action",
                                 status_operation_callback);
         break;
-    case BBN_POLICY_UNBOUND:
+    case BBN_POLICY_UNBOND:
         nbgl_useCaseReviewLight(TYPE_OPERATION,
                                 &pairList,
                                 &C_Babylon_64px,
                                 "Babylon action",
                                 NULL,
-                                "Confirm unbounding action",
+                                "Confirm unbouding action",
                                 status_operation_callback);
         break;
     case BBN_POLICY_WITHDRAW:
