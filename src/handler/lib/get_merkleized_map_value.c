@@ -18,12 +18,10 @@ int call_get_merkleized_map_value(dispatcher_context_t *dispatcher_context,
 
     int index =
         call_get_merkle_leaf_index(dispatcher_context, map->size, map->keys_root, key_merkle_hash);
-    PRINTF("call_get_merkle_leaf_index %d\n", index);
     if (index < 0) {
         PRINTF("Key not found, or incorrect data.\n");
         return -1;
     }
-    PRINTF("call_get_merkle_leaf_element\n");
     return call_get_merkle_leaf_element(dispatcher_context,
                                         map->values_root,
                                         map->size,

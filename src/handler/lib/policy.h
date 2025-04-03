@@ -255,7 +255,7 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
                                                        const uint8_t keys_merkle_root[static 32],
                                                        uint32_t n_keys);
 
-#if !defined(DEBUG) || DEBUG == 0                                                       
+#if 1                                                      
 #define PRINTF_BUF(ptr, len) do {} while (0)
 #else
 #define PRINTF_BUF(ptr, len)                  \

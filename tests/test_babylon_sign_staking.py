@@ -141,8 +141,6 @@ def test_sign_psbt_tr_script_slashing_unbounding(navigator: Navigator, firmware:
 
 def test_sign_psbt_tr_script_stake_transfer(navigator: Navigator, firmware: Firmware, client:
                                             RaggerClient, test_name: str):
-#   descriptor_template="tr(@0/**,and_v(after(1008),and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**)))))",
-#   descriptor_template="tr(@0/**)",
     wallet = WalletPolicy(
         name="Staking transaction",
         descriptor_template="tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))),older(64000)))",
@@ -188,12 +186,6 @@ def test_sign_psbt_tr_script_stake_transfer(navigator: Navigator, firmware: Firm
     assert partial_sig0.tapleaf_hash is None, "leaf hash is not None"
     
   
-#     #note that the pub is not internal key, secret tweaked when doing BIP86
-#     #use pub in scriptPubKey
-#     pubkey = bytes.fromhex("740ee64e452e3baee127b03c195bcc21ad3edded2ef26c5af483d9c56304d1e5")
-#     assert bip0340.schnorr_verify(sighash0, pubkey, partial_sig0.signature[:64]), "signature veriry fail"
-#     tpubD6NzVbkrYhZ4YaL8V9jDXSVBuoXYZ8fM4M8ykTRbipQ1wGCm1FCbvZfQaZUZxkxEwF3LJbiMNo6TCB6uU9hBvEZvuEqhKkExeTxmwMLwCtw
-#     tpubD6NzVbkrYhZ4Yt3Vn3Naxxfg8LpfnAkUBVsm2VLFDXCWekWMsZSvKjpeWM9AVgnQxUjc9fWS7gW7Vvoy2kXbgGBc6KxTGoMP7W688gzhyKe
 def test_sign_psbt_tr_script_unbounding(navigator: Navigator, firmware: Firmware, client:
                                             RaggerClient, test_name: str):
 
@@ -295,21 +287,22 @@ def test_sign_psbt_tr_script_withdraw(navigator: Navigator, firmware: Firmware, 
     # len 1 byte || hex of message || (32 - len - 1)*0xFC
 def test_sign_psbt_bip322_message_display(navigator: Navigator, firmware: Firmware, client:
                                        RaggerClient, test_name: str):
-    # script pubkey = 740ee64e452e3baee127b03c195bcc21ad3edded2ef26c5af483d9c56304d1e5
-    # 1452fe7c1491b07fb68acd3aa83ecfc5af5c2d8e74fcfcfcfcfcfcfcfcfcfcfc
-    # tap pubkey = 740ee64e452e3baee127b03c195bcc21ad3edded2ef26c5af483d9c56304d1e5
+    #  script pubkey = 740ee64e452e3baee127b03c195bcc21ad3edded2ef26c5af483d9c56304d1e5
+    #  bbn1dppj9xellvzrh7x60vft4u8cpkyrvv3camt8ps --> 6843229b3ffb043bf8da7b12baf0f80d88363238
+    #  https://www.bech32converter.com/
+    #  146843229b3ffb043bf8da7b12baf0f80d88363238fcfcfcfcfcfcfcfcfcfcfc
 
     wallet = WalletPolicy(
         "Sign message",
         "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))",
          [
             "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
-            "[83871619/86'/1'/0']tpubD6NzVbkrYhZ4XPo7WQiJBM4qTVggJYXCRDtfZsxJuywQEky9EAcqUaKJ3xSaNRK7i5ZW3RfMwAkxybCCvtAAPNMGzdasngWr8L7eiw3fzLY",
+            "[83871619/86'/1'/0']tpubD6NzVbkrYhZ4YgAmhRQVWifGGFVzYnFBwTzt1rppUvhGquRV2a2iMX8kP6aKestNhrr7eynAKpJHx7CGXXr6XM4k1Y64Ym7pqsXbds1t6jW",
             "[25270417/86'/1'/0']tpubD6NzVbkrYhZ4YkMn2vxCprkptChmVi9PDL2LeceaonJm71Rqg5TPC7UexzfFVRah3YegACuusqkDQQdCYCAJNiNFkzasVh8XBD6bQsumurc"
     ]
     )
     
-    psbt_b64 = "cHNidP8BAD0AAAAAAfnzpZz1H7eb/ESlaY3WClZ5a0uQxjLExG5FALY4mkuRAAAAAAAAAAAAAQAAAAAAAAAAAWoAAAAAAAEBKwAAAAAAAAAAIlEgdA7mTkUuO67hJ7A8GVvMIa0+3e0u8mxa9IPZxWME0eUhFtyNL57/DE9NveBwpI4zDvyQi2KnZlaNkeZY8oSzJLh4GQD1rML9VgAAgAEAAIAAAACAAAAAAAAAAAABFyDcjS+e/wxPTb3gcKSOMw78kItip2ZWjZHmWPKEsyS4eAAA"
+    psbt_b64 = "cHNidP8BAD0AAAAAAax33wJvai3ohYqdkcV8Gw1exs19JDS36wHEKb1fWRgYAAAAAAAAAAAAAQAAAAAAAAAAAWoAAAAAAAEBKwAAAAAAAAAAIlEgdA7mTkUuO67hJ7A8GVvMIa0+3e0u8mxa9IPZxWME0eUhFtyNL57/DE9NveBwpI4zDvyQi2KnZlaNkeZY8oSzJLh4GQD1rML9VgAAgAEAAIAAAACAAAAAAAAAAAABFyDcjS+e/wxPTb3gcKSOMw78kItip2ZWjZHmWPKEsyS4eAAA"
     psbt = PSBT()
     psbt.deserialize(psbt_b64)
 
