@@ -255,9 +255,9 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
                                                        const uint8_t keys_merkle_root[static 32],
                                                        uint32_t n_keys);
 
-// #if !defined(DEBUG) || DEBUG == 0                                                       
-// #define PRINTF_BUF(ptr, len) do {} while (0)
-// #else
+#if !defined(DEBUG) || DEBUG == 0                                                       
+#define PRINTF_BUF(ptr, len) do {} while (0)
+#else
 #define PRINTF_BUF(ptr, len)                  \
     do {                                      \
         PRINTF("Buffer: ");                   \
@@ -266,7 +266,7 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
         }                                     \
         PRINTF("\n");                         \
     } while (0)
-//#endif  
+#endif  
 
 #define BBN_NULL_FP                     ((uint8_t[]){ 0x00, 0x00, 0x00, 0x00 })
 #define BBN_LEAFHASH_DISPLAY_FP         ((uint8_t[]){ 0x69, 0x84, 0x6d, 0x00 })

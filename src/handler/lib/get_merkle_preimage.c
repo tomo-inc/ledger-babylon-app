@@ -27,7 +27,6 @@ int call_get_merkle_preimage(dispatcher_context_t *dispatcher_context,
 
     dispatcher_context->add_to_response(hash, 32);
     dispatcher_context->finalize_response(SW_INTERRUPTED_EXECUTION);
-    PRINTF("call_get_merkle_preimage process_interruption\n");
     if (dispatcher_context->process_interruption(dispatcher_context) < 0) {
         return -1;
     }
@@ -39,12 +38,10 @@ int call_get_merkle_preimage(dispatcher_context_t *dispatcher_context,
     if (!buffer_read_varint(&dispatcher_context->read_buffer, &preimage_len) ||
         !buffer_read_u8(&dispatcher_context->read_buffer, &partial_data_len) ||
         !buffer_can_read(&dispatcher_context->read_buffer, partial_data_len)) {
-        PRINTF("---------------- -2\n");
         return -2;
     }
 
     if (preimage_len == 0 || partial_data_len == 0) {
-        PRINTF("---------------- -3\n");
         return -3;
     }
 
@@ -54,7 +51,6 @@ int call_get_merkle_preimage(dispatcher_context_t *dispatcher_context,
     }
 
     if (partial_data_len > preimage_len) {
-        PRINTF("---------------- -5\n");
         return -5;
     }
 
@@ -78,9 +74,7 @@ int call_get_merkle_preimage(dispatcher_context_t *dispatcher_context,
     while (bytes_remaining > 0) {
         uint8_t get_more_elements_req[] = {CCMD_GET_MORE_ELEMENTS};
         SET_RESPONSE(dispatcher_context, get_more_elements_req, 1, SW_INTERRUPTED_EXECUTION);
-        PRINTF("call_get_merkle_preimage process_interruption 2\n");
         if (dispatcher_context->process_interruption(dispatcher_context) < 0) {
-            PRINTF("---------------- -6\n");
             return -6;
         }
 
@@ -89,13 +83,11 @@ int call_get_merkle_preimage(dispatcher_context_t *dispatcher_context,
         if (!buffer_read_u8(&dispatcher_context->read_buffer, &n_bytes) ||
             !buffer_read_u8(&dispatcher_context->read_buffer, &elements_len) ||
             !buffer_can_read(&dispatcher_context->read_buffer, (size_t) n_bytes * elements_len)) {
-            PRINTF("---------------- -7\n");
             return -7;
         }
 
         if (elements_len != 1) {
             PRINTF("Elements should be single bytes\n");
-            PRINTF("---------------- -8\n");
             return -8;
         }
 

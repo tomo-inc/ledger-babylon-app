@@ -19,7 +19,6 @@ int call_get_merkle_leaf_index(dispatcher_context_t *dispatcher_context,
 
         SET_RESPONSE(dispatcher_context, request, sizeof(request), SW_INTERRUPTED_EXECUTION);
     }
-    PRINTF("call_get_merkle_leaf_index process_interruption\n");
     if (dispatcher_context->process_interruption(dispatcher_context) < 0) {
         return -3;
     }
