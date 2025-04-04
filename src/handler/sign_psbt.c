@@ -175,11 +175,14 @@ static int encode_minimal_push(uint32_t value, uint8_t *buffer) {
         buffer[0] = 0x00;
         return 1;
     }
-    
+    if (value >= 1 && value <= 15) {
+        buffer[0] = 0x50 + value;
+        return 1;
+    }  
     int size = 0;
     int is_negative = (value < 0);
     uint32_t abs_value = (is_negative) ? -value : value;
-    
+   
     while (abs_value) {
         buffer[size++] = abs_value & 0xFF;
         abs_value >>= 8;
@@ -206,7 +209,8 @@ static void compute_bbn_leafhash_timelock(sign_psbt_state_t *st,  uint8_t *leafh
 
     uint8_t value_buffer[4];
     int len = encode_minimal_push(st->psbt_timelock,value_buffer);
-    tapscript[offset++] = len;
+    if(st->psbt_timelock>15)
+        tapscript[offset++] = len;
     memcpy(tapscript + offset, value_buffer, len);
     offset += len;
     tapscript[offset++] = 0xb2;
@@ -241,6 +245,10 @@ static bool bbn_check_address(sign_psbt_state_t *st){
     uint8_t tweaked_pubkey[34];
     uint8_t merkle_root[32];
 
+    if(st->psbt_timelock == 0){
+        PRINTF("timelock state is 0\n");
+        return false;
+    }
     // Compute the merkle root
     compute_bbn_merkle_root(st, merkle_root);
     uint8_t parity;
@@ -290,6 +298,10 @@ static void compute_bbn_unbond_root(sign_psbt_state_t *st, uint8_t* roothash){
 static bool bbn_check_unbond(sign_psbt_state_t *st){
     uint8_t tweaked_pubkey[34];
     uint8_t merkle_root[32];
+    if(st->psbt_timelock == 0){
+        PRINTF("timelock state is 0\n");
+        return false;
+    }
     compute_bbn_unbond_root(st, merkle_root);
     uint8_t parity;
 
