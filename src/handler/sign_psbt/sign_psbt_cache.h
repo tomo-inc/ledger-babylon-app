@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../crypto.h"
+#include "../../crypto.h"
 #include "../common/wallet.h"
 
 // This allows to keep the cache size small, while only paying a performance hit for any extremely
