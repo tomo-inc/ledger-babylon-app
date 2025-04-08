@@ -53,6 +53,28 @@ jobs:
           name: bitcoin-testnet-app-${{ matrix.model }}
           path: bitcoin-testnet-bin
 
+  job_build_app_perftest:
+    name: Compile the UX-less version of the app on Nano S+ for performance tests
+
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          make DEBUG=0 COIN=bitcoin_testnet BOLOS_SDK="$NANOSP_SDK" AUTOAPPROVE_FOR_PERF_TESTS=1
+
+      - name: Upload Bitcoin Testnet app binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: bitcoin-testnet-perftest-app-nanosp
+          path: bin
+          
   job_unit_test:
     name: Unit test
     needs: job_build
