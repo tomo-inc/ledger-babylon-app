@@ -886,11 +886,11 @@ static bool __attribute__((noinline)) get_and_verify_key_info(dispatcher_context
     }
 
     // the rest of the function verifies if the key is indeed internal, if it has our fingerprint
-    uint32_t fpr = read_u32_be(key_info.master_key_fingerprint, 0);
-    uint8_t has_fp = 1;
-    if (fpr != st->master_key_fingerprint) {
-        has_fp = 0;
-    }
+    // uint32_t fpr = read_u32_be(key_info.master_key_fingerprint, 0);
+    // uint8_t has_fp = 1;
+    // if (fpr != st->master_key_fingerprint) {
+    //     has_fp = 0;
+    // }
 
     // it could be a collision on the fingerprint; we verify that we can actually generate
     // the same pubkey
