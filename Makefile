@@ -63,6 +63,9 @@ ifneq ($(AUTOAPPROVE_FOR_PERF_TESTS),0)
     DEFINES += HAVE_AUTOAPPROVE_FOR_PERF_TESTS
 endif
 
+# Setting to allow building variant applications
+VARIANT_PARAM = COIN
+VARIANT_VALUES = bitcoin_testnet bitcoin
 
 # simplify for tests
 #COIN=bitcoin_testnet
