@@ -559,7 +559,7 @@ static void update_output(policy_parser_state_t *state, const uint8_t *data, siz
     policy_parser_node_state_t *node = &state->nodes[state->node_stack_eos];
     node->length += data_len;
     if (state->hash_context != NULL) {
-        PRINTF_BUF(data, data_len);
+        //PRINTF_BUF(data, data_len);
         crypto_hash_update(state->hash_context, data, data_len);
     }
 }

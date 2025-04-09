@@ -244,21 +244,21 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
                                                        uint32_t n_keys);
 //#define BBN_PRT_BUF
 
-#ifdef BBN_PRT_BUF
-#define PRINTF_BUF(ptr, len) \
-    do {                     \
-    } while (0)
-#else
-#define PRINTF_BUF(ptr, len)                             \
-    do {                                                 \
-        PRINTF("Buffer: ");                              \
-        for (uint32_t i = 0; i < (uint32_t)(len); i++) { \
-            PRINTF("%02X", (ptr)[i]);                    \
-        }                                                \
-        PRINTF("\n");                                    \
-        \                                                \
-    } while (0)
-#endif
+// #ifdef BBN_PRT_BUF
+// #define PRINTF_BUF(ptr, len) \
+//     do {                     \
+//     } while (0)
+// #else
+// #define PRINTF_BUF(ptr, len)                             \
+//     do {                                                 \
+//         PRINTF("Buffer: ");                              \
+//         for (uint32_t i = 0; i < (uint32_t)(len); i++) { \
+//             PRINTF("%02X", (ptr)[i]);                    \
+//         }                                                \
+//         PRINTF("\n");                                    \
+//         \                                                \
+//     } while (0)
+// #endif
 
 #define BBN_NULL_FP ((uint8_t[]){0x00, 0x00, 0x00, 0x00})
 #define BBN_LEAFHASH_DISPLAY_FP ((uint8_t[]){0x69, 0x84, 0x6d, 0x00})
