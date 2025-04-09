@@ -170,7 +170,7 @@ static const uint8_t fragment_whitelist_tapscript[] = {
 static const generic_processor_command_t commands_0[] = {{CMD_CODE_OP_V, OP_0}, {CMD_CODE_END, 0}};
 static const generic_processor_command_t commands_1[] = {{CMD_CODE_OP_V, OP_1}, {CMD_CODE_END, 0}};
 static const generic_processor_command_t commands_pk_k[] = {{CMD_CODE_PUSH_PK, 0},
-                                                            {CMD_CODE_OP_V,OP_CHECKSIGVERIFY},
+                                                            {CMD_CODE_OP_V, OP_CHECKSIGVERIFY},
                                                             {CMD_CODE_END, 0}};
 static const generic_processor_command_t commands_pk_h[] = {{CMD_CODE_OP, OP_DUP},
                                                             {CMD_CODE_OP, OP_HASH160},
@@ -337,9 +337,9 @@ int read_and_parse_wallet_policy(
     if ((read_wallet_policy_header(buf, wallet_header)) < 0) {
         return WITH_ERROR(-1, "Failed reading wallet policy header");
     }
-    //chester
-    //to empty the mem for strcmp in check_descriptor
-    memset(policy_map_descriptor_template,0, MAX_DESCRIPTOR_TEMPLATE_LENGTH);
+    // chester
+    // to empty the mem for strcmp in check_descriptor
+    memset(policy_map_descriptor_template, 0, MAX_DESCRIPTOR_TEMPLATE_LENGTH);
 
     if (wallet_header->version == WALLET_POLICY_VERSION_V1) {
         memcpy(policy_map_descriptor_template,
@@ -350,7 +350,7 @@ int read_and_parse_wallet_policy(
         int descriptor_template_len = call_get_preimage(dispatcher_context,
                                                         wallet_header->descriptor_template_sha256,
                                                         policy_map_descriptor_template,
-                                                        MAX_DESCRIPTOR_TEMPLATE_LENGTH);                                         
+                                                        MAX_DESCRIPTOR_TEMPLATE_LENGTH);
         if (descriptor_template_len < 0) {
             return WITH_ERROR(-1, "Failed getting wallet policy descriptor template");
         }
@@ -358,22 +358,25 @@ int read_and_parse_wallet_policy(
 
     buffer_t policy_map_buffer =
         buffer_create(policy_map_descriptor_template, wallet_header->descriptor_template_len);
-    
-    //chester
-    //set action here
-    if(is_sign){
-        if(st == NULL){
+
+    // chester
+    // set action here
+    if (is_sign) {
+        if (st == NULL) {
             return WITH_ERROR(-1, "Failed to is_sign st NULL");
         }
         st->bbn_action_type = get_action_type(wallet_header->name);
-         if(0 > st->bbn_action_type){
+        if (0 > st->bbn_action_type) {
             return WITH_ERROR(-1, "Failed  to get_action_type");
-        }else{
-        if(!check_descriptor((const char *)policy_map_descriptor_template, st->bbn_action_type)){
-                PRINTF("--descriptor-- %d %s\n",wallet_header->descriptor_template_len, policy_map_descriptor_template);
+        } else {
+            if (!check_descriptor((const char *) policy_map_descriptor_template,
+                                  st->bbn_action_type)) {
+                PRINTF("--descriptor-- %d %s\n",
+                       wallet_header->descriptor_template_len,
+                       policy_map_descriptor_template);
                 PRINTF("check_descriptor fail \n");
                 return WITH_ERROR(-1, "Failed  to check descriptor template");
-            }   
+            }
         }
     }
 
@@ -475,13 +478,12 @@ __attribute__((noinline, warn_unused_result)) int get_extended_pubkey_from_clien
         }
     }
     *out = key_info.ext_pubkey;
-//chester
-    if(get_fingerprint(key_info.master_key_fingerprint)==FP_OTHER){
+    // chester
+    if (get_fingerprint(key_info.master_key_fingerprint) == FP_OTHER) {
         return key_info.master_key_derivation_len;
-    }  
-    else{
+    } else {
         return 0;
-    }   
+    }
 }
 
 __attribute__((warn_unused_result)) static int get_derived_pubkey(
@@ -495,9 +497,9 @@ __attribute__((warn_unused_result)) static int get_derived_pubkey(
 
     if (key_expr->type == KEY_EXPRESSION_NORMAL) {
         derive_len = get_extended_pubkey_from_client(dispatcher_context,
-                                                wdi,
-                                                key_expr->k.key_index,
-                                                &ext_pubkey);
+                                                     wdi,
+                                                     key_expr->k.key_index,
+                                                     &ext_pubkey);
         if (0 > derive_len) {
             return -1;
         }
@@ -536,20 +538,18 @@ __attribute__((warn_unused_result)) static int get_derived_pubkey(
     // we reuse the same memory of ext_pubkey
     // only key in keyinfo has derive info will do
     // if not, just transfer the pubkey
-    if(derive_len>0){
-            if (0 > derive_first_step_for_pubkey(&ext_pubkey,
-                                            key_expr,
-                                            wdi->sign_psbt_cache,
-                                            wdi->change,
-                                            &ext_pubkey)) {
+    if (derive_len > 0) {
+        if (0 > derive_first_step_for_pubkey(&ext_pubkey,
+                                             key_expr,
+                                             wdi->sign_psbt_cache,
+                                             wdi->change,
+                                             &ext_pubkey)) {
             return -1;
         }
         if (0 > bip32_CKDpub(&ext_pubkey, wdi->address_index, &ext_pubkey, NULL)) {
             return -1;
         }
     }
-    
-    
 
     memcpy(out, ext_pubkey.compressed_pubkey, 33);
     return 0;
@@ -559,7 +559,7 @@ static void update_output(policy_parser_state_t *state, const uint8_t *data, siz
     policy_parser_node_state_t *node = &state->nodes[state->node_stack_eos];
     node->length += data_len;
     if (state->hash_context != NULL) {
-        PRINTF_BUF(data,data_len);
+        PRINTF_BUF(data, data_len);
         crypto_hash_update(state->hash_context, data, data_len);
     }
 }
@@ -604,7 +604,8 @@ static void update_output_push_u32(policy_parser_state_t *state, uint32_t n) {
 static void update_output_op_v(policy_parser_state_t *state, uint8_t op) {
     const policy_parser_node_state_t *node = &state->nodes[state->node_stack_eos];
     if (node->flags & PROCESSOR_FLAG_V) {
-        if (op == OP_CHECKSIG || op == OP_CHECKMULTISIG || op == OP_NUMEQUAL || op == OP_EQUAL || op == OP_CHECKSIGVERIFY) {
+        if (op == OP_CHECKSIG || op == OP_CHECKMULTISIG || op == OP_NUMEQUAL || op == OP_EQUAL ||
+            op == OP_CHECKSIGVERIFY) {
             // the _VERIFY versions of the opcodes are all 1 larger
             update_output_u8(state, op + 1);
         } else {
@@ -617,8 +618,7 @@ static void update_output_op_v(policy_parser_state_t *state, uint8_t op) {
 }
 
 __attribute__((warn_unused_result)) static int process_generic_node(policy_parser_state_t *state,
-                                                                    const void *arg
-                                                                ) {
+                                                                    const void *arg) {
     policy_parser_node_state_t *node = &state->nodes[state->node_stack_eos];
 
     const generic_processor_command_t *commands = (const generic_processor_command_t *) arg;
@@ -657,18 +657,19 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                     update_output_u8(state, 33);  // PUSH 33 bytes
                     update_output(state, compressed_pubkey, 33);
                 } else {
-                   if( state->st->bbn_action_type==BBN_POLICY_STAKE_TRANSFER || 
-                       state->st->bbn_action_type==BBN_POLICY_UNBOND){
-                        if(state->st->psbt_staker_pk_state==0 || state->st->psbt_finality_pk_state==0){
-                            if(state->st->psbt_staker_pk_state==0){
-                                memcpy(state->st->psbt_staker_pk,compressed_pubkey+1,32);
+                    if (state->st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
+                        state->st->bbn_action_type == BBN_POLICY_UNBOND) {
+                        if (state->st->psbt_staker_pk_state == 0 ||
+                            state->st->psbt_finality_pk_state == 0) {
+                            if (state->st->psbt_staker_pk_state == 0) {
+                                memcpy(state->st->psbt_staker_pk, compressed_pubkey + 1, 32);
                                 state->st->psbt_staker_pk_state = 1;
-                            }else{
-                                memcpy(state->st->psbt_finality_pk,compressed_pubkey,32);
+                            } else {
+                                memcpy(state->st->psbt_finality_pk, compressed_pubkey, 32);
                                 state->st->psbt_finality_pk_state = 1;
-                            }   
-                        }  
-                   }
+                            }
+                        }
+                    }
                     // x-only pubkey if within taproot
                     update_output_u8(state, 32);  // PUSH 32 bytes
                     update_output(state, compressed_pubkey + 1, 32);
@@ -700,7 +701,7 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                 const policy_node_with_uint32_t *policy =
                     (const policy_node_with_uint32_t *) node->policy_node;
                 update_output_push_u32(state, policy->n);
-                if(state->st->psbt_timelock_state==1){
+                if (state->st->psbt_timelock_state == 1) {
                     state->st->psbt_timelock = policy->n;
                     state->st->psbt_timelock_state = 2;
                 }
@@ -793,8 +794,7 @@ __attribute__((warn_unused_result)) static int process_pkh_wpkh_node(policy_pars
 
         update_output_u8(state, OP_EQUALVERIFY);
         update_output_op_v(state, OP_CHECKSIG);
-    }
-    else {  // policy->base.type == TOKEN_WPKH
+    } else {  // policy->base.type == TOKEN_WPKH
         if (state->is_taproot) {
             PRINTF("wpkh is invalid within taproot context");
             return -1;
@@ -953,11 +953,12 @@ __attribute__((warn_unused_result)) static int process_multi_sortedmulti_node(
     return 1;
 }
 
-static int cov_push_compressed_pubkey_to_bbn_buffer(const uint8_t *compressed_pubkey, sign_psbt_state_t *st, int index) {
-    //find the first empty slot of cov key array
-    if(index>15)
-        return -1;
-    memcpy(st->psbt_covenant_pk[index], compressed_pubkey+1, 32);
+static int cov_push_compressed_pubkey_to_bbn_buffer(const uint8_t *compressed_pubkey,
+                                                    sign_psbt_state_t *st,
+                                                    int index) {
+    // find the first empty slot of cov key array
+    if (index > 15) return -1;
+    memcpy(st->psbt_covenant_pk[index], compressed_pubkey + 1, 32);
     st->psbt_covenant_pk_state[index] = 1;
     return index;
 }
@@ -1015,9 +1016,8 @@ __attribute__((warn_unused_result)) static int process_multi_a_sortedmulti_a_nod
             bitvector_set(used, smallest_pubkey_index, true);  // mark the key as used
         }
 
-       
-        //chester
-        if(cov_push_compressed_pubkey_to_bbn_buffer(compressed_pubkey,state->st, i)<0){
+        // chester
+        if (cov_push_compressed_pubkey_to_bbn_buffer(compressed_pubkey, state->st, i) < 0) {
             return -1;
         }
         // push <i-th pubkey> as x-only key (32 = 0x20 bytes)
@@ -1032,7 +1032,7 @@ __attribute__((warn_unused_result)) static int process_multi_a_sortedmulti_a_nod
     }
 
     state->st->psbt_quorum = policy->k;
-    
+
     update_output_u8(state, 0x50 + policy->k);  // <k>
     update_output_op_v(state, OP_NUMEQUAL);     // OP_NUMEQUAL
 
@@ -1085,7 +1085,8 @@ __attribute__((warn_unused_result, noinline)) static int compute_and_combine_tap
     const policy_node_tree_t *tree,
     uint8_t out[static 32]) {
     uint8_t left_h[32], right_h[32];
-    if (0 > compute_taptree_hash(dc, st, wdi, r_policy_node_tree(&tree->left_tree), left_h)) return -1;
+    if (0 > compute_taptree_hash(dc, st, wdi, r_policy_node_tree(&tree->left_tree), left_h))
+        return -1;
     if (0 > compute_taptree_hash(dc, st, wdi, r_policy_node_tree(&tree->right_tree), right_h))
         return -1;
     crypto_tr_combine_taptree_hashes(left_h, right_h, out);
@@ -1261,7 +1262,7 @@ __attribute__((noinline)) int get_wallet_internal_script_hash(
     cx_hash_t *hash_context) {
     const uint8_t *whitelist;
     size_t whitelist_len;
-   
+
     switch (script_type) {
         case WRAPPED_SCRIPT_TYPE_SH:
             whitelist = fragment_whitelist_sh;
@@ -1293,7 +1294,7 @@ __attribute__((noinline)) int get_wallet_internal_script_hash(
 
     state.nodes[0] =
         (policy_parser_node_state_t){.length = 0, .flags = 0, .step = 0, .policy_node = policy};
-    //state.st = st;    
+    // state.st = st;
     int ret;
     do {
         const policy_parser_node_state_t *node = &state.nodes[state.node_stack_eos];
@@ -1626,7 +1627,6 @@ static int get_keyexpr_by_index_in_tree(const policy_node_tree_t *tree,
                                         unsigned int i,
                                         const policy_node_t **out_tapleaf_ptr,
                                         policy_node_keyexpr_t **out_keyexpr) {
-                                   
     if (tree->is_leaf) {
         int ret = get_keyexpr_by_index(r_policy_node(&tree->script), i, NULL, out_keyexpr);
         if (ret >= 0 && out_tapleaf_ptr != NULL && i < (unsigned) ret) {
@@ -1697,7 +1697,7 @@ int get_keyexpr_by_index(const policy_node_t *policy,
                     i == 0 ? NULL : out_tapleaf_ptr,
                     i == 0 ? NULL : out_keyexpr);  // if i == 0, we already found it; so we
                                                    // recur with out_keyexpr set to NULL
-      
+
                 if (ret_tree < 0) {
                     return -1;
                 }
@@ -2143,59 +2143,62 @@ int is_policy_sane(dispatcher_context_t *dispatcher_context,
     return 0;
 }
 
-BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]){
-    if(!memcmp(fingerprint, BBN_NULL_FP,4)){
+BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]) {
+    if (!memcmp(fingerprint, BBN_NULL_FP, 4)) {
         return FP_NULL;
-    }else if(!memcmp(fingerprint, BBN_LEAFHASH_DISPLAY_FP,4)){
+    } else if (!memcmp(fingerprint, BBN_LEAFHASH_DISPLAY_FP, 4)) {
         return FP_LEAF_HASH_DISPLY;
-    }else if(!memcmp(fingerprint, BBN_LEAFHASH_CHECK_FP,4)){
+    } else if (!memcmp(fingerprint, BBN_LEAFHASH_CHECK_FP, 4)) {
         return FP_LEAF_HASH_CHECK;
-    }else if(!memcmp(fingerprint, BBN_FINALITY_PUB_FP,4)){
+    } else if (!memcmp(fingerprint, BBN_FINALITY_PUB_FP, 4)) {
         return FP_FINALITY_PUB;
-    }else if(!memcmp(fingerprint, BBN_BIP322_MESSAGE,4)){
+    } else if (!memcmp(fingerprint, BBN_BIP322_MESSAGE, 4)) {
         return FP_BIP322_MESSAGE;
-    }else if(!memcmp(fingerprint, BBN_BIP322_TAPPUB,4)){
+    } else if (!memcmp(fingerprint, BBN_BIP322_TAPPUB, 4)) {
         return FP_BIP322_TAPPUB;
-    }else{
+    } else {
         return FP_OTHER;
     }
 }
 
-
-int get_action_type(const char* name){
-    
-    if (memcmp(name, BBN_POLICY_NAME_SLASHING, strlen(BBN_POLICY_NAME_SLASHING)) == 0){
+int get_action_type(const char *name) {
+    if (memcmp(name, BBN_POLICY_NAME_SLASHING, strlen(BBN_POLICY_NAME_SLASHING)) == 0) {
         return BBN_POLICY_SLASHING;
-    }else if(memcmp(name, BBN_POLICY_NAME_SLASHING_UNBONDING, strlen(BBN_POLICY_NAME_SLASHING_UNBONDING)) == 0){
+    } else if (memcmp(name,
+                      BBN_POLICY_NAME_SLASHING_UNBONDING,
+                      strlen(BBN_POLICY_NAME_SLASHING_UNBONDING)) == 0) {
         return BBN_POLICY_SLASHING_UNBONDING;
-    }else if(memcmp(name, BBN_POLICY_NAME_STAKE_TRANSFER, strlen(BBN_POLICY_NAME_STAKE_TRANSFER)) == 0){
+    } else if (memcmp(name,
+                      BBN_POLICY_NAME_STAKE_TRANSFER,
+                      strlen(BBN_POLICY_NAME_STAKE_TRANSFER)) == 0) {
         return BBN_POLICY_STAKE_TRANSFER;
-    }else if(memcmp(name, BBN_POLICY_NAME_UNBOND, strlen(BBN_POLICY_NAME_UNBOND)) == 0){
+    } else if (memcmp(name, BBN_POLICY_NAME_UNBOND, strlen(BBN_POLICY_NAME_UNBOND)) == 0) {
         return BBN_POLICY_UNBOND;
-    }else if(memcmp(name, BBN_POLICY_NAME_WITHDRAW, strlen(BBN_POLICY_NAME_WITHDRAW)) == 0){
+    } else if (memcmp(name, BBN_POLICY_NAME_WITHDRAW, strlen(BBN_POLICY_NAME_WITHDRAW)) == 0) {
         return BBN_POLICY_WITHDRAW;
-    }else if(memcmp(name, BBN_POLICY_NAME_BIP322_MESSAGE, strlen(BBN_POLICY_NAME_BIP322_MESSAGE)) == 0){
+    } else if (memcmp(name,
+                      BBN_POLICY_NAME_BIP322_MESSAGE,
+                      strlen(BBN_POLICY_NAME_BIP322_MESSAGE)) == 0) {
         return BBN_POLICY_BIP322;
     }
     PRINTF("--get_action_type %s\n", name);
     return BBN_POLICY_UNKNOWN;
 }
 
-bool check_descriptor(const char* descriptor, bbn_policy_type_t type){
-
+bool check_descriptor(const char *descriptor, bbn_policy_type_t type) {
     switch (type) {
         case BBN_POLICY_SLASHING:
-            return memcmp(descriptor, BBN_DESCRIPTOR_SLASHING,53) == 0;
+            return memcmp(descriptor, BBN_DESCRIPTOR_SLASHING, 53) == 0;
         case BBN_POLICY_SLASHING_UNBONDING:
-            return memcmp(descriptor, BBN_DESCRIPTOR_SLASHING_UNBONDING,53) == 0;
+            return memcmp(descriptor, BBN_DESCRIPTOR_SLASHING_UNBONDING, 53) == 0;
         case BBN_POLICY_STAKE_TRANSFER:
-            return memcmp(descriptor, BBN_DESCRIPTOR_STAKE_TRANSFER,59) == 0;
+            return memcmp(descriptor, BBN_DESCRIPTOR_STAKE_TRANSFER, 59) == 0;
         case BBN_POLICY_UNBOND:
-            return memcmp(descriptor, BBN_DESCRIPTOR_UNBOND,35) == 0;
+            return memcmp(descriptor, BBN_DESCRIPTOR_UNBOND, 35) == 0;
         case BBN_POLICY_WITHDRAW:
             return memcmp(descriptor, BBN_DESCRIPTOR_WITHDRAW, 32) == 0;
         case BBN_POLICY_BIP322:
-             return memcmp(descriptor, BBN_DESCRIPTOR_BIP322, 41) == 0;
+            return memcmp(descriptor, BBN_DESCRIPTOR_BIP322, 41) == 0;
         case BBN_POLICY_UNKNOWN:
         default:
             PRINTF("--check_descriptor %s\n", descriptor);
