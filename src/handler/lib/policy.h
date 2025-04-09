@@ -266,7 +266,7 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
 #define BBN_FINALITY_PUB_FP ((uint8_t[]){0xff, 0x11, 0x94, 0x73})
 #define BBN_BIP322_MESSAGE ((uint8_t[]){0x83, 0x87, 0x16, 0x19})
 #define BBN_BIP322_TAPPUB ((uint8_t[]){0x25, 0x27, 0x04, 0x17})
-+ typedef enum {
+typedef enum {
     FP_NULL,
     FP_LEAF_HASH_DISPLY,
     FP_LEAF_HASH_CHECK,
