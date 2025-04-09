@@ -256,25 +256,28 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
                                                        uint32_t n_keys);
 
 #if 1                                                      
-#define PRINTF_BUF(ptr, len) do {} while (0)
+#if 1
+#define PRINTF_BUF(ptr, len) \
+    do {                     \
+    } while (0)
 #else
-#define PRINTF_BUF(ptr, len)                  \
-    do {                                      \
-        PRINTF("Buffer: ");                   \
-        for (uint32_t i = 0; i < (uint32_t)(len); i++) { \
-            PRINTF("%02X", (ptr)[i]);        \
-        }                                     \
-        PRINTF("\n");                         \
+#define PRINTF_BUF(ptr, len)                              \
+    do {                                                  \
+        PRINTF("Buffer: ");                               \
+        for (uint32_t i = 0; i < (uint32_t) (len); i++) { \
+            PRINTF("%02X", (ptr)[i]);                     \
+        }                                                 \
+        PRINTF("\n");                                     \                      \
     } while (0)
 #endif  
 
-#define BBN_NULL_FP                     ((uint8_t[]){ 0x00, 0x00, 0x00, 0x00 })
-#define BBN_LEAFHASH_DISPLAY_FP         ((uint8_t[]){ 0x69, 0x84, 0x6d, 0x00 })
-#define BBN_LEAFHASH_CHECK_FP           ((uint8_t[]){ 0x3b, 0x9f, 0x96, 0x80 })
-#define BBN_FINALITY_PUB_FP             ((uint8_t[]){ 0xff, 0x11, 0x94, 0x73 })
-#define BBN_BIP322_MESSAGE              ((uint8_t[]){ 0x83, 0x87, 0x16, 0x19 })
-#define BBN_BIP322_TAPPUB               ((uint8_t[]){ 0x25, 0x27, 0x04, 0x17 })
-typedef enum{
+#define BBN_NULL_FP             ((uint8_t[]){0x00, 0x00, 0x00, 0x00})
+#define BBN_LEAFHASH_DISPLAY_FP ((uint8_t[]){0x69, 0x84, 0x6d, 0x00})
+#define BBN_LEAFHASH_CHECK_FP   ((uint8_t[]){0x3b, 0x9f, 0x96, 0x80})
+#define BBN_FINALITY_PUB_FP     ((uint8_t[]){0xff, 0x11, 0x94, 0x73})
+#define BBN_BIP322_MESSAGE      ((uint8_t[]){0x83, 0x87, 0x16, 0x19})
+#define BBN_BIP322_TAPPUB       ((uint8_t[]){0x25, 0x27, 0x04, 0x17})
++typedef enum {
     FP_NULL,
     FP_LEAF_HASH_DISPLY,
     FP_LEAF_HASH_CHECK,
@@ -283,14 +286,14 @@ typedef enum{
     FP_BIP322_TAPPUB,
     FP_OTHER
 
-}BBN_FingerPrintType;
+} BBN_FingerPrintType;
 
-#define BBN_POLICY_NAME_SLASHING                "Consent to slashing"
-#define BBN_POLICY_NAME_SLASHING_UNBONDING     "Consent to slashing during unbonding"
-#define BBN_POLICY_NAME_STAKE_TRANSFER          "Staking transaction"
-#define BBN_POLICY_NAME_UNBOND                 "Unbonding"
-#define BBN_POLICY_NAME_WITHDRAW                "Withdraw"
-#define BBN_POLICY_NAME_BIP322_MESSAGE          "Sign message"
+#define BBN_POLICY_NAME_SLASHING           "Consent to slashing"
+#define BBN_POLICY_NAME_SLASHING_UNBONDING "Consent to slashing during unbonding"
+#define BBN_POLICY_NAME_STAKE_TRANSFER     "Staking transaction"
+#define BBN_POLICY_NAME_UNBOND             "Unbonding"
+#define BBN_POLICY_NAME_WITHDRAW           "Withdraw"
+#define BBN_POLICY_NAME_BIP322_MESSAGE     "Sign message"
 
 typedef enum {
     BBN_POLICY_UNKNOWN = -1,
@@ -306,12 +309,12 @@ BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]);
 
 int get_action_type(const char* name);
 
-#define BBN_DESCRIPTOR_SLASHING                "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
-#define BBN_DESCRIPTOR_SLASHING_UNBONDING      "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
-#define BBN_DESCRIPTOR_STAKE_TRANSFER          "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
-#define BBN_DESCRIPTOR_UNBOND                  "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
-#define BBN_DESCRIPTOR_WITHDRAW                "tr(@0/**,and_v(pk_k(@1/**),older"
-#define BBN_DESCRIPTOR_BIP322                  "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))"
+#define BBN_DESCRIPTOR_SLASHING           "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_SLASHING_UNBONDING "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_STAKE_TRANSFER     "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_UNBOND             "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_WITHDRAW           "tr(@0/**,and_v(pk_k(@1/**),older"
+#define BBN_DESCRIPTOR_BIP322             "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))"
 
-bool check_descriptor(const char* descriptor, bbn_policy_type_t type);
+bool check_descriptor(const char *descriptor, bbn_policy_type_t type);
           

@@ -181,7 +181,7 @@ void handler_sign_message(dispatcher_context_t* dc, uint8_t protocol_version) {
 
 #ifndef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
     ui_pre_processing_message();
-    if(printable) {
+    if (printable) {
         if (!display_message_content_and_confirm(dc,
                                                  message_merkle_root,
                                                  n_chunks,

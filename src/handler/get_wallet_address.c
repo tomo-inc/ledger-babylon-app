@@ -124,7 +124,6 @@ void handler_get_wallet_address(dispatcher_context_t *dc, uint8_t protocol_versi
     }
 
     // the binary OR of all the hmac bytes (so == 0 iff the hmac is identically 0)
-    //chester, todo not sure
     uint8_t hmac_or = 0;
     for (int i = 0; i < 32; i++) {
         hmac_or = hmac_or | wallet_hmac[i];

@@ -108,9 +108,9 @@ typedef struct signing_state_s {
 #define N_CACHED_EXTERNAL_OUTPUTS 2
 
 
-#define BBN_ACTION_NAME_MAX_LEN                 32
-#define BBN_LEAF_HASH_LEN                       32
-#define BBN_PUBKEY_IN_SCRIPT_LEN                32
+#define BBN_ACTION_NAME_MAX_LEN     32
+#define BBN_LEAF_HASH_LEN           32
+#define BBN_PUBKEY_IN_SCRIPT_LEN    32
     
 
 typedef struct {
@@ -155,7 +155,7 @@ typedef struct {
 
     tx_ux_warning_t warnings;
 
-    //babylon data defines
+    // babylon data defines
     uint32_t bbn_action_type;
 
     uint8_t psbt_leafhash[BBN_LEAF_HASH_LEN];
@@ -178,39 +178,38 @@ typedef struct {
 #define BBN_MIN_QUORUM 2
 
 // 函数声明
-static inline int count_psbt_covenant_pk_state(const uint32_t state_array[BBN_COV_PUBKEY_MAX_COUNT]);
+static inline int count_psbt_covenant_pk_state(
+    const uint32_t state_array[BBN_COV_PUBKEY_MAX_COUNT]);
 
 
 
 // Atomic byte constants
-#define TX_VER_BYTES            0x00, 0x00, 0x00, 0x00
-#define TX_IN_CNT               0x01
-#define TX_DUMMY_TXID           0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, \
-                                0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, \
-                                0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, \
-                                0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-                                
-#define TX_VOUT_INDEX           0xff, 0xff, 0xff, 0xff
-#define TX_SCRIPTSIG_LEN        0x22
-#define TX_SCRIPTSIG_TAG        0x00, 0x20
+#define TX_VER_BYTES 0x00, 0x00, 0x00, 0x00
+#define TX_IN_CNT    0x01
+#define TX_DUMMY_TXID                                                                             \
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,     \
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
+        0x00, 0x00
 
-#define TX_SEQ_BYTES            0x00, 0x00, 0x00, 0x00
-#define TX_OUT_CNT              0x01
-#define TX_OUT_VALUE            0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-#define TX_SPK_LEN              0x22
-#define TX_SPK_TAG              0x51, 0x20
-#define TX_LOCKTIME             0x00, 0x00, 0x00, 0x00
+#define TX_VOUT_INDEX    0xff, 0xff, 0xff, 0xff
+#define TX_SCRIPTSIG_LEN 0x22
+#define TX_SCRIPTSIG_TAG 0x00, 0x20
 
-#define OFFSET_MSG_HASH         44
-#define OFFSET_PUBKEY           92
+#define TX_SEQ_BYTES 0x00, 0x00, 0x00, 0x00
+#define TX_OUT_CNT   0x01
+#define TX_OUT_VALUE 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+#define TX_SPK_LEN   0x22
+#define TX_SPK_TAG   0x51, 0x20
+#define TX_LOCKTIME  0x00, 0x00, 0x00, 0x00
+
+#define OFFSET_MSG_HASH 44
+#define OFFSET_PUBKEY   92
 
 // Fixed parts of tx as macros
 #define TX_PREFIX \
     TX_VER_BYTES, TX_IN_CNT, TX_DUMMY_TXID, TX_VOUT_INDEX, TX_SCRIPTSIG_LEN, TX_SCRIPTSIG_TAG
 
-#define TX_MIDFIX \
-    TX_SEQ_BYTES, TX_OUT_CNT, TX_OUT_VALUE, TX_SPK_LEN, TX_SPK_TAG
+#define TX_MIDFIX TX_SEQ_BYTES, TX_OUT_CNT, TX_OUT_VALUE, TX_SPK_LEN, TX_SPK_TAG
 
-#define TX_SUFFIX \
-    TX_LOCKTIME
+#define TX_SUFFIX TX_LOCKTIME
 
