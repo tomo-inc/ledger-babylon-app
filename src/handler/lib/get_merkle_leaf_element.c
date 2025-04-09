@@ -17,7 +17,7 @@ int call_get_merkle_leaf_element(dispatcher_context_t *dispatcher_context,
                                         merkle_root,
                                         tree_size,
                                         leaf_index,
-                                        leaf_hash);                                   
+                                        leaf_hash);
     if (res < 0) {
         return res;
     }
