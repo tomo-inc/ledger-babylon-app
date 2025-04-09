@@ -26,14 +26,10 @@
  */
 // TODO: we should distinguish actual errors from just "policy too big to fit in memory"
 __attribute__((warn_unused_result)) int read_and_parse_wallet_policy(
-    dispatcher_context_t *dispatcher_context,
-    sign_psbt_state_t *st,
-    buffer_t *buf,
+    dispatcher_context_t *dispatcher_context, sign_psbt_state_t *st, buffer_t *buf,
     policy_map_wallet_header_t *wallet_header,
-    uint8_t policy_map_descriptor[static MAX_DESCRIPTOR_TEMPLATE_LENGTH],
-    uint8_t *policy_map_bytes,
-    size_t policy_map_bytes_len,
-    bool is_sign);
+    uint8_t policy_map_descriptor[static MAX_DESCRIPTOR_TEMPLATE_LENGTH], uint8_t *policy_map_bytes,
+    size_t policy_map_bytes_len, bool is_sign);
 
 typedef enum {
     WRAPPED_SCRIPT_TYPE_SH,
@@ -69,9 +65,7 @@ typedef struct {
  * @return -1 on error, 0 if the returned key info has no wildcard (**), 1 if it has the wildcard.
  */
 __attribute__((warn_unused_result)) int get_extended_pubkey_from_client(
-    dispatcher_context_t *dispatcher_context,
-    const wallet_derivation_info_t *wdi,
-    int key_index,
+    dispatcher_context_t *dispatcher_context, const wallet_derivation_info_t *wdi, int key_index,
     serialized_extended_pubkey_t *out);
 
 /**
@@ -91,11 +85,8 @@ __attribute__((warn_unused_result)) int get_extended_pubkey_from_client(
  * @return 0 on success, a negative number on failure.
  */
 __attribute__((warn_unused_result)) int compute_taptree_hash(
-    dispatcher_context_t *dispatcher_context,
-    sign_psbt_state_t *st,
-    const wallet_derivation_info_t *wdi,
-    const policy_node_tree_t *tree,
-    uint8_t out[static 32]);
+    dispatcher_context_t *dispatcher_context, sign_psbt_state_t *st,
+    const wallet_derivation_info_t *wdi, const policy_node_tree_t *tree, uint8_t out[static 32]);
 
 /**
  * Computes the script corresponding to a wallet policy, for a certain change and address index.
@@ -135,11 +126,8 @@ __attribute__((warn_unused_result)) int get_wallet_script(dispatcher_context_t *
  *
  */
 __attribute__((warn_unused_result)) int get_wallet_internal_script_hash(
-    dispatcher_context_t *dispatcher_context,
-    sign_psbt_state_t *st,
-    const policy_node_t *policy,
-    const wallet_derivation_info_t *wdi,
-    internal_script_type_e script_type,
+    dispatcher_context_t *dispatcher_context, sign_psbt_state_t *st, const policy_node_t *policy,
+    const wallet_derivation_info_t *wdi, internal_script_type_e script_type,
     cx_hash_t *hash_context);
 
 /**
@@ -255,29 +243,30 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
                                                        const uint8_t keys_merkle_root[static 32],
                                                        uint32_t n_keys);
 
-#if 1                                                      
+#if 1
 #if 1
 #define PRINTF_BUF(ptr, len) \
     do {                     \
     } while (0)
 #else
-#define PRINTF_BUF(ptr, len)                              \
-    do {                                                  \
-        PRINTF("Buffer: ");                               \
-        for (uint32_t i = 0; i < (uint32_t) (len); i++) { \
-            PRINTF("%02X", (ptr)[i]);                     \
-        }                                                 \
-        PRINTF("\n");                                     \                      \
+#define PRINTF_BUF(ptr, len)                             \
+    do {                                                 \
+        PRINTF("Buffer: ");                              \
+        for (uint32_t i = 0; i < (uint32_t)(len); i++) { \
+            PRINTF("%02X", (ptr)[i]);                    \
+        }                                                \
+        PRINTF("\n");                                    \
+        \                                                \
     } while (0)
-#endif  
+#endif
 
-#define BBN_NULL_FP             ((uint8_t[]){0x00, 0x00, 0x00, 0x00})
+#define BBN_NULL_FP ((uint8_t[]){0x00, 0x00, 0x00, 0x00})
 #define BBN_LEAFHASH_DISPLAY_FP ((uint8_t[]){0x69, 0x84, 0x6d, 0x00})
-#define BBN_LEAFHASH_CHECK_FP   ((uint8_t[]){0x3b, 0x9f, 0x96, 0x80})
-#define BBN_FINALITY_PUB_FP     ((uint8_t[]){0xff, 0x11, 0x94, 0x73})
-#define BBN_BIP322_MESSAGE      ((uint8_t[]){0x83, 0x87, 0x16, 0x19})
-#define BBN_BIP322_TAPPUB       ((uint8_t[]){0x25, 0x27, 0x04, 0x17})
-+typedef enum {
+#define BBN_LEAFHASH_CHECK_FP ((uint8_t[]){0x3b, 0x9f, 0x96, 0x80})
+#define BBN_FINALITY_PUB_FP ((uint8_t[]){0xff, 0x11, 0x94, 0x73})
+#define BBN_BIP322_MESSAGE ((uint8_t[]){0x83, 0x87, 0x16, 0x19})
+#define BBN_BIP322_TAPPUB ((uint8_t[]){0x25, 0x27, 0x04, 0x17})
++ typedef enum {
     FP_NULL,
     FP_LEAF_HASH_DISPLY,
     FP_LEAF_HASH_CHECK,
@@ -288,12 +277,12 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
 
 } BBN_FingerPrintType;
 
-#define BBN_POLICY_NAME_SLASHING           "Consent to slashing"
+#define BBN_POLICY_NAME_SLASHING "Consent to slashing"
 #define BBN_POLICY_NAME_SLASHING_UNBONDING "Consent to slashing during unbonding"
-#define BBN_POLICY_NAME_STAKE_TRANSFER     "Staking transaction"
-#define BBN_POLICY_NAME_UNBOND             "Unbonding"
-#define BBN_POLICY_NAME_WITHDRAW           "Withdraw"
-#define BBN_POLICY_NAME_BIP322_MESSAGE     "Sign message"
+#define BBN_POLICY_NAME_STAKE_TRANSFER "Staking transaction"
+#define BBN_POLICY_NAME_UNBOND "Unbonding"
+#define BBN_POLICY_NAME_WITHDRAW "Withdraw"
+#define BBN_POLICY_NAME_BIP322_MESSAGE "Sign message"
 
 typedef enum {
     BBN_POLICY_UNKNOWN = -1,
@@ -307,14 +296,13 @@ typedef enum {
 
 BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]);
 
-int get_action_type(const char* name);
+int get_action_type(const char *name);
 
-#define BBN_DESCRIPTOR_SLASHING           "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_SLASHING "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_SLASHING_UNBONDING "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
-#define BBN_DESCRIPTOR_STAKE_TRANSFER     "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
-#define BBN_DESCRIPTOR_UNBOND             "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
-#define BBN_DESCRIPTOR_WITHDRAW           "tr(@0/**,and_v(pk_k(@1/**),older"
-#define BBN_DESCRIPTOR_BIP322             "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))"
+#define BBN_DESCRIPTOR_STAKE_TRANSFER "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_UNBOND "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_WITHDRAW "tr(@0/**,and_v(pk_k(@1/**),older"
+#define BBN_DESCRIPTOR_BIP322 "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))"
 
 bool check_descriptor(const char *descriptor, bbn_policy_type_t type);
-          
