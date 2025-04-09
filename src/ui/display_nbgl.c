@@ -116,8 +116,7 @@ static void generic_content_callback(int token, uint8_t index, int page) {
 
 static void finish_transaction_flow(bool choice) {
     if (choice) {
-        nbgl_useCaseReviewStreamingFinish("Sign action?",
-                                          start_processing_transaction_callback);
+        nbgl_useCaseReviewStreamingFinish("Sign action?", start_processing_transaction_callback);
     } else {
         status_transaction_cancel();
     }
@@ -510,7 +509,7 @@ void ui_display_spend_from_wallet_flow(void) {
 
     // Setup data to display
     pairs[0].item = "Action name";
-    pairs[0].value = g_ui_state.wallet.wallet_name; 
+    pairs[0].value = g_ui_state.wallet.wallet_name;
 
     // Setup list
     pairList.nbMaxLinesForValue = 0;
@@ -518,56 +517,55 @@ void ui_display_spend_from_wallet_flow(void) {
     pairList.pairs = pairs;
 
     int action = get_action_type(g_ui_state.wallet.wallet_name);
-    switch (action) { 
-    case BBN_POLICY_SLASHING:
-        nbgl_useCaseReviewLight(TYPE_OPERATION,
-                            &pairList,
-                            &C_Babylon_64px,
-                            "Babylon action",
-                            NULL,
-                            "Confirm consent to slashing action",
-                            status_operation_callback);
-        break;
-    case BBN_POLICY_STAKE_TRANSFER:
-        nbgl_useCaseReviewLight(TYPE_OPERATION,
-                                &pairList,
-                                &C_Babylon_64px,
-                                "Babylon action",
-                                NULL,
-                                "Confirm staking transaction action",
-                                status_operation_callback);
-        break;
-    case BBN_POLICY_UNBOND:
-        nbgl_useCaseReviewLight(TYPE_OPERATION,
-                                &pairList,
-                                &C_Babylon_64px,
-                                "Babylon action",
-                                NULL,
-                                "Confirm unbouding action",
-                                status_operation_callback);
-        break;
-    case BBN_POLICY_WITHDRAW:
-        nbgl_useCaseReviewLight(TYPE_OPERATION,
-                                &pairList,
-                                &C_Babylon_64px,
-                                "Babylon action",
-                                NULL,
-                                "Confirm withdraw action",
-                                status_operation_callback);
-        break;
-    case BBN_POLICY_BIP322:
-        nbgl_useCaseReviewLight(TYPE_OPERATION,
-                                &pairList,
-                                &C_Babylon_64px,
-                                "Babylon action",
-                                NULL,
-                                "Confirm sign message action",
-                                status_operation_callback);
-        break;  
-    default:
-        break;
+    switch (action) {
+        case BBN_POLICY_SLASHING:
+            nbgl_useCaseReviewLight(TYPE_OPERATION,
+                                    &pairList,
+                                    &C_Babylon_64px,
+                                    "Babylon action",
+                                    NULL,
+                                    "Confirm consent to slashing action",
+                                    status_operation_callback);
+            break;
+        case BBN_POLICY_STAKE_TRANSFER:
+            nbgl_useCaseReviewLight(TYPE_OPERATION,
+                                    &pairList,
+                                    &C_Babylon_64px,
+                                    "Babylon action",
+                                    NULL,
+                                    "Confirm staking transaction action",
+                                    status_operation_callback);
+            break;
+        case BBN_POLICY_UNBOND:
+            nbgl_useCaseReviewLight(TYPE_OPERATION,
+                                    &pairList,
+                                    &C_Babylon_64px,
+                                    "Babylon action",
+                                    NULL,
+                                    "Confirm unbouding action",
+                                    status_operation_callback);
+            break;
+        case BBN_POLICY_WITHDRAW:
+            nbgl_useCaseReviewLight(TYPE_OPERATION,
+                                    &pairList,
+                                    &C_Babylon_64px,
+                                    "Babylon action",
+                                    NULL,
+                                    "Confirm withdraw action",
+                                    status_operation_callback);
+            break;
+        case BBN_POLICY_BIP322:
+            nbgl_useCaseReviewLight(TYPE_OPERATION,
+                                    &pairList,
+                                    &C_Babylon_64px,
+                                    "Babylon action",
+                                    NULL,
+                                    "Confirm sign message action",
+                                    status_operation_callback);
+            break;
+        default:
+            break;
     }
-
 }
 
 // Address flow
@@ -590,7 +588,6 @@ void ui_warn_high_fee_flow(void) {
                        start_transaction_callback);
 }
 
-
 // Warning Flows
 void ui_confim_leaf_hash_flow(void) {
     confirmed_status = "Action\nconfirmed";
@@ -612,11 +609,9 @@ void ui_confim_leaf_hash_flow(void) {
                             NULL,
                             "Confirm it matches \ndisplayed on the Dapp",
                             status_operation_callback);
-
 }
 
 void ui_confirm_finality_pk_flow(void) {
-
     confirmed_status = "Action\nconfirmed";
     rejected_status = "Action rejected";
 
@@ -636,9 +631,7 @@ void ui_confirm_finality_pk_flow(void) {
                             NULL,
                             "Confirm finality provider selection",
                             status_operation_callback);
-
 }
-
 
 void ui_confirm_cov_pks_flow(int count) {
     confirmed_status = "Action\nconfirmed";
@@ -647,14 +640,17 @@ void ui_confirm_cov_pks_flow(int count) {
     pairs[0].value = g_ui_state.cov_pk.quorum_str;
     // Setup data to display
     for (int i = 1; i <= count; i++) {
-        snprintf(g_ui_state.cov_pk.name[i-1], sizeof(g_ui_state.cov_pk.name[i-1]), "Covenant %d", i);
-        pairs[i].item = g_ui_state.cov_pk.name[i-1];
-        pairs[i].value = g_ui_state.cov_pk.pk[i-1];
+        snprintf(g_ui_state.cov_pk.name[i - 1],
+                 sizeof(g_ui_state.cov_pk.name[i - 1]),
+                 "Covenant %d",
+                 i);
+        pairs[i].item = g_ui_state.cov_pk.name[i - 1];
+        pairs[i].value = g_ui_state.cov_pk.pk[i - 1];
     }
 
     // Setup list
     pairList.nbMaxLinesForValue = 0;
-    pairList.nbPairs = count+1;
+    pairList.nbPairs = count + 1;
     pairList.pairs = pairs;
 
     nbgl_useCaseReviewLight(TYPE_OPERATION,
@@ -666,13 +662,13 @@ void ui_confirm_cov_pks_flow(int count) {
                             status_operation_callback);
 }
 
-void ui_confirm_bbn_timelock_flow(void){
+void ui_confirm_bbn_timelock_flow(void) {
     confirmed_status = "Action\nconfirmed";
     rejected_status = "Action rejected";
 
     // Setup data to display
-    pairs[0].item = (const char *)g_ui_state.bbn_v.name;
-    pairs[0].value = (const char *)g_ui_state.bbn_v.value;
+    pairs[0].item = (const char *) g_ui_state.bbn_v.name;
+    pairs[0].value = (const char *) g_ui_state.bbn_v.value;
 
     // Setup list
     pairList.nbMaxLinesForValue = 0;
@@ -688,13 +684,13 @@ void ui_confirm_bbn_timelock_flow(void){
                             status_operation_callback);
 }
 
-void ui_confirm_bbn_message_flow(void){
+void ui_confirm_bbn_message_flow(void) {
     confirmed_status = "Action\nconfirmed";
     rejected_status = "Action rejected";
 
     // Setup data to display
-    pairs[0].item = (const char *)g_ui_state.bbn_v.name;
-    pairs[0].value = (const char *)g_ui_state.bbn_v.value;
+    pairs[0].item = (const char *) g_ui_state.bbn_v.name;
+    pairs[0].value = (const char *) g_ui_state.bbn_v.value;
 
     // Setup list
     pairList.nbMaxLinesForValue = 0;
@@ -709,7 +705,6 @@ void ui_confirm_bbn_message_flow(void){
                             "Confirm sign message action",
                             status_operation_callback);
 }
-
 
 void ui_display_warning_external_inputs_flow(void) {
     nbgl_useCaseChoice(&C_Important_Circle_64px,

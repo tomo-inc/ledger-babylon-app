@@ -107,11 +107,9 @@ typedef struct signing_state_s {
 // have a single external output.
 #define N_CACHED_EXTERNAL_OUTPUTS 2
 
-
-#define BBN_ACTION_NAME_MAX_LEN     32
-#define BBN_LEAF_HASH_LEN           32
-#define BBN_PUBKEY_IN_SCRIPT_LEN    32
-    
+#define BBN_ACTION_NAME_MAX_LEN  32
+#define BBN_LEAF_HASH_LEN        32
+#define BBN_PUBKEY_IN_SCRIPT_LEN 32
 
 typedef struct {
     uint32_t master_key_fingerprint;
@@ -181,8 +179,6 @@ typedef struct {
 static inline int count_psbt_covenant_pk_state(
     const uint32_t state_array[BBN_COV_PUBKEY_MAX_COUNT]);
 
-
-
 // Atomic byte constants
 #define TX_VER_BYTES 0x00, 0x00, 0x00, 0x00
 #define TX_IN_CNT    0x01
@@ -212,4 +208,3 @@ static inline int count_psbt_covenant_pk_state(
 #define TX_MIDFIX TX_SEQ_BYTES, TX_OUT_CNT, TX_OUT_VALUE, TX_SPK_LEN, TX_SPK_TAG
 
 #define TX_SUFFIX TX_LOCKTIME
-

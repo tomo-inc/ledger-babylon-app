@@ -60,10 +60,10 @@ void decrease_streaming_index(void) {
         g_current_streaming_index -= 1;
     }
 }
-//we test that nano should use REVAMPED_IO
-//otherwise, hid will be blocked during display to cause JS SDK timeout
-//however, stax and flex should not use REVAMPED_IO
-//otherwise, the function 'hold to sign' will not response to the touch
+// we test that nano should use REVAMPED_IO
+// otherwise, hid will be blocked during display to cause JS SDK timeout
+// however, stax and flex should not use REVAMPED_IO
+// otherwise, the function 'hold to sign' will not response to the touch
 #ifndef HAVE_NBGL
 #define REVAMPED_IO
 #endif
@@ -387,91 +387,87 @@ bool ui_confirm_leafhash(dispatcher_context_t *context, uint8_t *leaf_hash) {
 #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
     return true;
 #endif
-    
+
     ui_leaf_hash_state_t *state = (ui_leaf_hash_state_t *) &g_ui_state;
-     for (int i = 0; i < 32; i++) {
-        snprintf(state->hash + i * 2, 64, "%02x", leaf_hash[i]); 
+    for (int i = 0; i < 32; i++) {
+        snprintf(state->hash + i * 2, 64, "%02x", leaf_hash[i]);
     }
-    state->hash[64] = '\0';  
+    state->hash[64] = '\0';
     ui_confim_leaf_hash_flow();
 
     return io_ui_process(context, SET_UX_DIRTY);
 }
 
-
 bool ui_confirm_finality_pk(dispatcher_context_t *context, uint8_t *pk) {
 #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
     return true;
 #endif
-    
+
     ui_finality_pk_state_t *state = (ui_finality_pk_state_t *) &g_ui_state;
-     for (int i = 0; i < 32; i++) {
-        snprintf(state->pk + i * 2, 64, "%02x", pk[i]); 
+    for (int i = 0; i < 32; i++) {
+        snprintf(state->pk + i * 2, 64, "%02x", pk[i]);
     }
-    state->pk[64] = '\0';  
+    state->pk[64] = '\0';
     ui_confirm_finality_pk_flow();
 
     return io_ui_process(context, SET_UX_DIRTY);
 }
 
-
-
-bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t pk[][32], uint32_t count, int quorum) {
-    #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
-        return true;
-    #endif
+bool ui_confirm_cov_pks(dispatcher_context_t *context,
+                        uint8_t pk[][32],
+                        uint32_t count,
+                        int quorum) {
+#ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
+    return true;
+#endif
     PRINTF("enter ui_confirm_cov_pks\n");
-    if(count>9)
-        count = 9;
+    if (count > 9) count = 9;
     ui_cov_pk_state_t *state = (ui_cov_pk_state_t *) &g_ui_state;
-    for(uint32_t j=0; j<count; j++){
+    for (uint32_t j = 0; j < count; j++) {
         for (uint32_t i = 0; i < 32; i++) {
-            snprintf(state->pk[j] + i * 2, 64, "%02x", pk[j][i]);  
+            snprintf(state->pk[j] + i * 2, 64, "%02x", pk[j][i]);
         }
         state->pk[j][64] = '\0';
-        PRINTF("ui_confirm_cov_pks %d %s\n",j, state->pk[j]);
+        PRINTF("ui_confirm_cov_pks %d %s\n", j, state->pk[j]);
     }
     PRINTF("ui_confirm_cov_pks for for\n");
     snprintf(state->quorum_str, sizeof(state->quorum_str), "%u", quorum);
 
     ui_confirm_cov_pks_flow(count);
-        
+
     return io_ui_process(context, SET_UX_DIRTY);
 }
 
-bool ui_confirm_bbn_timelock(dispatcher_context_t *context,  const char *value, const char *name){
-    #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
-        return true;
-    #endif
+bool ui_confirm_bbn_timelock(dispatcher_context_t *context, const char *value, const char *name) {
+#ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
+    return true;
+#endif
     PRINTF("ENTER ui_confirm_bbn_timelock\n");
     ui_bbn_value_state_t *state = (ui_bbn_value_state_t *) &g_ui_state;
-    snprintf((char *)state->value, sizeof(state->value), "%s", value);
-    snprintf((char *)state->name, sizeof(state->name), "%s", name);
+    snprintf((char *) state->value, sizeof(state->value), "%s", value);
+    snprintf((char *) state->name, sizeof(state->name), "%s", name);
     ui_confirm_bbn_timelock_flow();
 
     return io_ui_process(context, SET_UX_DIRTY);
 }
 
-bool ui_confirm_bbn_message(dispatcher_context_t *context,  const char *value, const char *name){
-    #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
+bool ui_confirm_bbn_message(dispatcher_context_t *context, const char *value, const char *name) {
+#ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
     return true;
-    #endif
+#endif
     PRINTF("ENTER ui_confirm_bbn_message_flow\n");
     ui_bbn_value_state_t *state = (ui_bbn_value_state_t *) &g_ui_state;
-    snprintf((char *)state->value, sizeof(state->value), "%s", value);
-    snprintf((char *)state->name, sizeof(state->name), "%s", name);
+    snprintf((char *) state->value, sizeof(state->value), "%s", value);
+    snprintf((char *) state->name, sizeof(state->name), "%s", name);
     ui_confirm_bbn_message_flow();
 
     return io_ui_process(context, SET_UX_DIRTY);
 }
 
-
-
-
 bool ui_validate_transaction(dispatcher_context_t *context,
                              const char *coin_name,
                              uint64_t fee,
-                             bool is_self_transfer) {                    
+                             bool is_self_transfer) {
 #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
     return true;
 #endif
