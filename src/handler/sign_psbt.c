@@ -219,7 +219,6 @@ static void compute_bbn_leafhash_timelock(sign_psbt_state_t *st, uint8_t *leafha
     uint8_t value_buffer[4];
     int len = encode_minimal_push(st->psbt_timelock, value_buffer);
     if (st->psbt_timelock > 15) tapscript[offset++] = len;
-    tapscript[offset++] = len;
     memcpy(tapscript + offset, value_buffer, len);
     offset += len;
     tapscript[offset++] = 0xb2;
@@ -269,9 +268,9 @@ static bool bbn_check_address(sign_psbt_state_t *st) {
 
     if (memcmp(out_scriptPubKey + 2, tweaked_pubkey, 32)) {
         PRINTF("Tweaked public key:\n");
-        //PRINTF_BUF(tweaked_pubkey, 32);
+        // PRINTF_BUF(tweaked_pubkey, 32);
         PRINTF("out_scriptPubKey_len: %d\n", out_scriptPubKey_len);
-        //PRINTF_BUF(out_scriptPubKey + 2, 32);
+        // PRINTF_BUF(out_scriptPubKey + 2, 32);
         PRINTF("tweak public key cmp fail\n");
         return false;
     }
@@ -313,9 +312,9 @@ static bool bbn_check_unbond(sign_psbt_state_t *st) {
 
     if (memcmp(out_scriptPubKey + 2, tweaked_pubkey, 32)) {
         PRINTF("Tweaked public key:\n");
-        //PRINTF_BUF(tweaked_pubkey, 32);
+        // PRINTF_BUF(tweaked_pubkey, 32);
         PRINTF("out_scriptPubKey_len: %d\n", out_scriptPubKey_len);
-        //PRINTF_BUF(out_scriptPubKey + 2, 32);
+        // PRINTF_BUF(out_scriptPubKey + 2, 32);
         PRINTF("bbn_check_unbond tweak public key cmp fail\n");
         return false;
     }
@@ -334,9 +333,9 @@ static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_st
                                    txid);
     if (memcmp(txid, st->psbt_staker_pk, 32) != 0) {
         PRINTF("txid\n");
-        //PRINTF_BUF(txid, 32);
+        // PRINTF_BUF(txid, 32);
         PRINTF("st->psbt_staker_pk\n");
-        //PRINTF_BUF(st->psbt_staker_pk, 32);
+        // PRINTF_BUF(st->psbt_staker_pk, 32);
         SEND_SW(dc, SW_DENY);
         return false;
     }
@@ -350,7 +349,7 @@ static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_st
 
     if (!ui_confirm_bbn_message(dc, message_str, "message")) {
         PRINTF("message_str %s\n", message_str);
-        //PRINTF_BUF(message_str, 64);
+        // PRINTF_BUF(message_str, 64);
         SEND_SW(dc, SW_DENY);
         return false;
     }
@@ -885,13 +884,6 @@ static bool __attribute__((noinline)) get_and_verify_key_info(dispatcher_context
                32);  // reuse for save memoroy
     }
 
-    // the rest of the function verifies if the key is indeed internal, if it has our fingerprint
-    // uint32_t fpr = read_u32_be(key_info.master_key_fingerprint, 0);
-    // uint8_t has_fp = 1;
-    // if (fpr != st->master_key_fingerprint) {
-    //     has_fp = 0;
-    // }
-
     // it could be a collision on the fingerprint; we verify that we can actually generate
     // the same pubkey
     serialized_extended_pubkey_t derived_pubkey;
@@ -905,8 +897,8 @@ static bool __attribute__((noinline)) get_and_verify_key_info(dispatcher_context
     }
 
     if (memcmp(&key_info.ext_pubkey, &derived_pubkey, sizeof(derived_pubkey)) != 0) {
-        //PRINTF_BUF(&keyexpr_info->pubkey.compressed_pubkey, 33);
-        //PRINTF_BUF(&derived_pubkey.compressed_pubkey, 33);
+        // PRINTF_BUF(&keyexpr_info->pubkey.compressed_pubkey, 33);
+        // PRINTF_BUF(&derived_pubkey.compressed_pubkey, 33);
         return false;
     }
 
@@ -1105,7 +1097,7 @@ static bool fill_internal_key_expressions(dispatcher_context_t *dc, sign_psbt_st
                    &keyexpr_info,
                    sizeof(keyexpr_info_t));
             PRINTF("fill_internal_key_expressions print %d\n", sizeof(keyexpr_info_t));
-            //PRINTF_BUF(keyexpr_info.pubkey.compressed_pubkey, 33);
+            // PRINTF_BUF(keyexpr_info.pubkey.compressed_pubkey, 33);
             ++st->n_internal_key_expressions;
         }
 
@@ -1686,7 +1678,7 @@ display_bbn_timelock(dispatcher_context_t *dc, sign_psbt_state_t *st) {
     if (st->psbt_timelock_state > 0) {
         snprintf(timelock_str, sizeof(timelock_str), "%u", st->psbt_timelock);
         if (!ui_confirm_bbn_timelock(dc, timelock_str, "Timelock block count")) {
-            //PRINTF_BUF(timelock_str, 12);
+            // PRINTF_BUF(timelock_str, 12);
             SEND_SW(dc, SW_DENY);
             return false;
         }
