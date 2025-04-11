@@ -23,7 +23,9 @@
 
 #define SETTING_INFO_NB 3
 static const char* const INFO_TYPES[SETTING_INFO_NB] = {"Version", "Developer", "Copyright"};
-static const char* const INFO_CONTENTS[SETTING_INFO_NB] = {APPVERSION, "Tomo Wallet Team", "(c) 2025 Tomo Inc."};
+static const char* const INFO_CONTENTS[SETTING_INFO_NB] = {APPVERSION,
+                                                           "Tomo Wallet Team",
+                                                           "(c) 2025 Tomo Inc."};
 
 static const nbgl_contentInfoList_t infoList = {
     .nbInfos = SETTING_INFO_NB,
@@ -47,15 +49,14 @@ void ui_menu_main_flow_bitcoin(void) {
 }
 
 void ui_menu_main_flow_bitcoin_testnet(void) {
-    nbgl_useCaseHomeAndSettings(
-        "Bitcoin Staking",
-        &C_Babylon_64px,
-        "Powered by Tomo Connect",
-        INIT_HOME_PAGE,
-        NULL,
-        &infoList,
-        NULL,
-        exit);
+    nbgl_useCaseHomeAndSettings("Bitcoin Staking",
+                                &C_Babylon_64px,
+                                "Powered by Tomo Connect",
+                                INIT_HOME_PAGE,
+                                NULL,
+                                &infoList,
+                                NULL,
+                                exit);
 }
 
 #endif  // HAVE_NBGL

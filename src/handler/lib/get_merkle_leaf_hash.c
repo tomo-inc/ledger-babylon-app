@@ -45,7 +45,7 @@ int call_get_merkle_leaf_hash(dispatcher_context_t *dc,
         uint8_t cur_hash[32];  // temporary buffer for intermediate hashes
         uint8_t proof_size;
         uint8_t n_proof_elements;
-        
+
         if (!buffer_read_bytes(&dc->read_buffer, cur_hash, 32) ||
             !buffer_read_u8(&dc->read_buffer, &proof_size) ||
             !buffer_read_u8(&dc->read_buffer, &n_proof_elements)) {

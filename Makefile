@@ -45,9 +45,9 @@ PATH_APP_LOAD_PARAMS = ""
 PATH_SLIP21_APP_LOAD_PARAMS = "LEDGER-Wallet policy"
 
 # Application version
-APPVERSION_M = 0
-APPVERSION_N = 9
-APPVERSION_P = 7
+APPVERSION_M = 1
+APPVERSION_N = 0
+APPVERSION_P = 0
 APPVERSION_SUFFIX = ap # if not empty, appended at the end. Do not add a dash.
 
 ifeq ($(APPVERSION_SUFFIX),)
@@ -63,9 +63,9 @@ ifneq ($(AUTOAPPROVE_FOR_PERF_TESTS),0)
     DEFINES += HAVE_AUTOAPPROVE_FOR_PERF_TESTS
 endif
 
-# Setting to allow building variant applications bitcoin_testnet 
+# Setting to allow building variant applications
 VARIANT_PARAM = COIN
-VARIANT_VALUES = bitcoin bitcoin_testnet
+VARIANT_VALUES = bitcoin_testnet bitcoin
 
 # simplify for tests
 #COIN=bitcoin_testnet
@@ -106,7 +106,7 @@ else ifeq ($(COIN),bitcoin)
     DEFINES   += COIN_NATIVE_SEGWIT_PREFIX=\"bc\"
     DEFINES   += COIN_COINID_SHORT=\"BTC\"
 
-    APPNAME = "Bitcoin Staking"
+    APPNAME = "Bitcoin"
 
 else
     ifeq ($(filter clean,$(MAKECMDGOALS)),)

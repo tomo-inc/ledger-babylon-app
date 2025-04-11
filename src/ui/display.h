@@ -219,12 +219,14 @@ bool ui_confirm_leafhash(dispatcher_context_t *context, uint8_t *leaf_hash);
 
 bool ui_confirm_finality_pk(dispatcher_context_t *context, uint8_t *pk);
 
-bool ui_confirm_cov_pks(dispatcher_context_t *context, uint8_t pk[][32], uint32_t count, int quorum);
+bool ui_confirm_cov_pks(dispatcher_context_t *context,
+                        uint8_t pk[][32],
+                        uint32_t count,
+                        int quorum);
 
+bool ui_confirm_bbn_timelock(dispatcher_context_t *context, const char *value, const char *name);
 
-bool ui_confirm_bbn_timelock(dispatcher_context_t *context,  const char *value, const char *name);
-
-bool ui_confirm_bbn_message(dispatcher_context_t *context,  const char *value, const char *name);
+bool ui_confirm_bbn_message(dispatcher_context_t *context, const char *value, const char *name);
 
 bool ui_validate_transaction(dispatcher_context_t *context,
                              const char *coin_name,

@@ -72,11 +72,11 @@
 #define MAX_STANDARD_P2WSH_SCRIPT_SIZE 3600U
 #define MAX_OPS_PER_SCRIPT             201U
 
-#define BBN_LEAF_HASH_STR_LEN          65U
-#define BBN_FINALITY_PK_STR_LEN        65U
+#define BBN_LEAF_HASH_STR_LEN   65U
+#define BBN_FINALITY_PK_STR_LEN 65U
 
-#define BBN_COV_PUBKEY_MAX_COUNT       16U    
+#define BBN_COV_PUBKEY_MAX_COUNT 16U
 
-#define BBN_LEAF_HASH_NULL             0U
-#define BBN_LEAF_HASH_DISPALY          1U
-#define BBN_LEAF_HASH_CHECK            2U
+#define BBN_LEAF_HASH_NULL    0U
+#define BBN_LEAF_HASH_DISPALY 1U
+#define BBN_LEAF_HASH_CHECK   2U

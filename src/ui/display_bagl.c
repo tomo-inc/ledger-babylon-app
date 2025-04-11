@@ -176,7 +176,6 @@ UX_STEP_NOCB(ux_high_fee_step,
                  "of total amount!",
              });
 
-
 // Step with eye icon and a "high fees" warning
 UX_STEP_NOCB(ux_leaf_hash_step,
              bnnn_paging,
@@ -192,75 +191,74 @@ UX_STEP_NOCB(ux_finality_pk_step,
                  .text = g_ui_state.finality_pk.pk,
              });
 UX_STEP_NOCB(ux_cov_pks_step0,
-            bnnn_paging,
-            {
-                .title = "Quorum",
-                .text = g_ui_state.cov_pk.quorum_str,
-            });
+             bnnn_paging,
+             {
+                 .title = "Quorum",
+                 .text = g_ui_state.cov_pk.quorum_str,
+             });
 
 UX_STEP_NOCB(ux_cov_pks_step1,
-            bnnn_paging,
-            {
-                .title = "Covenant 1",
-                .text = g_ui_state.cov_pk.pk[0],
-            });
+             bnnn_paging,
+             {
+                 .title = "Covenant 1",
+                 .text = g_ui_state.cov_pk.pk[0],
+             });
 
 UX_STEP_NOCB(ux_cov_pks_step2,
-            bnnn_paging,
-            {
-                .title = "Covenant 2",
-                .text = g_ui_state.cov_pk.pk[1],
-            });    
+             bnnn_paging,
+             {
+                 .title = "Covenant 2",
+                 .text = g_ui_state.cov_pk.pk[1],
+             });
 UX_STEP_NOCB(ux_cov_pks_step3,
-            bnnn_paging,
-            {
-                .title = "Covenant 3",
-                .text = g_ui_state.cov_pk.pk[2],
-            });  
+             bnnn_paging,
+             {
+                 .title = "Covenant 3",
+                 .text = g_ui_state.cov_pk.pk[2],
+             });
 UX_STEP_NOCB(ux_cov_pks_step4,
-            bnnn_paging,
-            {
-                .title = "Covenant 4",
-                .text = g_ui_state.cov_pk.pk[3],
-            });  
+             bnnn_paging,
+             {
+                 .title = "Covenant 4",
+                 .text = g_ui_state.cov_pk.pk[3],
+             });
 UX_STEP_NOCB(ux_cov_pks_step5,
-            bnnn_paging,
-            {
-                .title = "Covenant 5",
-                .text = g_ui_state.cov_pk.pk[4],
-            });
+             bnnn_paging,
+             {
+                 .title = "Covenant 5",
+                 .text = g_ui_state.cov_pk.pk[4],
+             });
 UX_STEP_NOCB(ux_cov_pks_step6,
-            bnnn_paging,
-            {
-                .title = "Covenant 6",
-                .text = g_ui_state.cov_pk.pk[5],
-            });  
+             bnnn_paging,
+             {
+                 .title = "Covenant 6",
+                 .text = g_ui_state.cov_pk.pk[5],
+             });
 UX_STEP_NOCB(ux_cov_pks_step7,
-            bnnn_paging,
-            {
-                .title = "Covenant 7",
-                .text = g_ui_state.cov_pk.pk[6],
-            });  
+             bnnn_paging,
+             {
+                 .title = "Covenant 7",
+                 .text = g_ui_state.cov_pk.pk[6],
+             });
 UX_STEP_NOCB(ux_cov_pks_step8,
-            bnnn_paging,
-            {
-                .title = "Covenant 8",
-                .text = g_ui_state.cov_pk.pk[7],
-            });  
+             bnnn_paging,
+             {
+                 .title = "Covenant 8",
+                 .text = g_ui_state.cov_pk.pk[7],
+             });
 UX_STEP_NOCB(ux_cov_pks_step9,
-            bnnn_paging,
-            {
-                .title = "Covenant 9",
-                .text = g_ui_state.cov_pk.pk[8],
-            }); 
+             bnnn_paging,
+             {
+                 .title = "Covenant 9",
+                 .text = g_ui_state.cov_pk.pk[8],
+             });
 
 UX_STEP_NOCB(ux_bbn_v_step,
-                bnnn_paging,
-                {
-                    .title = (const char *)g_ui_state.bbn_v.name,
-                    .text = (const char *)g_ui_state.bbn_v.value,
-                });            
-            
+             bnnn_paging,
+             {
+                 .title = (const char *) g_ui_state.bbn_v.name,
+                 .text = (const char *) g_ui_state.bbn_v.value,
+             });
 
 UX_STEP_NOCB(ux_confirm_selftransfer_step, pnn, {&C_icon_eye, "Confirm", "self-transfer"});
 UX_STEP_NOCB(ux_confirm_transaction_fees_step,
@@ -523,9 +521,9 @@ UX_FLOW(ux_confim_leaf_hash_flow,
         &ux_display_reject_step);
 
 UX_FLOW(ux_confim_finality_pk_flow,
-&ux_finality_pk_step,
-&ux_display_continue_step,
-&ux_display_reject_step);
+        &ux_finality_pk_step,
+        &ux_display_continue_step,
+        &ux_display_reject_step);
 
 // UX_FLOW(ux_confim_cov_pks_flow,
 //     &ux_cov_pks_step,
@@ -533,24 +531,24 @@ UX_FLOW(ux_confim_finality_pk_flow,
 //     &ux_display_reject_step);
 
 UX_FLOW(ux_confim_cov_pks_flow,
-     &ux_cov_pks_step0,
-     &ux_cov_pks_step1,
-     &ux_cov_pks_step2,
-     &ux_cov_pks_step3,
-     &ux_cov_pks_step4,
-     &ux_cov_pks_step5,
-     &ux_cov_pks_step6,
-     &ux_cov_pks_step7,
-     &ux_cov_pks_step8,
-     &ux_cov_pks_step9,
-     &ux_display_continue_step,
-     &ux_display_reject_step);
+        &ux_cov_pks_step0,
+        &ux_cov_pks_step1,
+        &ux_cov_pks_step2,
+        &ux_cov_pks_step3,
+        &ux_cov_pks_step4,
+        &ux_cov_pks_step5,
+        &ux_cov_pks_step6,
+        &ux_cov_pks_step7,
+        &ux_cov_pks_step8,
+        &ux_cov_pks_step9,
+        &ux_display_continue_step,
+        &ux_display_reject_step);
 
 UX_FLOW(ux_confim_bbn_value_flow,
         &ux_bbn_v_step,
         &ux_display_continue_step,
-        &ux_display_reject_step);    
-    
+        &ux_display_reject_step);
+
 // Show transaction fees and finally accept signing
 // #1 screen: fee amount
 // #2 screen: "Sign transaction", with approve button
@@ -657,7 +655,7 @@ void ui_confirm_finality_pk_flow(void) {
 
 void ui_confirm_cov_pks_flow(int count) {
     count = 0;
-    ux_flow_init(0, ux_confim_cov_pks_flow, NULL);
+    ux_flow_init(count, ux_confim_cov_pks_flow, NULL);
 }
 void ui_confirm_bbn_timelock_flow(void) {
     ux_flow_init(0, ux_confim_bbn_value_flow, NULL);
