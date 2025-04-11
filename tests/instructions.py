@@ -167,13 +167,12 @@ def sign_psbt_instruction_approve(model: Firmware,save_screenshot: bool = False)
         instructions.same_request("Continue", save_screenshot=save_screenshot)
         instructions.same_request("Sign", save_screenshot=save_screenshot)
     else:
-        # Stax 等屏幕大、交互丰富的设备
-        instructions.new_request("Review", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP, save_screenshot=save_screenshot)
-        instructions.same_request("Amount", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP, save_screenshot=save_screenshot)
-        instructions.same_request("To", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP, save_screenshot=save_screenshot)
-        instructions.same_request("Fees", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP, save_screenshot=save_screenshot)
-        instructions.confirm_transaction(save_screenshot=save_screenshot)
-
+        instructions.new_request(
+            "Review", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP,save_screenshot=False)
+        instructions.same_request("Confirm consent to slashing action", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP,
+                                      save_screenshot=save_screenshot)
+        instructions.confirm_transaction(save_screenshot=False)
+        instructions.choice_confirm(save_screenshot=False)
     return instructions
 
 

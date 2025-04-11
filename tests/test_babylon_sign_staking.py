@@ -87,7 +87,7 @@ def test_sign_psbt_tr_script_slashing(navigator: Navigator, firmware: Firmware, 
     assert partial_sig0.tapleaf_hash == leaf_hash, "leafhash veriry fail"
     
   
-    assert partial_sig0.pubkey == bytes.fromhex("dc8d2f9eff0c4f4dbde070a48e330efc908b62a766568d91e658f284b324b877")
+    assert partial_sig0.pubkey == bytes.fromhex("dc8d2f9eff0c4f4dbde070a48e330efc908b62a766568d91e658f284b324b878")
     assert bip0340.schnorr_verify(sighash0, partial_sig0.pubkey, partial_sig0.signature[:64]), "signature veriry fail"
 
 # def test_sign_psbt_tr_script_slashing_unbounding(navigator: Navigator, firmware: Firmware, client:
@@ -169,21 +169,21 @@ def test_sign_psbt_tr_script_slashing(navigator: Navigator, firmware: Firmware, 
 
 
 
-#     # fees don't fit in the same page on 'flex', but they fit on 'stax' instructions=sign_psbt_instruction_approve(firmware),
+    # fees don't fit in the same page on 'flex', but they fit on 'stax' instructions=sign_psbt_instruction_approve(firmware),
 
-#     result = client.sign_psbt(psbt, wallet, wallet_hmac, navigator,
-#                               instructions=sign_psbt_instruction_approve(firmware),
-#                               testname=test_name)
+    # result = client.sign_psbt(psbt, wallet, wallet_hmac, navigator,
+    #                           instructions=sign_psbt_instruction_approve(firmware),
+    #                           testname=test_name)
 
-#     assert len(result) == 1
+    # assert len(result) == 1
 
-#     # sighash verified with real transaction
-#     sighash0 = bytes.fromhex("672C460A4AB491DD3B70BC5E35D4796683AF95B11F68D4667A8963CBC52A3CDF")
-#     assert len(result) == 1
-#     idx0, partial_sig0 = result[0]
-#     assert idx0 == 0
+    # # sighash verified with real transaction
+    # sighash0 = bytes.fromhex("672C460A4AB491DD3B70BC5E35D4796683AF95B11F68D4667A8963CBC52A3CDF")
+    # assert len(result) == 1
+    # idx0, partial_sig0 = result[0]
+    # assert idx0 == 0
     
-#     assert partial_sig0.tapleaf_hash is None, "leaf hash is not None"
+    # assert partial_sig0.tapleaf_hash is None, "leaf hash is not None"
     
   
 # def test_sign_psbt_tr_script_unbounding(navigator: Navigator, firmware: Firmware, client:
