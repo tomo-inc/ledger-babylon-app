@@ -106,7 +106,7 @@ else ifeq ($(COIN),bitcoin)
     DEFINES   += COIN_NATIVE_SEGWIT_PREFIX=\"bc\"
     DEFINES   += COIN_COINID_SHORT=\"BTC\"
 
-    APPNAME = "Bitcoin"
+    APPNAME = "Bitcoin Staking"
 
 else
     ifeq ($(filter clean,$(MAKECMDGOALS)),)
