@@ -1676,14 +1676,14 @@ static bool __attribute__((noinline))
 display_bbn_timelock(dispatcher_context_t *dc, sign_psbt_state_t *st) {
     char timelock_str[12];  // Enough to hold the maximum 32-bit integer value in decimal
     if (st->psbt_timelock_state > 0) {
-        if(st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER){
+        if (st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER) {
             snprintf(timelock_str, sizeof(timelock_str), "%u", st->psbt_timelock);
             if (!ui_confirm_bbn_timelock(dc, timelock_str, "BTC blocks timelock")) {
                 // PRINTF_BUF(timelock_str, 12);
                 SEND_SW(dc, SW_DENY);
                 return false;
             }
-        }else if(st->bbn_action_type == BBN_POLICY_UNBOND){
+        } else if (st->bbn_action_type == BBN_POLICY_UNBOND) {
             snprintf(timelock_str, sizeof(timelock_str), "%u", st->psbt_timelock);
             if (!ui_confirm_bbn_timelock_unbonding(dc, timelock_str, "BTC blocks timelock")) {
                 // PRINTF_BUF(timelock_str, 12);
@@ -1691,8 +1691,6 @@ display_bbn_timelock(dispatcher_context_t *dc, sign_psbt_state_t *st) {
                 return false;
             }
         }
-  
-       
     }
     return true;
 }

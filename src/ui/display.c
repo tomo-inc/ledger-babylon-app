@@ -451,18 +451,20 @@ bool ui_confirm_bbn_timelock(dispatcher_context_t *context, const char *value, c
     return io_ui_process(context, SET_UX_DIRTY);
 }
 
-bool ui_confirm_bbn_timelock_unbonding(dispatcher_context_t *context, const char *value, const char *name) {
-    #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
-        return true;
-    #endif
-        PRINTF("ENTER ui_confirm_bbn_timelock_unbonding\n");
-        ui_bbn_value_state_t *state = (ui_bbn_value_state_t *) &g_ui_state;
-        snprintf((char *) state->value, sizeof(state->value), "%s", value);
-        snprintf((char *) state->name, sizeof(state->name), "%s", name);
-        ui_confirm_bbn_unbonding_timelock_flow();
-    
-        return io_ui_process(context, SET_UX_DIRTY);
-    }
+bool ui_confirm_bbn_timelock_unbonding(dispatcher_context_t *context,
+                                       const char *value,
+                                       const char *name) {
+#ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
+    return true;
+#endif
+    PRINTF("ENTER ui_confirm_bbn_timelock_unbonding\n");
+    ui_bbn_value_state_t *state = (ui_bbn_value_state_t *) &g_ui_state;
+    snprintf((char *) state->value, sizeof(state->value), "%s", value);
+    snprintf((char *) state->name, sizeof(state->name), "%s", name);
+    ui_confirm_bbn_unbonding_timelock_flow();
+
+    return io_ui_process(context, SET_UX_DIRTY);
+}
 
 bool ui_confirm_bbn_message(dispatcher_context_t *context, const char *value, const char *name) {
 #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS

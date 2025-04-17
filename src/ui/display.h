@@ -226,7 +226,9 @@ bool ui_confirm_cov_pks(dispatcher_context_t *context,
 
 bool ui_confirm_bbn_timelock(dispatcher_context_t *context, const char *value, const char *name);
 
-bool ui_confirm_bbn_timelock_unbonding(dispatcher_context_t *context, const char *value, const char *name);
+bool ui_confirm_bbn_timelock_unbonding(dispatcher_context_t *context,
+                                       const char *value,
+                                       const char *name);
 
 bool ui_confirm_bbn_message(dispatcher_context_t *context, const char *value, const char *name);
 
