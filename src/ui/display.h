@@ -226,6 +226,8 @@ bool ui_confirm_cov_pks(dispatcher_context_t *context,
 
 bool ui_confirm_bbn_timelock(dispatcher_context_t *context, const char *value, const char *name);
 
+bool ui_confirm_bbn_timelock_unbonding(dispatcher_context_t *context, const char *value, const char *name);
+
 bool ui_confirm_bbn_message(dispatcher_context_t *context, const char *value, const char *name);
 
 bool ui_validate_transaction(dispatcher_context_t *context,
@@ -286,6 +288,8 @@ void ui_confirm_finality_pk_flow(void);
 void ui_confirm_cov_pks_flow(int count);
 
 void ui_confirm_bbn_timelock_flow(void);
+
+void ui_confirm_bbn_unbonding_timelock_flow(void);
 
 void ui_confirm_bbn_message_flow(void);
 

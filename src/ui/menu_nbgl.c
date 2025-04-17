@@ -40,7 +40,7 @@ static void exit(void) {
 void ui_menu_main_flow_bitcoin(void) {
     nbgl_useCaseHomeAndSettings(APPNAME,
                                 &C_Babylon_64px,
-                                "Powered by Tomo Login",
+                                "This app enables staking bitcoin on Babylon.\nPowered by Tomo",
                                 INIT_HOME_PAGE,
                                 NULL,
                                 &infoList,
@@ -51,7 +51,7 @@ void ui_menu_main_flow_bitcoin(void) {
 void ui_menu_main_flow_bitcoin_testnet(void) {
     nbgl_useCaseHomeAndSettings("Bitcoin Staking",
                                 &C_Babylon_64px,
-                                "Powered by Tomo Login",
+                                "This app enables staking bitcoin on Babylon.\nPowered by Tomo",
                                 INIT_HOME_PAGE,
                                 NULL,
                                 &infoList,

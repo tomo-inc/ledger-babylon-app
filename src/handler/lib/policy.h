@@ -290,7 +290,7 @@ typedef enum {
 } BBN_FingerPrintType;
 
 #define BBN_POLICY_NAME_SLASHING           "Consent to slashing"
-#define BBN_POLICY_NAME_SLASHING_UNBONDING "Consent to slashing during unbonding"
+#define BBN_POLICY_NAME_SLASHING_UNBONDING "Consent to unbonding slashing"
 #define BBN_POLICY_NAME_STAKE_TRANSFER     "Staking transaction"
 #define BBN_POLICY_NAME_UNBOND             "Unbonding"
 #define BBN_POLICY_NAME_WITHDRAW           "Withdraw"

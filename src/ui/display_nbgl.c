@@ -527,6 +527,15 @@ void ui_display_spend_from_wallet_flow(void) {
                                     "Confirm consent to slashing action",
                                     status_operation_callback);
             break;
+        case BBN_POLICY_SLASHING_UNBONDING:
+            nbgl_useCaseReviewLight(TYPE_OPERATION,
+                                    &pairList,
+                                    &C_Babylon_64px,
+                                    "Babylon action",
+                                    NULL,
+                                    "Confirm consent to unbonding slashing",
+                                    status_operation_callback);
+            break;
         case BBN_POLICY_STAKE_TRANSFER:
             nbgl_useCaseReviewLight(TYPE_OPERATION,
                                     &pairList,
@@ -616,7 +625,7 @@ void ui_confirm_finality_pk_flow(void) {
     rejected_status = "Action rejected";
 
     // Setup data to display
-    pairs[0].item = "Finality provider";
+    pairs[0].item = "Finality provider public key";
     pairs[0].value = g_ui_state.finality_pk.pk;
 
     // Setup list
@@ -629,14 +638,14 @@ void ui_confirm_finality_pk_flow(void) {
                             &C_Babylon_64px,
                             "Finality provider\npublic key",
                             NULL,
-                            "Confirm finality provider selection",
+                            "Confirm Finality provider public key",
                             status_operation_callback);
 }
 
 void ui_confirm_cov_pks_flow(int count) {
     confirmed_status = "Action\nconfirmed";
     rejected_status = "Action rejected";
-    pairs[0].item = "quorum";
+    pairs[0].item = "Covenant quorum";
     pairs[0].value = g_ui_state.cov_pk.quorum_str;
     // Setup data to display
     for (int i = 1; i <= count; i++) {
@@ -656,9 +665,9 @@ void ui_confirm_cov_pks_flow(int count) {
     nbgl_useCaseReviewLight(TYPE_OPERATION,
                             &pairList,
                             &C_Babylon_64px,
-                            "Covenants Public Keys",
+                            "Covenants public keys",
                             NULL,
-                            "Confirm covenants selection",
+                            "Confirm covenant\npublic keys",
                             status_operation_callback);
 }
 
@@ -678,9 +687,31 @@ void ui_confirm_bbn_timelock_flow(void) {
     nbgl_useCaseReviewLight(TYPE_OPERATION,
                             &pairList,
                             &C_Babylon_64px,
-                            "Timelock block count",
+                            "BTC blocks timelock",
                             NULL,
-                            "Confirm timelock block count",
+                            "Confirm BTC blocks timelock",
+                            status_operation_callback);
+}
+
+void ui_confirm_bbn_unbonding_timelock_flow(void) {
+    confirmed_status = "Action\nconfirmed";
+    rejected_status = "Action rejected";
+
+    // Setup data to display
+    pairs[0].item = (const char *) g_ui_state.bbn_v.name;
+    pairs[0].value = (const char *) g_ui_state.bbn_v.value;
+
+    // Setup list
+    pairList.nbMaxLinesForValue = 0;
+    pairList.nbPairs = 1;
+    pairList.pairs = pairs;
+
+    nbgl_useCaseReviewLight(TYPE_OPERATION,
+                            &pairList,
+                            &C_Babylon_64px,
+                            "BTC blocks unbonding timelock",
+                            NULL,
+                            "Confirm BTC blocks unbonding timelock",
                             status_operation_callback);
 }
 

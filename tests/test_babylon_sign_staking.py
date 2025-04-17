@@ -94,7 +94,7 @@ def test_sign_psbt_tr_script_slashing_unbounding(navigator: Navigator, firmware:
                                             RaggerClient, test_name: str):
 
     wallet = WalletPolicy(
-        name="Consent to slashing during unbonding",
+        name="Consent to unbonding slashing",
         descriptor_template="tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))))",
         keys_info=[
             "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4WNLDZARxRfzGzvp9Lnm88oGRLmoTSPWNg3uuE6F4xBdmcEqUxs2ovExCUqFBjvF8QkjawKp1KRp6wtFDptzPbBPwQ9LMeY1",

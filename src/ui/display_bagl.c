@@ -193,7 +193,7 @@ UX_STEP_NOCB(ux_finality_pk_step,
 UX_STEP_NOCB(ux_cov_pks_step0,
              bnnn_paging,
              {
-                 .title = "Quorum",
+                 .title = "Covenant quorum",
                  .text = g_ui_state.cov_pk.quorum_str,
              });
 
@@ -658,6 +658,10 @@ void ui_confirm_cov_pks_flow(int count) {
     ux_flow_init(count, ux_confim_cov_pks_flow, NULL);
 }
 void ui_confirm_bbn_timelock_flow(void) {
+    ux_flow_init(0, ux_confim_bbn_value_flow, NULL);
+}
+
+void ui_confirm_bbn_unbonding_timelock_flow(void) {
     ux_flow_init(0, ux_confim_bbn_value_flow, NULL);
 }
 
