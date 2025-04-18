@@ -24,10 +24,10 @@
 
 // We have a screen with the icon and "Bitcoin is ready" for Bitcoin,
 // "Bitcoin Testnet is ready" for Bitcoin Testnet.
-UX_STEP_NOCB(ux_menu_ready_step_bitcoin, pnn, {&C_babylon_logo, "Babylon", "Bitcoin Staking"});
+UX_STEP_NOCB(ux_menu_ready_step_bitcoin, pnn, {&C_babylon_logo, "Babylon", "BTC Staking"});
 UX_STEP_NOCB(ux_menu_ready_step_bitcoin_testnet,
              pnn,
-             {&C_babylon_logo, "Babylon", "Bitcoin Staking"});
+             {&C_babylon_logo, "Babylon", "BTC Staking"});
 
 UX_STEP_NOCB(ux_menu_version_step, bn, {"Version", APPVERSION});
 UX_STEP_CB(ux_menu_about_step, pb, ui_menu_about(), {&C_icon_certificate, "About"});
@@ -57,7 +57,7 @@ UX_FLOW(ux_menu_main_flow_bitcoin_testnet,
         &ux_menu_exit_step,
         FLOW_LOOP);
 
-UX_STEP_NOCB(ux_menu_info_step, bn, {"Tomo Wallet Team", "(c) 2025 Tomo Inc."});
+UX_STEP_NOCB(ux_menu_info_step, bn, {"Tomo Wallet Team", "(c) 2025 Ledger"});
 UX_STEP_CB(ux_menu_back_step, pb, ui_menu_main(), {&C_icon_back, "Back"});
 
 // FLOW for the about submenu:

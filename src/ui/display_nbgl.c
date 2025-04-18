@@ -638,7 +638,7 @@ void ui_confirm_finality_pk_flow(void) {
                             &C_Babylon_64px,
                             "Finality provider\npublic key",
                             NULL,
-                            "Confirm Finality provider public key",
+                            "Confirm finality provider public key",
                             status_operation_callback);
 }
 
@@ -665,7 +665,7 @@ void ui_confirm_cov_pks_flow(int count) {
     nbgl_useCaseReviewLight(TYPE_OPERATION,
                             &pairList,
                             &C_Babylon_64px,
-                            "Covenants public keys",
+                            "Covenant public keys",
                             NULL,
                             "Confirm covenant\npublic keys",
                             status_operation_callback);

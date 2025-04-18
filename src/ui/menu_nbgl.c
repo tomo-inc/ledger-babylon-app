@@ -25,7 +25,7 @@
 static const char* const INFO_TYPES[SETTING_INFO_NB] = {"Version", "Developer", "Copyright"};
 static const char* const INFO_CONTENTS[SETTING_INFO_NB] = {APPVERSION,
                                                            "Tomo Wallet Team",
-                                                           "(c) 2025 Tomo Inc."};
+                                                           "(c) 2025 Ledger"};
 
 static const nbgl_contentInfoList_t infoList = {
     .nbInfos = SETTING_INFO_NB,
@@ -40,7 +40,7 @@ static void exit(void) {
 void ui_menu_main_flow_bitcoin(void) {
     nbgl_useCaseHomeAndSettings(APPNAME,
                                 &C_Babylon_64px,
-                                "This app enables staking bitcoin on Babylon.\nPowered by Tomo",
+                                "This app enables staking Bitcoin on Babylon",
                                 INIT_HOME_PAGE,
                                 NULL,
                                 &infoList,
@@ -49,9 +49,9 @@ void ui_menu_main_flow_bitcoin(void) {
 }
 
 void ui_menu_main_flow_bitcoin_testnet(void) {
-    nbgl_useCaseHomeAndSettings("Bitcoin Staking",
+    nbgl_useCaseHomeAndSettings("Babylon BTC Staking",
                                 &C_Babylon_64px,
-                                "This app enables staking bitcoin on Babylon.\nPowered by Tomo",
+                                "This app enables staking Bitcoin on Babylon",
                                 INIT_HOME_PAGE,
                                 NULL,
                                 &infoList,
