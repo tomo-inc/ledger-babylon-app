@@ -40,7 +40,7 @@ static void exit(void) {
 void ui_menu_main_flow_bitcoin(void) {
     nbgl_useCaseHomeAndSettings(APPNAME,
                                 &C_Babylon_64px,
-                                "This app enables staking Bitcoin on Babylon",
+                                "This app enables staking Bitcoin with Babylon",
                                 INIT_HOME_PAGE,
                                 NULL,
                                 &infoList,
@@ -51,7 +51,7 @@ void ui_menu_main_flow_bitcoin(void) {
 void ui_menu_main_flow_bitcoin_testnet(void) {
     nbgl_useCaseHomeAndSettings("Babylon BTC Staking",
                                 &C_Babylon_64px,
-                                "This app enables staking Bitcoin on Babylon",
+                                "This app enables staking Bitcoin with Babylon",
                                 INIT_HOME_PAGE,
                                 NULL,
                                 &infoList,
