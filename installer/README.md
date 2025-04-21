@@ -12,15 +12,24 @@ Python: >=3.12,<3.14
 
 1. Prepare all apdu files into `./apdu` folder
    - File names are determined by `get_file_name_by_target_id` method
-2. Create and activate virtual environment:
+2. Create virtual environment, skip this step if already created:
    ```bash
    python -m venv venv
    ```
-3. Install required packages:
+3. Activate virtual environment:
+   On windows OS:
+   ```powershell
+   venv\Scripts\activate
+   ```
+   On other OS:
+   ```bash
+   source ./venv/bin/activate
+   ```
+4. Install required packages:
    ```bash
    pip install ledgerblue keyboard pyinstaller
    ```
-4. Build executable:
+5. Build executable:
 
    ```bash
    # for mainnet
@@ -30,7 +39,7 @@ Python: >=3.12,<3.14
    pyinstaller ./babyloninst-test.spec
    ```
 
-5. The executable will be available at:
+6. The executable will be available at:
 
    ```bash
    # Windows
