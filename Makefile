@@ -65,13 +65,14 @@ endif
 
 # Setting to allow building variant applications
 VARIANT_PARAM = COIN
-VARIANT_VALUES = bitcoin_testnet bitcoin
+VARIANT_VALUES = bitcoin
+#VARIANT_VALUES = bitcoin_testnet bitcoin
 
 # simplify for tests
-#COIN=bitcoin_testnet
-ifndef COIN
-COIN=bitcoin_testnet
-endif
+COIN=bitcoin
+# ifndef COIN
+# COIN=bitcoin_testnet
+# endif
 
 ########################################
 #     Application custom permissions   #
@@ -79,7 +80,7 @@ endif
 HAVE_APPLICATION_FLAG_DERIVE_MASTER = 1
 HAVE_APPLICATION_FLAG_GLOBAL_PIN = 1
 HAVE_APPLICATION_FLAG_BOLOS_SETTINGS = 1
-HAVE_APPLICATION_FLAG_LIBRARY = 1
+
 
 ifeq ($(COIN),bitcoin_testnet)
     # Bitcoin testnet, no legacy support
