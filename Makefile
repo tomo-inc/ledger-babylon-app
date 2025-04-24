@@ -42,7 +42,7 @@ CURVE_APP_LOAD_PARAMS = secp256k1
 PATH_APP_LOAD_PARAMS = ""
 
 # Allowed SLIP21 paths
-PATH_SLIP21_APP_LOAD_PARAMS = "LEDGER-Wallet policy"
+#PATH_SLIP21_APP_LOAD_PARAMS = "LEDGER-Wallet policy"
 
 # Application version
 APPVERSION_M = 1
