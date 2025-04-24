@@ -65,11 +65,11 @@ endif
 
 # Setting to allow building variant applications
 VARIANT_PARAM = COIN
-VARIANT_VALUES = bitcoin
+VARIANT_VALUES = BBNST
 #VARIANT_VALUES = bitcoin_testnet bitcoin
 
 # simplify for tests
-COIN=bitcoin
+COIN=BBNST
 # ifndef COIN
 # COIN=bitcoin_testnet
 # endif
@@ -92,7 +92,7 @@ ifeq ($(COIN),bitcoin_testnet)
     DEFINES   += COIN_COINID_SHORT=\"TEST\"
 
     APPNAME = "Bitcoin Test"
-else ifeq ($(COIN),bitcoin)
+else ifeq ($(COIN),BBNST)
     # the version for performance tests automatically approves all requests
     # there is no reason to ever compile the mainnet app with this flag
     ifneq ($(AUTOAPPROVE_FOR_PERF_TESTS),0)
