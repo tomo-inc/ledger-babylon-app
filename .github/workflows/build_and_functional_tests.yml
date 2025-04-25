@@ -23,7 +23,7 @@ jobs:
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
       upload_app_binaries_artifact: "compiled_app_binaries"
-      flags: "DEBUG=0 COIN=bitcoin_testnet"
+      flags: "DEBUG=0 COIN=BBNST_test"
 
   ragger_tests:
     name: Run ragger tests using the reusable workflow
