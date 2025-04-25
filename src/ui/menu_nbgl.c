@@ -49,7 +49,7 @@ void ui_menu_main_flow_bitcoin(void) {
 }
 
 void ui_menu_main_flow_bitcoin_testnet(void) {
-    nbgl_useCaseHomeAndSettings("Babylon BTC Staking",
+    nbgl_useCaseHomeAndSettings("Babylon BTC Test",
                                 &C_Babylon_64px,
                                 "This app enables staking Bitcoin with Babylon",
                                 INIT_HOME_PAGE,

@@ -65,14 +65,14 @@ endif
 
 # Setting to allow building variant applications
 VARIANT_PARAM = COIN
-VARIANT_VALUES = BBNST
+VARIANT_VALUES = BBNST BBNST_test
 #VARIANT_VALUES = bitcoin_testnet bitcoin
 
 # simplify for tests
-COIN=BBNST
-# ifndef COIN
-# COIN=bitcoin_testnet
-# endif
+#COIN=BBNST
+ifndef COIN
+COIN=BBNST_test
+endif
 
 ########################################
 #     Application custom permissions   #
@@ -82,7 +82,7 @@ HAVE_APPLICATION_FLAG_GLOBAL_PIN = 1
 HAVE_APPLICATION_FLAG_BOLOS_SETTINGS = 1
 
 
-ifeq ($(COIN),bitcoin_testnet)
+ifeq ($(COIN),BBNST_test)
     # Bitcoin testnet, no legacy support
     DEFINES   += BIP32_PUBKEY_VERSION=0x043587CF
     DEFINES   += BIP44_COIN_TYPE=1
@@ -91,7 +91,7 @@ ifeq ($(COIN),bitcoin_testnet)
     DEFINES   += COIN_NATIVE_SEGWIT_PREFIX=\"tb\"
     DEFINES   += COIN_COINID_SHORT=\"TEST\"
 
-    APPNAME = "Bitcoin Test"
+    APPNAME = "Babylon BTC Test"
 else ifeq ($(COIN),BBNST)
     # the version for performance tests automatically approves all requests
     # there is no reason to ever compile the mainnet app with this flag
