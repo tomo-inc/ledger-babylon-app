@@ -38,9 +38,9 @@ jobs:
 
       - name: Build
         run: |
-          make DEBUG=0 COIN=bitcoin BOLOS_SDK=${{ matrix.SDK }} && mv bin/ bitcoin-bin/
+          make DEBUG=0 COIN=BBNST BOLOS_SDK=${{ matrix.SDK }} && mv bin/ bitcoin-bin/
           make clean
-          make DEBUG=0 COIN=bitcoin_testnet BOLOS_SDK=${{ matrix.SDK }} && mv bin/ bitcoin-testnet-bin/
+          make DEBUG=0 COIN=BBNST_test BOLOS_SDK=${{ matrix.SDK }} && mv bin/ bitcoin-testnet-bin/
       - name: Upload Bitcoin app binary
         uses: actions/upload-artifact@v4
         with:
@@ -67,7 +67,7 @@ jobs:
 
       - name: Build
         run: |
-          make DEBUG=0 COIN=bitcoin_testnet BOLOS_SDK="$NANOSP_SDK" AUTOAPPROVE_FOR_PERF_TESTS=1
+          make DEBUG=0 COIN=BBNST_test BOLOS_SDK="$NANOSP_SDK" AUTOAPPROVE_FOR_PERF_TESTS=1
 
       - name: Upload Bitcoin Testnet app binary
         uses: actions/upload-artifact@v4
