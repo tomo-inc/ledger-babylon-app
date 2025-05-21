@@ -7,6 +7,6 @@
     "ledgerDevTools.appSettings": {
         "selectedUseCase": "debug",
         "selectedDevice": "Nano S Plus",
-        "selectedVariant": "bitcoin_testnet"
+        "selectedVariant": "BBNST_test"
     }
 }
