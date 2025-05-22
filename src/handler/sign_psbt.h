@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../musig/musig_sessions.h"
 #include "../common/merkle.h"
 #include "../ui/display.h"
 
@@ -99,7 +98,7 @@ typedef struct tx_hashes_s {
 // the signing state for the current transaction; it does not contain any per-input state
 typedef struct signing_state_s {
     tx_hashes_t tx_hashes;
-    musig_signing_state_t musig;
+    //musig_signing_state_t musig;
 } signing_state_t;
 
 // We cache the first 2 external outputs; that's needed for the swap checks

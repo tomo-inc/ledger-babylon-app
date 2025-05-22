@@ -5,7 +5,6 @@
 #include "../lib/get_merkle_leaf_element.h"
 #include "../lib/get_preimage.h"
 #include "../../crypto.h"
-#include "../../musig/musig.h"
 #include "../../common/base58.h"
 #include "../../common/bitvector.h"
 #include "../../common/read.h"
@@ -503,36 +502,9 @@ __attribute__((warn_unused_result)) static int get_derived_pubkey(
         if (0 > derive_len) {
             return -1;
         }
-    } else if (key_expr->type == KEY_EXPRESSION_MUSIG) {
-        const musig_aggr_key_info_t *musig_info = r_musig_aggr_key_info(&key_expr->m.musig_info);
-        const uint16_t *key_indexes = r_uint16(&musig_info->key_indexes);
-        plain_pk_t keys[MAX_PUBKEYS_PER_MUSIG];
-        for (int i = 0; i < musig_info->n; i++) {
-            // we use ext_pubkey as a temporary variable; will overwrite later
-            if (0 > get_extended_pubkey_from_client(dispatcher_context,
-                                                    wdi,
-                                                    key_indexes[i],
-                                                    &ext_pubkey)) {
-                return -1;
-            }
-            memcpy(keys[i], ext_pubkey.compressed_pubkey, sizeof(ext_pubkey.compressed_pubkey));
-        }
-
-        // sort the keys in ascending order
-        qsort(keys, musig_info->n, sizeof(plain_pk_t), compare_plain_pk);
-
-        musig_keyagg_context_t musig_ctx;
-        musig_key_agg(keys, musig_info->n, &musig_ctx);
-
-        // compute the aggregated extended pubkey
-        memset(&ext_pubkey, 0, sizeof(ext_pubkey));
-        write_u32_be(ext_pubkey.version, 0, BIP32_PUBKEY_VERSION);
-
-        ext_pubkey.compressed_pubkey[0] = (musig_ctx.Q.y[31] % 2 == 0) ? 2 : 3;
-        memcpy(&ext_pubkey.compressed_pubkey[1], musig_ctx.Q.x, sizeof(musig_ctx.Q.x));
-        memcpy(&ext_pubkey.chain_code, BIP_328_CHAINCODE, sizeof(BIP_328_CHAINCODE));
-    } else {
-        LEDGER_ASSERT(false, "Unreachable code");
+    }else {
+        LEDGER_ASSERT(false, "Unsupported key expression type");
+        return -1;
     }
     // we derive the /<change>/<address_index> child of this pubkey
     // we reuse the same memory of ext_pubkey
@@ -1844,15 +1816,9 @@ int count_distinct_keys_info(const policy_node_t *policy) {
         }
         if (key_expression_ptr->type == KEY_EXPRESSION_NORMAL) {
             ret = MAX(ret, key_expression_ptr->k.key_index + 1);
-        } else if (key_expression_ptr->type == KEY_EXPRESSION_MUSIG) {
-            const musig_aggr_key_info_t *musig_info =
-                r_musig_aggr_key_info(&key_expression_ptr->m.musig_info);
-            const uint16_t *key_indexes = r_uint16(&musig_info->key_indexes);
-            for (int i = 0; i < musig_info->n; i++) {
-                ret = MAX(ret, key_indexes[i] + 1);
-            }
         } else {
             LEDGER_ASSERT(false, "Unknown key expression type");
+            return -1;
         }
     }
     return ret;
@@ -1970,12 +1936,12 @@ static int is_taptree_miniscript_sane(const policy_node_tree_t *taptree) {
     return 0;
 }
 
-static int compare_uint16(const void *a, const void *b) {
-    uint16_t num1 = *(const uint16_t *) a;
-    uint16_t num2 = *(const uint16_t *) b;
+// static int compare_uint16(const void *a, const void *b) {
+//     uint16_t num1 = *(const uint16_t *) a;
+//     uint16_t num2 = *(const uint16_t *) b;
 
-    return (num1 > num2) - (num1 < num2);
-}
+//     return (num1 > num2) - (num1 < num2);
+// }
 
 static bool are_key_placeholders_identical(const policy_node_keyexpr_t *kp1,
                                            const policy_node_keyexpr_t *kp2) {
@@ -1984,34 +1950,6 @@ static bool are_key_placeholders_identical(const policy_node_keyexpr_t *kp1,
     }
     if (kp1->type == KEY_EXPRESSION_NORMAL && kp2->type == KEY_EXPRESSION_NORMAL) {
         return kp1->k.key_index == kp2->k.key_index;
-    } else if (kp1->type == KEY_EXPRESSION_MUSIG && kp2->type == KEY_EXPRESSION_MUSIG) {
-        const musig_aggr_key_info_t *musig_info_i = r_musig_aggr_key_info(&kp1->m.musig_info);
-        const uint16_t *key_indexes_i = r_uint16(&musig_info_i->key_indexes);
-        const musig_aggr_key_info_t *musig_info_j = r_musig_aggr_key_info(&kp2->m.musig_info);
-        const uint16_t *key_indexes_j = r_uint16(&musig_info_j->key_indexes);
-
-        // two musig key expressions have identical placeholders if and only if they have
-        // exactly the same set of key indexes
-
-        if (musig_info_i->n != musig_info_j->n) {
-            return false;  // cannot be the same set if the size is different
-        }
-
-        uint16_t key_indexes_i_sorted[MAX_PUBKEYS_PER_MUSIG];
-        uint16_t key_indexes_j_sorted[MAX_PUBKEYS_PER_MUSIG];
-        memcpy(key_indexes_i_sorted, key_indexes_i, musig_info_i->n * sizeof(uint16_t));
-        memcpy(key_indexes_j_sorted, key_indexes_j, musig_info_j->n * sizeof(uint16_t));
-
-        // sort the arrays
-        qsort(key_indexes_i_sorted, musig_info_i->n, sizeof(uint16_t), compare_uint16);
-        qsort(key_indexes_j_sorted, musig_info_j->n, sizeof(uint16_t), compare_uint16);
-
-        if (memcmp(key_indexes_i_sorted,
-                   key_indexes_j_sorted,
-                   musig_info_i->n * sizeof(uint16_t)) != 0) {
-            return false;  // different set of keys
-        }
-        return true;
     } else {
         LEDGER_ASSERT(false, "Unknown key expression type");
         return false;
@@ -2088,22 +2026,6 @@ int is_policy_sane(dispatcher_context_t *dispatcher_context,
         policy_node_keyexpr_t *kp_i;
         if (0 > get_keyexpr_by_index(policy, i, NULL, &kp_i)) {
             return WITH_ERROR(-1, "Unexpected error retrieving key expressions from the policy");
-        }
-        if (kp_i->type == KEY_EXPRESSION_MUSIG) {
-            const musig_aggr_key_info_t *musig_info_i = r_musig_aggr_key_info(&kp_i->m.musig_info);
-            const uint16_t *key_indexes_i = r_uint16(&musig_info_i->key_indexes);
-
-            uint16_t key_indexes_i_sorted[MAX_PUBKEYS_PER_MUSIG];
-            memcpy(key_indexes_i_sorted, key_indexes_i, musig_info_i->n * sizeof(uint16_t));
-
-            // sort the arrays
-            qsort(key_indexes_i_sorted, musig_info_i->n, sizeof(uint16_t), compare_uint16);
-
-            for (int j = 0; j < musig_info_i->n - 1; j++) {
-                if (key_indexes_i_sorted[j] == key_indexes_i_sorted[j + 1]) {
-                    return WITH_ERROR(-1, "Repeated key in musig key expression");
-                }
-            }
         }
     }
 

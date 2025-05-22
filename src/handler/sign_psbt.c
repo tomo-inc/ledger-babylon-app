@@ -52,14 +52,11 @@
 #include "sign_psbt.h"
 #include "sign_psbt/compare_wallet_script_at_path.h"
 #include "sign_psbt/extract_bip32_derivation.h"
-#include "sign_psbt/musig_signing.h"
 #include "sign_psbt/sign_psbt_cache.h"
 #include "sign_psbt/update_hashes_with_map_value.h"
 
 #include "../swap/swap_globals.h"
 #include "../swap/handle_swap_sign_transaction.h"
-#include "../musig/musig.h"
-#include "../musig/musig_sessions.h"
 
 #include "../common/segwit_addr.h"
 
@@ -929,63 +926,8 @@ static bool fill_keyexpr_info_if_internal(dispatcher_context_t *dc,
             keyexpr_info->psbt_root_key_derivation_length = keyexpr_info->key_derivation_length;
         }
         return result;
-    } else if (keyexpr_info->key_expression_ptr->type == KEY_EXPRESSION_MUSIG) {
-        // iterate through the keys of the musig() placeholder to find if a key is internal
-        const musig_aggr_key_info_t *musig_info =
-            r_musig_aggr_key_info(&keyexpr_info->key_expression_ptr->m.musig_info);
-        const uint16_t *key_indexes = r_uint16(&musig_info->key_indexes);
-
-        bool has_internal_key = false;
-
-        // collect the keys of the musig, and fill the info related to the internal key (if any)
-        uint8_t keys[MAX_PUBKEYS_PER_MUSIG][33];
-
-        LEDGER_ASSERT(musig_info->n <= MAX_PUBKEYS_PER_MUSIG, "Too many keys in musig placeholder");
-
-        for (int idx_in_musig = 0; idx_in_musig < musig_info->n; idx_in_musig++) {
-            if (get_and_verify_key_info(dc, st, key_indexes[idx_in_musig], &tmp_keyexpr_info)) {
-                memcpy(keyexpr_info->key_derivation,
-                       tmp_keyexpr_info.key_derivation,
-                       sizeof(tmp_keyexpr_info.key_derivation));
-                keyexpr_info->key_derivation_length = tmp_keyexpr_info.key_derivation_length;
-
-                // keep track of the actual internal key of this key expression
-                memcpy(&keyexpr_info->internal_pubkey,
-                       &tmp_keyexpr_info.pubkey,
-                       sizeof(serialized_extended_pubkey_t));
-
-                has_internal_key = true;
-            }
-
-            memcpy(keys[idx_in_musig], tmp_keyexpr_info.pubkey.compressed_pubkey, 33);
-        }
-
-        if (has_internal_key) {
-            keyexpr_info->psbt_root_key_derivation_length = 0;
-
-            // sort the keys in ascending order
-            qsort(keys, musig_info->n, sizeof(plain_pk_t), compare_plain_pk);
-
-            musig_keyagg_context_t musig_ctx;
-            musig_key_agg(keys, musig_info->n, &musig_ctx);
-
-            // compute the aggregated extended pubkey
-            memset(&keyexpr_info->pubkey, 0, sizeof(keyexpr_info->pubkey));
-            write_u32_be(keyexpr_info->pubkey.version, 0, BIP32_PUBKEY_VERSION);
-
-            keyexpr_info->pubkey.compressed_pubkey[0] = (musig_ctx.Q.y[31] % 2 == 0) ? 2 : 3;
-            memcpy(&keyexpr_info->pubkey.compressed_pubkey[1],
-                   musig_ctx.Q.x,
-                   sizeof(musig_ctx.Q.x));
-            memcpy(&keyexpr_info->pubkey.chain_code, BIP_328_CHAINCODE, sizeof(BIP_328_CHAINCODE));
-
-            keyexpr_info->fingerprint =
-                crypto_get_key_fingerprint(keyexpr_info->pubkey.compressed_pubkey);
-        }
-
-        return has_internal_key;  // no internal key found in musig placeholder
     } else {
-        LEDGER_ASSERT(false, "Unreachable code");
+        LEDGER_ASSERT(false, "Unsupported key expression type");
         return false;
     }
 }
@@ -2762,17 +2704,10 @@ static bool __attribute__((noinline)) sign_transaction_input(dispatcher_context_
                                                     cur_input_index,
                                                     sighash))
                     return false;
-            } else if (keyexpr_info->key_expression_ptr->type == KEY_EXPRESSION_MUSIG) {
-                if (!sign_sighash_musig_and_yield(dc,
-                                                  st,
-                                                  signing_state,
-                                                  keyexpr_info,
-                                                  input,
-                                                  cur_input_index,
-                                                  sighash))
-                    return false;
             } else {
-                LEDGER_ASSERT(false, "Unreachable");
+                LEDGER_ASSERT(false, "unexpected key expression type");
+                SEND_SW(dc, SW_BAD_STATE);  // can't happen
+            return false;
             }
 
         } else {
