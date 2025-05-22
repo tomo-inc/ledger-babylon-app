@@ -436,15 +436,11 @@ int parse_policy_map_key_info(buffer_t *buffer, policy_map_key_info_t *out, int 
 static int parse_keyexpr(buffer_t *in_buf,
                          int version,
                          policy_node_keyexpr_t *out,
-                         bool is_taproot,
-                         buffer_t *out_buf,
                          uint16_t *keyexpr_index) {
     char c;
     if (!buffer_read_u8(in_buf, (uint8_t *) &c)) {
         return WITH_ERROR(-1, "Expected key expression");
     }
-    is_taproot = true;
-    out_buf = NULL;
     if (c == '@') {
         out->type = KEY_EXPRESSION_NORMAL;
 
@@ -1420,12 +1416,9 @@ static int parse_script(buffer_t *in_buf,
 
             node->base.type = token;
 
-            bool is_taproot = (context_flags & CONTEXT_WITHIN_TR) != 0;
             if (0 > parse_keyexpr(in_buf,
                                   version,
                                   key_expr,
-                                  is_taproot,
-                                  out_buf,
                                   &key_expression_count)) {
                 return WITH_ERROR(-1, "Couldn't parse key expression");
             }
@@ -1497,7 +1490,7 @@ static int parse_script(buffer_t *in_buf,
             i_policy_node_keyexpr(&node->key, key_expr);
 
             if (0 >
-                parse_keyexpr(in_buf, version, key_expr, true, out_buf, &key_expression_count)) {
+                parse_keyexpr(in_buf, version, key_expr, &key_expression_count)) {
                 return WITH_ERROR(-1, "Couldn't parse key expression");
             }
 
@@ -1640,8 +1633,6 @@ static int parse_script(buffer_t *in_buf,
                 if (0 > parse_keyexpr(in_buf,
                                       version,
                                       key_expr,
-                                      is_taproot,
-                                      out_buf,
                                       &key_expression_count)) {
                     return WITH_ERROR(-1, "Error parsing key expression");
                 }
