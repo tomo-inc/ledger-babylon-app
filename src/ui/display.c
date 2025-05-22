@@ -417,16 +417,15 @@ bool ui_confirm_cov_pks(dispatcher_context_t *context,
 #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
     return true;
 #endif
-    //Here we checked the count is not more than 9
-    //The current babylon protocol have 9 cov keys
-    //We design to support up to 16 keys in the future
-    //But for now, we cannot find a decent way to display variable number of keys in nano device
-    //So we limit the number of keys to 9
-    //We realize that this is not a good design if the keys more then 9
-    //But only shows 9
-    //So we return false if the count is more than 9
-    if (count > 9)
-    {
+    // Here we checked the count is not more than 9
+    // The current babylon protocol have 9 cov keys
+    // We design to support up to 16 keys in the future
+    // But for now, we cannot find a decent way to display variable number of keys in nano device
+    // So we limit the number of keys to 9
+    // We realize that this is not a good design if the keys more then 9
+    // But only shows 9
+    // So we return false if the count is more than 9
+    if (count > 9) {
         PRINTF("ui_confirm_cov_pks count is more than 9\n");
         return false;
     }
