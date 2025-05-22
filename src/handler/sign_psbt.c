@@ -176,7 +176,6 @@ static void compute_bbn_leafhash_unbonding(sign_psbt_state_t *st, uint8_t *leafh
 }
 
 static int encode_minimal_push(uint32_t value, uint8_t *buffer) {
-
     if (value == 0) {
         buffer[0] = 0x00;
         return 1;
