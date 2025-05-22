@@ -1416,10 +1416,7 @@ static int parse_script(buffer_t *in_buf,
 
             node->base.type = token;
 
-            if (0 > parse_keyexpr(in_buf,
-                                  version,
-                                  key_expr,
-                                  &key_expression_count)) {
+            if (0 > parse_keyexpr(in_buf, version, key_expr, &key_expression_count)) {
                 return WITH_ERROR(-1, "Couldn't parse key expression");
             }
 
@@ -1489,8 +1486,7 @@ static int parse_script(buffer_t *in_buf,
             }
             i_policy_node_keyexpr(&node->key, key_expr);
 
-            if (0 >
-                parse_keyexpr(in_buf, version, key_expr, &key_expression_count)) {
+            if (0 > parse_keyexpr(in_buf, version, key_expr, &key_expression_count)) {
                 return WITH_ERROR(-1, "Couldn't parse key expression");
             }
 
@@ -1630,10 +1626,7 @@ static int parse_script(buffer_t *in_buf,
                     return WITH_ERROR(-1, "Out of memory");
                 }
 
-                if (0 > parse_keyexpr(in_buf,
-                                      version,
-                                      key_expr,
-                                      &key_expression_count)) {
+                if (0 > parse_keyexpr(in_buf, version, key_expr, &key_expression_count)) {
                     return WITH_ERROR(-1, "Error parsing key expression");
                 }
 

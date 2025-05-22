@@ -243,10 +243,10 @@ static bool bbn_check_address(sign_psbt_state_t *st) {
     uint8_t tweaked_pubkey[34];
     uint8_t merkle_root[32];
 
-    //to check uint32_t psbt_timelock here 
-    //if 0 or negative, return false
-    //to advoid BBN-#04 Potential buffer overflow
-    if (st->psbt_timelock == 0 || st->psbt_timelock>0x7FFFFFFF) {
+    // to check uint32_t psbt_timelock here
+    // if 0 or negative, return false
+    // to advoid BBN-#04 Potential buffer overflow
+    if (st->psbt_timelock == 0 || st->psbt_timelock > 0x7FFFFFFF) {
         PRINTF("timelock state is 0 or negtive\n");
         return false;
     }
@@ -2707,7 +2707,7 @@ static bool __attribute__((noinline)) sign_transaction_input(dispatcher_context_
             } else {
                 LEDGER_ASSERT(false, "unexpected key expression type");
                 SEND_SW(dc, SW_BAD_STATE);  // can't happen
-            return false;
+                return false;
             }
 
         } else {
