@@ -179,6 +179,7 @@ static void compute_bbn_leafhash_unbonding(sign_psbt_state_t *st, uint8_t *leafh
 }
 
 static int encode_minimal_push(uint32_t value, uint8_t *buffer) {
+
     if (value == 0) {
         buffer[0] = 0x00;
         return 1;
@@ -245,8 +246,11 @@ static bool bbn_check_address(sign_psbt_state_t *st) {
     uint8_t tweaked_pubkey[34];
     uint8_t merkle_root[32];
 
-    if (st->psbt_timelock == 0) {
-        PRINTF("timelock state is 0\n");
+    //to check uint32_t psbt_timelock here 
+    //if 0 or negative, return false
+    //to advoid BBN-#04 Potential buffer overflow
+    if (st->psbt_timelock == 0 || st->psbt_timelock>0x7FFFFFFF) {
+        PRINTF("timelock state is 0 or negtive\n");
         return false;
     }
     // Compute the merkle root

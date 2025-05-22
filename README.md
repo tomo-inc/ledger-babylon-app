@@ -149,4 +149,4 @@ If you need to go deeper into the rabbit hole 🐇🕳️, refer to the followin
 
 ## Tests
 
-See the [tests](tests) folder for documentation on the functional and end-to-end test suites of the bitcoin app, and the [unit-tests](unit-tests) folder for the C unit tests.
+See the [tests](tests) folder for documentation on the functional and end-to-end test suites of the bitcoin app
