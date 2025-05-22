@@ -55,8 +55,8 @@ typedef struct {
 
 // comparator for pointers to arrays of equal length
 static int cmp_arrays(const void *a, const void *b, size_t length) {
-    const uint8_t *key_a = (const uint8_t *) a;
-    const uint8_t *key_b = (const uint8_t *) b;
+    const uint8_t *key_a = (const uint8_t *)a;
+    const uint8_t *key_b = (const uint8_t *)b;
     for (size_t i = 0; i < length; i++) {
         int diff = key_a[i] - key_b[i];
         if (diff != 0) {
@@ -368,7 +368,7 @@ int read_and_parse_wallet_policy(
         if (0 > st->bbn_action_type) {
             return WITH_ERROR(-1, "Failed  to get_action_type");
         } else {
-            if (!check_descriptor((const char *) policy_map_descriptor_template,
+            if (!check_descriptor((const char *)policy_map_descriptor_template,
                                   st->bbn_action_type)) {
                 PRINTF("--descriptor-- %d %s\n",
                        wallet_header->descriptor_template_len,
@@ -463,7 +463,7 @@ __attribute__((noinline, warn_unused_result)) int get_extended_pubkey_from_clien
                                                         wdi->keys_merkle_root,
                                                         wdi->n_keys,
                                                         key_index,
-                                                        (uint8_t *) key_info_str,
+                                                        (uint8_t *)key_info_str,
                                                         sizeof(key_info_str));
         if (key_info_len == -1) {
             return -1;
@@ -502,7 +502,7 @@ __attribute__((warn_unused_result)) static int get_derived_pubkey(
         if (0 > derive_len) {
             return -1;
         }
-    }else {
+    } else {
         LEDGER_ASSERT(false, "Unsupported key expression type");
         return -1;
     }
@@ -544,7 +544,7 @@ static void update_output_push_u32(policy_parser_state_t *state, uint32_t n) {
     if (n == 0) {
         update_output_u8(state, OP_0);
     } else if (n <= 16) {
-        update_output_u8(state, 0x50 + (uint8_t) n);
+        update_output_u8(state, 0x50 + (uint8_t)n);
     } else {
         uint8_t n_le[4];
         write_u32_le(n_le, 0, n);
@@ -592,7 +592,7 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                                                                     const void *arg) {
     policy_parser_node_state_t *node = &state->nodes[state->node_stack_eos];
 
-    const generic_processor_command_t *commands = (const generic_processor_command_t *) arg;
+    const generic_processor_command_t *commands = (const generic_processor_command_t *)arg;
 
     size_t n_commands = 0;
     while (commands[n_commands].code != CMD_CODE_END) ++n_commands;
@@ -616,7 +616,7 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
             }
             case CMD_CODE_PUSH_PK: {
                 const policy_node_with_key_t *policy =
-                    (const policy_node_with_key_t *) node->policy_node;
+                    (const policy_node_with_key_t *)node->policy_node;
                 uint8_t compressed_pubkey[33];
                 if (-1 == get_derived_pubkey(state->dispatcher_context,
                                              state->wdi,
@@ -649,7 +649,7 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
             }
             case CMD_CODE_PUSH_PKH: {
                 const policy_node_with_key_t *policy =
-                    (const policy_node_with_key_t *) node->policy_node;
+                    (const policy_node_with_key_t *)node->policy_node;
                 uint8_t compressed_pubkey[33];
                 if (-1 == get_derived_pubkey(state->dispatcher_context,
                                              state->wdi,
@@ -670,7 +670,7 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
             }
             case CMD_CODE_PUSH_UINT32: {
                 const policy_node_with_uint32_t *policy =
-                    (const policy_node_with_uint32_t *) node->policy_node;
+                    (const policy_node_with_uint32_t *)node->policy_node;
                 update_output_push_u32(state, policy->n);
                 if (state->st->psbt_timelock_state == 1) {
                     state->st->psbt_timelock = policy->n;
@@ -680,21 +680,21 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
             }
             case CMD_CODE_PUSH_HASH20: {
                 const policy_node_with_hash_160_t *policy =
-                    (const policy_node_with_hash_160_t *) node->policy_node;
+                    (const policy_node_with_hash_160_t *)node->policy_node;
                 update_output_u8(state, 20);
                 update_output(state, policy->h, 20);
                 break;
             }
             case CMD_CODE_PUSH_HASH32: {
                 const policy_node_with_hash_256_t *policy =
-                    (const policy_node_with_hash_256_t *) node->policy_node;
+                    (const policy_node_with_hash_256_t *)node->policy_node;
                 update_output_u8(state, 32);
                 update_output(state, policy->h, 32);
                 break;
             }
             case CMD_CODE_PROCESS_CHILD: {
                 const policy_node_with_scripts_t *policy =
-                    (const policy_node_with_scripts_t *) node->policy_node;
+                    (const policy_node_with_scripts_t *)node->policy_node;
                 if (0 > state_stack_push(state, r_policy_node(&policy->scripts[cmd_data]), 0)) {
                     return -1;
                 }
@@ -702,7 +702,7 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
             }
             case CMD_CODE_PROCESS_CHILD_V: {
                 const policy_node_with_scripts_t *policy =
-                    (const policy_node_with_scripts_t *) node->policy_node;
+                    (const policy_node_with_scripts_t *)node->policy_node;
                 if (0 > state_stack_push(state,
                                          r_policy_node(&policy->scripts[cmd_data]),
                                          node->flags)) {
@@ -712,7 +712,7 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
             }
             case CMD_CODE_PROCESS_CHILD_VV: {
                 const policy_node_with_scripts_t *policy =
-                    (const policy_node_with_scripts_t *) node->policy_node;
+                    (const policy_node_with_scripts_t *)node->policy_node;
                 if (0 > state_stack_push(state,
                                          r_policy_node(&policy->scripts[cmd_data]),
                                          node->flags | PROCESSOR_FLAG_V)) {
@@ -741,7 +741,7 @@ __attribute__((warn_unused_result)) static int process_pkh_wpkh_node(policy_pars
         return -1;
     }
 
-    policy_node_with_key_t *policy = (policy_node_with_key_t *) node->policy_node;
+    policy_node_with_key_t *policy = (policy_node_with_key_t *)node->policy_node;
 
     uint8_t compressed_pubkey[33];
     if (-1 == get_derived_pubkey(state->dispatcher_context,
@@ -789,7 +789,7 @@ __attribute__((warn_unused_result)) static int process_thresh_node(policy_parser
     PRINT_STACK_POINTER();
 
     policy_parser_node_state_t *node = &state->nodes[state->node_stack_eos];
-    const policy_node_thresh_t *policy = (const policy_node_thresh_t *) node->policy_node;
+    const policy_node_thresh_t *policy = (const policy_node_thresh_t *)node->policy_node;
 
     // [X1] [X2] ADD ... [Xn] ADD <k> EQUAL
 
@@ -855,7 +855,7 @@ __attribute__((warn_unused_result)) static int process_multi_sortedmulti_node(
     PRINT_STACK_POINTER();
 
     policy_parser_node_state_t *node = &state->nodes[state->node_stack_eos];
-    const policy_node_multisig_t *policy = (const policy_node_multisig_t *) node->policy_node;
+    const policy_node_multisig_t *policy = (const policy_node_multisig_t *)node->policy_node;
 
     if (policy->n > 16) {
         return WITH_ERROR(-1, "Implemented only for n <= 16");
@@ -927,11 +927,11 @@ __attribute__((warn_unused_result)) static int process_multi_sortedmulti_node(
 static int cov_push_compressed_pubkey_to_bbn_buffer(const uint8_t *compressed_pubkey,
                                                     sign_psbt_state_t *st,
                                                     int index) {
-    //BBN-#01 Unimplemented or partially implemented function
-    //The original comment is generated by the code helper
-    //This function is used to push a compressed public key to the buffer
-    //The index is managed by the caller
-    //in process_multi_a_sortedmulti_a_node's loop                                                    
+    // BBN-#01 Unimplemented or partially implemented function
+    // The original comment is generated by the code helper
+    // This function is used to push a compressed public key to the buffer
+    // The index is managed by the caller
+    // in process_multi_a_sortedmulti_a_node's loop
     if (index > 15) return -1;
     memcpy(st->psbt_covenant_pk[index], compressed_pubkey + 1, 32);
     st->psbt_covenant_pk_state[index] = 1;
@@ -945,7 +945,7 @@ __attribute__((warn_unused_result)) static int process_multi_a_sortedmulti_a_nod
 
     PRINT_STACK_POINTER();
     policy_parser_node_state_t *node = &state->nodes[state->node_stack_eos];
-    const policy_node_multisig_t *policy = (const policy_node_multisig_t *) node->policy_node;
+    const policy_node_multisig_t *policy = (const policy_node_multisig_t *)node->policy_node;
 
     if (policy->k > 16) {
         return WITH_ERROR(-1, "Implemented only for k <= 16");
@@ -1095,7 +1095,7 @@ int get_wallet_script(dispatcher_context_t *dispatcher_context,
 
     if (policy->type == TOKEN_PKH) {
         uint8_t compressed_pubkey[33];
-        policy_node_with_key_t *pkh_policy = (policy_node_with_key_t *) policy;
+        policy_node_with_key_t *pkh_policy = (policy_node_with_key_t *)policy;
         if (0 > get_derived_pubkey(dispatcher_context,
                                    wdi,
                                    r_policy_node_keyexpr(&pkh_policy->key),
@@ -1114,7 +1114,7 @@ int get_wallet_script(dispatcher_context_t *dispatcher_context,
         return 25;
     } else if (policy->type == TOKEN_WPKH) {
         uint8_t compressed_pubkey[33];
-        policy_node_with_key_t *wpkh_policy = (policy_node_with_key_t *) policy;
+        policy_node_with_key_t *wpkh_policy = (policy_node_with_key_t *)policy;
         if (0 > get_derived_pubkey(dispatcher_context,
                                    wdi,
                                    r_policy_node_keyexpr(&wpkh_policy->key),
@@ -1131,17 +1131,17 @@ int get_wallet_script(dispatcher_context_t *dispatcher_context,
         const policy_node_t *core_policy;
         if (policy->type == TOKEN_SH) {
             const policy_node_t *child =
-                r_policy_node(&((const policy_node_with_script_t *) policy)->script);
+                r_policy_node(&((const policy_node_with_script_t *)policy)->script);
             if (child->type == TOKEN_WSH) {
                 script_type = WRAPPED_SCRIPT_TYPE_SH_WSH;
-                core_policy = r_policy_node(&((const policy_node_with_script_t *) child)->script);
+                core_policy = r_policy_node(&((const policy_node_with_script_t *)child)->script);
             } else {
                 script_type = WRAPPED_SCRIPT_TYPE_SH;
                 core_policy = child;
             }
         } else {  // if (policy->type == TOKEN_WSH
             script_type = WRAPPED_SCRIPT_TYPE_WSH;
-            core_policy = r_policy_node(&((const policy_node_with_script_t *) policy)->script);
+            core_policy = r_policy_node(&((const policy_node_with_script_t *)policy)->script);
         }
 
         if (0 > get_wallet_internal_script_hash(dispatcher_context,
@@ -1191,7 +1191,7 @@ int get_wallet_script(dispatcher_context_t *dispatcher_context,
             }
         }
     } else if (policy->type == TOKEN_TR) {
-        policy_node_tr_t *tr_policy = (policy_node_tr_t *) policy;
+        policy_node_tr_t *tr_policy = (policy_node_tr_t *)policy;
         uint8_t compressed_pubkey[33];
 
         if (0 > get_derived_pubkey(dispatcher_context,
@@ -1431,33 +1431,31 @@ static int get_bip44_purpose(const policy_node_t *descriptor_template) {
     int purpose = -1;
     switch (descriptor_template->type) {
         case TOKEN_PKH:
-            kp =
-                r_policy_node_keyexpr(&((const policy_node_with_key_t *) descriptor_template)->key);
+            kp = r_policy_node_keyexpr(&((const policy_node_with_key_t *)descriptor_template)->key);
             purpose = 44;  // legacy
             break;
         case TOKEN_WPKH:
-            kp =
-                r_policy_node_keyexpr(&((const policy_node_with_key_t *) descriptor_template)->key);
+            kp = r_policy_node_keyexpr(&((const policy_node_with_key_t *)descriptor_template)->key);
             purpose = 84;  // native segwit
             break;
         case TOKEN_SH: {
             const policy_node_t *inner =
-                r_policy_node(&((const policy_node_with_script_t *) descriptor_template)->script);
+                r_policy_node(&((const policy_node_with_script_t *)descriptor_template)->script);
             if (inner->type != TOKEN_WPKH) {
                 return -1;
             }
 
-            kp = r_policy_node_keyexpr(&((const policy_node_with_key_t *) inner)->key);
+            kp = r_policy_node_keyexpr(&((const policy_node_with_key_t *)inner)->key);
             purpose = 49;  // nested segwit
             break;
         }
         case TOKEN_TR: {
-            const policy_node_tr_t *tr = (const policy_node_tr_t *) descriptor_template;
+            const policy_node_tr_t *tr = (const policy_node_tr_t *)descriptor_template;
             if (!isnull_policy_node_tree(&tr->tree)) {
                 return -1;
             }
 
-            kp = r_policy_node_keyexpr(&((const policy_node_tr_t *) descriptor_template)->key);
+            kp = r_policy_node_keyexpr(&((const policy_node_tr_t *)descriptor_template)->key);
             purpose = 86;  // standard single-key P2TR
             break;
         }
@@ -1585,7 +1583,7 @@ bool check_wallet_hmac(const uint8_t wallet_id[static 32], const uint8_t wallet_
 
     // It is important to use a constant-time function to compare the hmac,
     // to avoid timing-attack that could be exploited to extract it.
-    result = os_secure_memcmp((void *) wallet_hmac, (void *) correct_hmac, 32) == 0;
+    result = os_secure_memcmp((void *)wallet_hmac, (void *)correct_hmac, 32) == 0;
 
 end:
     explicit_bzero(key, sizeof(key));
@@ -1604,7 +1602,7 @@ static int get_keyexpr_by_index_in_tree(const policy_node_tree_t *tree,
                                         policy_node_keyexpr_t **out_keyexpr) {
     if (tree->is_leaf) {
         int ret = get_keyexpr_by_index(r_policy_node(&tree->script), i, NULL, out_keyexpr);
-        if (ret >= 0 && out_tapleaf_ptr != NULL && i < (unsigned) ret) {
+        if (ret >= 0 && out_tapleaf_ptr != NULL && i < (unsigned)ret) {
             *out_tapleaf_ptr = r_policy_node(&tree->script);
         }
         return ret;
@@ -1615,7 +1613,7 @@ static int get_keyexpr_by_index_in_tree(const policy_node_tree_t *tree,
                                                 out_keyexpr);
         if (ret1 < 0) return -1;
 
-        bool found = i < (unsigned int) ret1;
+        bool found = i < (unsigned int)ret1;
 
         int ret2 = get_keyexpr_by_index_in_tree(r_policy_node_tree(&tree->right_tree),
                                                 found ? 0 : i - ret1,
@@ -1655,13 +1653,13 @@ int get_keyexpr_by_index(const policy_node_t *policy,
         case TOKEN_PKH:
         case TOKEN_WPKH: {
             if (i == 0) {
-                policy_node_with_key_t *wpkh = (policy_node_with_key_t *) policy;
+                policy_node_with_key_t *wpkh = (policy_node_with_key_t *)policy;
                 *out_keyexpr = r_policy_node_keyexpr(&wpkh->key);
             }
             return 1;
         }
         case TOKEN_TR: {
-            policy_node_tr_t *tr = (policy_node_tr_t *) policy;
+            policy_node_tr_t *tr = (policy_node_tr_t *)policy;
             if (i == 0) {
                 *out_keyexpr = r_policy_node_keyexpr(&tr->key);
             }
@@ -1687,9 +1685,9 @@ int get_keyexpr_by_index(const policy_node_t *policy,
         case TOKEN_MULTI_A:
         case TOKEN_SORTEDMULTI:
         case TOKEN_SORTEDMULTI_A: {
-            const policy_node_multisig_t *node = (const policy_node_multisig_t *) policy;
+            const policy_node_multisig_t *node = (const policy_node_multisig_t *)policy;
 
-            if (i < (unsigned int) node->n) {
+            if (i < (unsigned int)node->n) {
                 policy_node_keyexpr_t *key_expressions = r_policy_node_keyexpr(&node->keys);
                 *out_keyexpr = &key_expressions[i];
             }
@@ -1711,7 +1709,7 @@ int get_keyexpr_by_index(const policy_node_t *policy,
         case TOKEN_L:
         case TOKEN_U: {
             return get_keyexpr_by_index(
-                r_policy_node(&((const policy_node_with_script_t *) policy)->script),
+                r_policy_node(&((const policy_node_with_script_t *)policy)->script),
                 i,
                 out_tapleaf_ptr,
                 out_keyexpr);
@@ -1725,14 +1723,14 @@ int get_keyexpr_by_index(const policy_node_t *policy,
         case TOKEN_OR_C:
         case TOKEN_OR_D:
         case TOKEN_OR_I: {
-            const policy_node_with_script2_t *node = (const policy_node_with_script2_t *) policy;
+            const policy_node_with_script2_t *node = (const policy_node_with_script2_t *)policy;
             int ret1 = get_keyexpr_by_index(r_policy_node(&node->scripts[0]),
                                             i,
                                             out_tapleaf_ptr,
                                             out_keyexpr);
             if (ret1 < 0) return -1;
 
-            bool found = i < (unsigned int) ret1;
+            bool found = i < (unsigned int)ret1;
             int ret2 = get_keyexpr_by_index(r_policy_node(&node->scripts[1]),
                                             found ? 0 : i - ret1,
                                             found ? NULL : out_tapleaf_ptr,
@@ -1744,21 +1742,21 @@ int get_keyexpr_by_index(const policy_node_t *policy,
 
         // nodes with exactly three child scripts
         case TOKEN_ANDOR: {
-            const policy_node_with_script3_t *node = (const policy_node_with_script3_t *) policy;
+            const policy_node_with_script3_t *node = (const policy_node_with_script3_t *)policy;
             int ret1 = get_keyexpr_by_index(r_policy_node(&node->scripts[0]),
                                             i,
                                             out_tapleaf_ptr,
                                             out_keyexpr);
             if (ret1 < 0) return -1;
 
-            bool found = i < (unsigned int) ret1;
+            bool found = i < (unsigned int)ret1;
             int ret2 = get_keyexpr_by_index(r_policy_node(&node->scripts[1]),
                                             found ? 0 : i - ret1,
                                             found ? NULL : out_tapleaf_ptr,
                                             found ? NULL : out_keyexpr);
             if (ret2 < 0) return -1;
 
-            found = i < (unsigned int) (ret1 + ret2);
+            found = i < (unsigned int)(ret1 + ret2);
             int ret3 = get_keyexpr_by_index(r_policy_node(&node->scripts[2]),
                                             found ? 0 : i - ret1 - ret2,
                                             found ? NULL : out_tapleaf_ptr,
@@ -1769,7 +1767,7 @@ int get_keyexpr_by_index(const policy_node_t *policy,
 
         // nodes with multiple child scripts
         case TOKEN_THRESH: {
-            const policy_node_thresh_t *node = (const policy_node_thresh_t *) policy;
+            const policy_node_thresh_t *node = (const policy_node_thresh_t *)policy;
             bool found;
             int ret = 0;
             policy_node_scriptlist_t *cur_child = r_policy_node_scriptlist(&node->scriptlist);
@@ -1777,7 +1775,7 @@ int get_keyexpr_by_index(const policy_node_t *policy,
                 LEDGER_ASSERT(cur_child != NULL,
                               "The script should always have exactly n child scripts");
 
-                found = i < (unsigned int) ret;
+                found = i < (unsigned int)ret;
                 int ret_partial = get_keyexpr_by_index(r_policy_node(&cur_child->script),
                                                        found ? 0 : i - ret,
                                                        found ? NULL : out_tapleaf_ptr,
@@ -1836,7 +1834,7 @@ static int get_pubkey_from_merkle_tree(dispatcher_context_t *dispatcher_context,
                                                     keys_merkle_root,
                                                     n_keys,
                                                     index,
-                                                    (uint8_t *) key_info_str,
+                                                    (uint8_t *)key_info_str,
                                                     sizeof(key_info_str));
     if (key_info_len == -1) {
         return WITH_ERROR(-1, "Failed to retrieve key info");
@@ -1894,7 +1892,7 @@ static int is_miniscript_sane(const policy_node_t *script, MiniscriptContext con
     // We don't expect these limits to be reached in real-world policies.
 
     // Check the maximum stack size to satisfy the policy
-    if (ext_info.ss.sat == -1 || (uint32_t) ext_info.ss.sat > MAX_STANDARD_P2WSH_STACK_ITEMS) {
+    if (ext_info.ss.sat == -1 || (uint32_t)ext_info.ss.sat > MAX_STANDARD_P2WSH_STACK_ITEMS) {
         return WITH_ERROR(-1, "Miniscript exceeds maximum standard stack size");
     }
 
@@ -1904,7 +1902,7 @@ static int is_miniscript_sane(const policy_node_t *script, MiniscriptContext con
     }
 
     // Check ops limit
-    if ((uint32_t) ext_info.ops.count + (uint32_t) ext_info.ops.sat > MAX_OPS_PER_SCRIPT) {
+    if ((uint32_t)ext_info.ops.count + (uint32_t)ext_info.ops.sat > MAX_OPS_PER_SCRIPT) {
         return WITH_ERROR(-1, "Miniscript exceeds maximum ops");
     }
 
@@ -1964,7 +1962,7 @@ int is_policy_sane(dispatcher_context_t *dispatcher_context,
                    uint32_t n_keys) {
     if (policy->type == TOKEN_WSH) {
         const policy_node_t *inner =
-            r_policy_node(&((const policy_node_with_script_t *) policy)->script);
+            r_policy_node(&((const policy_node_with_script_t *)policy)->script);
         if (inner->flags.is_miniscript) {
             if (0 > is_miniscript_sane(inner, MINISCRIPT_CONTEXT_P2WSH)) {
                 return -1;
@@ -1972,7 +1970,7 @@ int is_policy_sane(dispatcher_context_t *dispatcher_context,
         }
     } else if (policy->type == TOKEN_TR) {
         // if there is a taptree, we check the sanity of every miniscript leaf
-        const policy_node_tr_t *tr = (const policy_node_tr_t *) policy;
+        const policy_node_tr_t *tr = (const policy_node_tr_t *)policy;
         const policy_node_tree_t *taptree = r_policy_node_tree(&tr->tree);
         if (taptree != NULL && 0 > is_taptree_miniscript_sane(taptree)) {
             return -1;
