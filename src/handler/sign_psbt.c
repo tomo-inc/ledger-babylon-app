@@ -1394,7 +1394,7 @@ preprocess_outputs(dispatcher_context_t *dc,
             &output.in_out.map);
 
         if (res < 0) {
-            SEND_SW(dc, 0xD001);  // SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA);
             return false;
         }
 
@@ -2476,7 +2476,7 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
             merkleized_map_commitment_t ith_map;
             int res = call_get_merkleized_map(dc, st->inputs_root, st->n_inputs, i, &ith_map);
             if (res < 0) {
-                SEND_SW(dc, 0xE001);  // SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA);
                 return false;
             }
 
@@ -2506,8 +2506,7 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
                                                    1,
                                                    ith_prevout_n_raw,
                                                    4)) {
-                SEND_SW(dc, 0xE003);
-                // SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA);
                 return false;
             }
             crypto_hash_update(&sha_prevouts_context.header, ith_prevout_n_raw, 4);
@@ -2536,8 +2535,7 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
         cx_sha256_init(&sha_outputs_context);
 
         if (hash_outputs(dc, st, &sha_outputs_context.header) == -1) {
-            SEND_SW(dc, 0xE004);
-            // SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA);
             return false;
         }
 
@@ -2559,8 +2557,7 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
 
             int res = call_get_merkleized_map(dc, st->inputs_root, st->n_inputs, i, &ith_map);
             if (res < 0) {
-                SEND_SW(dc, 0xE005);
-                // SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA);
                 return false;
             }
 
@@ -2572,8 +2569,7 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
                                                       &in_amount,
                                                       in_scriptPubKey,
                                                       &in_scriptPubKey_len)) {
-                SEND_SW(dc, 0xE006);
-                // SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA);
                 return false;
             }
             uint8_t in_amount_le[8];
