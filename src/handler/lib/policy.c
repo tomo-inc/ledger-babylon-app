@@ -446,7 +446,10 @@ execute_processor(policy_parser_state_t *state, policy_parser_processor_t proc, 
 // p2wpkh or p2wsh           ==> bech32         (sart with bc1 on mainnet, tb1 on testnet)
 
 // convenience function, split from get_derived_pubkey only to improve stack usage
-// returns -1 on error, 0 if the returned key info has no wildcard (**), 1 if it has the wildcard
+// returns:
+// -1 on error
+// 0 if the Fingerprint is known
+// len of the derivation path if the fingerprint is unknown
 __attribute__((noinline, warn_unused_result)) int get_extended_pubkey_from_client(
     dispatcher_context_t *dispatcher_context,
     const wallet_derivation_info_t *wdi,
@@ -478,6 +481,16 @@ __attribute__((noinline, warn_unused_result)) int get_extended_pubkey_from_clien
     }
     *out = key_info.ext_pubkey;
     // chester
+    // the keys got from client are for Babylon taproot script
+    // One is finiality provider, others are covenants pubkeys
+    // @0 is the leafhash caculated by the client
+    // All the keys will be shown on screen for user confirmation
+    // The leafhash will be caculated on device and comparing
+    // with the one from client
+    // To see details, please go definition of get_fingerprint 
+    // When there is FP_OTHER, it should be @1, staker PK
+    // Anyway, not the fingerprint for special use
+    // So it will follow the normal way to handle
     if (get_fingerprint(key_info.master_key_fingerprint) == FP_OTHER) {
         return key_info.master_key_derivation_len;
     } else {
@@ -2069,6 +2082,12 @@ int is_policy_sane(dispatcher_context_t *dispatcher_context,
 }
 
 BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]) {
+    // BBN_LEAFHASH_DISPLAY_FP  fingerprint for leafhash, will be shown in the UI
+    // BBN_LEAFHASH_CHECK_FP    fingerprint for leafhash. check only
+    // FP_FINALITY_PUB          fingerprint for finality pubkey
+    // FP_BIP322_MESSAGE        fingerprint for BIP322 message
+    // FP_BIP322_TAPPUB         fingerprint for BIP322 taproot pubkey
+    // FP_OTHER                 not special fingerprint
     if (!memcmp(fingerprint, BBN_NULL_FP, 4)) {
         return FP_NULL;
     } else if (!memcmp(fingerprint, BBN_LEAFHASH_DISPLAY_FP, 4)) {

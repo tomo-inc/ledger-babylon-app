@@ -1642,15 +1642,14 @@ display_bbn_timelock(dispatcher_context_t *dc, sign_psbt_state_t *st) {
 
 static bool __attribute__((noinline))
 display_warnings(dispatcher_context_t *dc, sign_psbt_state_t *st) {
-    // If any segwitv0 input is missing the non-witness-utxo, we warn the user and ask for
-    // confirmation
-    if (st->warnings.missing_nonwitnessutxo && !ui_warn_unverified_segwit_inputs(dc)) {
+    // If any input has non-default sighash, we deny to sign
+    if (st->warnings.non_default_sighash) {
         SEND_SW(dc, SW_DENY);
         return false;
     }
-
-    // If any input has non-default sighash, we warn the user
-    if (st->warnings.non_default_sighash && !ui_warn_nondefault_sighash(dc)) {
+    // If any segwitv0 input is missing the non-witness-utxo, we warn the user and ask for
+    // confirmation
+    if (st->warnings.missing_nonwitnessutxo && !ui_warn_unverified_segwit_inputs(dc)) {
         SEND_SW(dc, SW_DENY);
         return false;
     }
@@ -2165,8 +2164,18 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
         // If spending a tapscript, append the Common Signature Message Extension per BIP-0342
         if (st->psbt_leafhash_state != BBN_LEAF_HASH_NULL) {
             if (st->bbn_action_type == BBN_POLICY_UNBOND) {
-                memcpy(keyexpr_info->tapleaf_hash, st->psbt_leafhash, 32);  //
+                // for unbonding, the leafhash
+                // since the leafhash could not be caculated automatically
+                // so we compute it and check at Line 2840
+                // Search BAP-010 for it
+                memcpy(keyexpr_info->tapleaf_hash, st->psbt_leafhash, 32);
             } else {
+                // BAP-008
+                // for operation except staking
+                // check the leafhash
+                // if the leafhash is correct, then it means the taproot script is right
+                // firmware code caculates the leafhash using information passed from client
+                // and the miniscript in policy
                 if (memcmp(keyexpr_info->tapleaf_hash, st->psbt_leafhash, 32)) {
                     PRINTF("check leaf_hash wrong\n");
                     SEND_SW(dc, SW_INCORRECT_DATA);
@@ -2820,6 +2829,17 @@ static bool __attribute__((noinline)) sign_transaction(
                 }
             }
             // chester
+            // BAP-008
+            // for the most important operation, staking
+            // we re-compute the address by all the informaiton
+            // three taproot script in babylon protocol 
+            // get the merkle root and tweak the pubkey
+            // to VALIDATION to address is right
+            // if the address checked, then it means all the information
+            // including the slashing script, timelock script and 
+            // unbonding script is right
+            // the confirmation task for users is quite normal
+            // to confirm the value like amount they input from front-end
             if (st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER) {
                 if (!bbn_check_address(st)) {
                     PRINTF("bbn_check_address fail\n");
@@ -2835,6 +2855,7 @@ static bool __attribute__((noinline)) sign_transaction(
                     return false;
                 }
                 uint8_t unbond_leafhash[32];
+                // BAP-010
                 compute_bbn_leafhash_unbonding(st, unbond_leafhash);
                 if (memcmp(st->psbt_leafhash, unbond_leafhash, 32) != 0) {
                     PRINTF("bbn_check_unbond leafhash fail\n");

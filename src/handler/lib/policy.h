@@ -66,7 +66,7 @@ typedef struct {
  * @param[out] out Pointer to a `serialized_extended_pubkey_t` that will contain the requested
  * extended pubkey.
  *
- * @return -1 on error, 0 if the returned key info has no wildcard (**), 1 if it has the wildcard.
+ * @return // returns: -1 on error, 0 if the Fingerprint is known,l en of the derivation path if the fingerprint is unknown
  */
 __attribute__((warn_unused_result)) int get_extended_pubkey_from_client(
     dispatcher_context_t *dispatcher_context,
@@ -271,6 +271,7 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
 //         \                                                \
 //     } while (0)
 // #endif
+
 
 #define BBN_NULL_FP             ((uint8_t[]){0x00, 0x00, 0x00, 0x00})
 #define BBN_LEAFHASH_DISPLAY_FP ((uint8_t[]){0x69, 0x84, 0x6d, 0x00})
