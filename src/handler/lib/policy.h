@@ -271,6 +271,8 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
 //         \                                                \
 //     } while (0)
 // #endif
+#define BBN_DEBUG
+void debug_printf(const char *fmt, ...);
 
 
 #define BBN_NULL_FP             ((uint8_t[]){0x00, 0x00, 0x00, 0x00})
@@ -317,5 +319,11 @@ int get_action_type(const char *name);
 #define BBN_DESCRIPTOR_UNBOND             "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_WITHDRAW           "tr(@0/**,and_v(pk_k(@1/**),older"
 #define BBN_DESCRIPTOR_BIP322             "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))"
+
+#define isdigit(c)  ((unsigned)((c) - '0') < 10)
+#define isalpha(c) ( \
+    (((c) >= 'A' && (c) <= 'Z')) || \
+    (((c) >= 'a' && (c) <= 'z'))   \
+)
 
 bool check_descriptor(const char *descriptor, bbn_policy_type_t type);
