@@ -481,16 +481,18 @@ __attribute__((noinline, warn_unused_result)) int get_extended_pubkey_from_clien
     }
     *out = key_info.ext_pubkey;
     // chester
+    // BAP-009
     // the keys got from client are for Babylon taproot script
     // One is finiality provider, others are covenants pubkeys
-    // @0 is the leafhash caculated by the client
+    // some @0 is the leafhash caculated by the client
     // All the keys will be shown on screen for user confirmation
     // The leafhash will be caculated on device and comparing
     // with the one from client
     // To see details, please go definition of get_fingerprint 
     // When there is FP_OTHER, it should be @1, staker PK
-    // Anyway, not the fingerprint for special use
+    // not the fingerprint for special use
     // So it will follow the normal way to handle
+    // which means deriving normally
     if (get_fingerprint(key_info.master_key_fingerprint) == FP_OTHER) {
         return key_info.master_key_derivation_len;
     } else {
