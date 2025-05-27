@@ -122,16 +122,16 @@ void app_main() {
             return;
         }
 
-        PRINTF("=> CLA=%02X | INS=%02X | P1=%02X | P2=%02X | Lc=%02X | CData=",
-               cmd.cla,
-               cmd.ins,
-               cmd.p1,
-               cmd.p2,
-               cmd.lc);
-        for (int i = 0; i < cmd.lc; i++) {
-            PRINTF("%02X", cmd.data[i]);
-        }
-        PRINTF("\n");
+        // PRINTF("=> CLA=%02X | INS=%02X | P1=%02X | P2=%02X | Lc=%02X | CData=",
+        //        cmd.cla,
+        //        cmd.ins,
+        //        cmd.p1,
+        //        cmd.p2,
+        //        cmd.lc);
+        // for (int i = 0; i < cmd.lc; i++) {
+        //     PRINTF("%02X", cmd.data[i]);
+        // }
+        // PRINTF("\n");
 
         if (G_swap_state.called_from_swap) {
             if (cmd.cla != CLA_APP) {

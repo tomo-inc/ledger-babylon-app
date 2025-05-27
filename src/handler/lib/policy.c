@@ -1020,6 +1020,10 @@ __attribute__((warn_unused_result)) static int process_multi_a_sortedmulti_a_nod
     }
 
     state->st->psbt_quorum = policy->k;
+    if (state->st->psbt_quorum > 0 && state->st->psbt_quorum < BBN_MIN_QUORUM) {
+        PRINTF("Invalid quorum %d\n", state->st->psbt_quorum);
+        return -1;
+    }
 
     update_output_u8(state, 0x50 + policy->k);  // <k>
     update_output_op_v(state, OP_NUMEQUAL);     // OP_NUMEQUAL
@@ -2226,7 +2230,6 @@ static bool validate_no_letters_after_last_paren(const char *s) {
             return false;
         }
     }
-    PRINTF("no found %s\n", p);
     return true;
 }
 

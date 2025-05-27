@@ -2877,6 +2877,7 @@ static bool __attribute__((noinline)) sign_transaction(
                 st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
                 st->bbn_action_type == BBN_POLICY_UNBOND) {
                 if (!display_bbn_pk(dc, st)) {
+                    SEND_SW(dc, SW_DENY);
                     PRINTF("display_bbn_pk fail \n");
                     return false;
                 }
@@ -2893,6 +2894,7 @@ static bool __attribute__((noinline)) sign_transaction(
             if (!display_transaction(dc, st, internal_outputs)) return false;
             // Signing always takes some time, so we rather not wait before showing the spinner
             io_show_processing_screen();
+            
             if (!sign_transaction_input(dc,
                                         st,
                                         sign_psbt_cache,
@@ -2969,7 +2971,6 @@ void handler_sign_psbt(dispatcher_context_t *dc, uint8_t protocol_version) {
     if (!sign_result) {
         return;
     }
-
     SEND_SW(dc, SW_OK);
 }
 

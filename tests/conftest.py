@@ -19,6 +19,7 @@ from test_utils.fixtures import *
 from typing import Tuple
 import random
 from bip32 import BIP32
+import pytest
 
 
 ###########################
@@ -112,6 +113,9 @@ def run_bitcoind():
 
     shutil.rmtree(BITCOIN_DIRNAME)
 
+@pytest.fixture(scope="session")
+def speculos_args():
+    return ["--apdu-log-file", "/dev/null"]
 
 @pytest.fixture(scope="session")
 def rpc(run_bitcoind):
