@@ -2145,8 +2145,8 @@ static bool validate_multi_a(const char *p) {
         }
         if (*p != '@') return false;
         p++;
-        if (!isdigit((unsigned char)*p)) return false;
-        while (isdigit((unsigned char)*p)) p++;
+        if (!isdigit((unsigned char) *p)) return false;
+        while (isdigit((unsigned char) *p)) p++;
         if (p[0] != '/' || p[1] != '*' || p[2] != '*') return false;
         p += 3;
     }
