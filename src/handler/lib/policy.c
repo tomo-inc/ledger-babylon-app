@@ -488,7 +488,7 @@ __attribute__((noinline, warn_unused_result)) int get_extended_pubkey_from_clien
     // All the keys will be shown on screen for user confirmation
     // The leafhash will be caculated on device and comparing
     // with the one from client
-    // To see details, please go definition of get_fingerprint 
+    // To see details, please go definition of get_fingerprint
     // When there is FP_OTHER, it should be @1, staker PK
     // not the fingerprint for special use
     // So it will follow the normal way to handle
@@ -2139,9 +2139,9 @@ static bool validate_multi_a(const char *p) {
     p += 2;
     for (;;) {
         if (*p == ')') return true;
-        if (*p == ',') { 
-            p++; 
-            continue; 
+        if (*p == ',') {
+            p++;
+            continue;
         }
         if (*p != '@') return false;
         p++;
@@ -2156,9 +2156,9 @@ static bool validate_older(const char *p) {
     PRINTF("validate_older: %s\n", p);
     for (;;) {
         if (*p == ')') return true;
-        if (*p == ',') { 
-            p++; 
-            continue; 
+        if (*p == ',') {
+            p++;
+            continue;
         }
         if (*p == '@') {
             p++;
@@ -2205,7 +2205,7 @@ int check_prefix(const char *descriptor, bbn_policy_type_t type) {
 }
 
 static bool validate_no_letters_after_last_paren(const char *s) {
-    if (strlen(s) > 128) return false;  
+    if (strlen(s) > 128) return false;
     char buffer[128] = {0};
     memset(buffer, 0, 128);
     memcpy(buffer, s, strlen(s));
@@ -2239,7 +2239,7 @@ bool check_descriptor(const char *descriptor, bbn_policy_type_t type) {
     if (descriptor_type < 0) {
         PRINTF("check_descriptor: unknown descriptor type: %s\n", descriptor);
         return false;
-    }    
+    }
 
     char *str2check;
     char *lock2check;
@@ -2258,7 +2258,7 @@ bool check_descriptor(const char *descriptor, bbn_policy_type_t type) {
             if (!lock2check) return false;
             if (!validate_older(lock2check + strlen("older("))) return false;
             if (!validate_no_letters_after_last_paren(lock2check + strlen("older("))) {
-               PRINTF("check_descriptor: letters after last parenthesis in descriptor: %s\n",
+                PRINTF("check_descriptor: letters after last parenthesis in descriptor: %s\n",
                        descriptor);
                 return false;
             }

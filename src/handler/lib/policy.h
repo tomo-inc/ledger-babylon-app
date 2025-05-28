@@ -66,7 +66,7 @@ typedef struct {
  * @param[out] out Pointer to a `serialized_extended_pubkey_t` that will contain the requested
  * extended pubkey.
  *
- * @return // returns: -1 on error, 0 if the Fingerprint is known,l en of the derivation path if the 
+ * @return // returns: -1 on error, 0 if the Fingerprint is known,l en of the derivation path if the
  * fingerprint is unknown
  */
 __attribute__((warn_unused_result)) int get_extended_pubkey_from_client(
