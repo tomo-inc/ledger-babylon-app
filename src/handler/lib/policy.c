@@ -2122,25 +2122,31 @@ BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]) {
     }
 }
 
-int get_action_type(const char *name) {
-    PRINTF("get_action_type: %s\n", name);
-    if (memcmp(name, BBN_POLICY_NAME_SLASHING, strlen(BBN_POLICY_NAME_SLASHING)) == 0) {
+int get_action_type(const char *str) {
+    char name[128] = { 0 };
+    memset(name, 0, sizeof(name));
+    if(strlen(str) > 127) {
+        PRINTF("get_action_type: name too long\n");
+        return BBN_POLICY_UNKNOWN;
+    }
+    memcpy(name, str, strlen(str));
+    if (memcmp(name, BBN_POLICY_NAME_SLASHING, strlen(name)) == 0) {
         return BBN_POLICY_SLASHING;
     } else if (memcmp(name,
                       BBN_POLICY_NAME_SLASHING_UNBONDING,
-                      strlen(BBN_POLICY_NAME_SLASHING_UNBONDING)) == 0) {
+                      strlen(name)) == 0) {
         return BBN_POLICY_SLASHING_UNBONDING;
     } else if (memcmp(name,
                       BBN_POLICY_NAME_STAKE_TRANSFER,
-                      strlen(BBN_POLICY_NAME_STAKE_TRANSFER)) == 0) {
+                      strlen(name)) == 0) {
         return BBN_POLICY_STAKE_TRANSFER;
-    } else if (memcmp(name, BBN_POLICY_NAME_UNBOND, strlen(BBN_POLICY_NAME_UNBOND)) == 0) {
+    } else if (memcmp(name, BBN_POLICY_NAME_UNBOND, strlen(name)) == 0) {
         return BBN_POLICY_UNBOND;
-    } else if (memcmp(name, BBN_POLICY_NAME_WITHDRAW, strlen(BBN_POLICY_NAME_WITHDRAW)) == 0) {
+    } else if (memcmp(name, BBN_POLICY_NAME_WITHDRAW, strlen(name)) == 0) {
         return BBN_POLICY_WITHDRAW;
     } else if (memcmp(name,
                       BBN_POLICY_NAME_BIP322_MESSAGE,
-                      strlen(BBN_POLICY_NAME_BIP322_MESSAGE)) == 0) {
+                      strlen(name)) == 0) {
         return BBN_POLICY_BIP322;
     }
     return BBN_POLICY_UNKNOWN;
