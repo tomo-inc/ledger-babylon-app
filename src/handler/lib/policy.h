@@ -66,7 +66,8 @@ typedef struct {
  * @param[out] out Pointer to a `serialized_extended_pubkey_t` that will contain the requested
  * extended pubkey.
  *
- * @return // returns: -1 on error, 0 if the Fingerprint is known,l en of the derivation path if the fingerprint is unknown
+ * @return // returns: -1 on error, 0 if the Fingerprint is known,l en of the derivation path if the 
+ * fingerprint is unknown
  */
 __attribute__((warn_unused_result)) int get_extended_pubkey_from_client(
     dispatcher_context_t *dispatcher_context,
@@ -271,9 +272,6 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
 //         \                                                \
 //     } while (0)
 // #endif
-#define BBN_DEBUG
-void debug_printf(const char *fmt, ...);
-
 
 #define BBN_NULL_FP             ((uint8_t[]){0x00, 0x00, 0x00, 0x00})
 #define BBN_LEAFHASH_DISPLAY_FP ((uint8_t[]){0x69, 0x84, 0x6d, 0x00})
@@ -320,10 +318,7 @@ int get_action_type(const char *name);
 #define BBN_DESCRIPTOR_WITHDRAW           "tr(@0/**,and_v(pk_k(@1/**),older"
 #define BBN_DESCRIPTOR_BIP322             "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))"
 
-#define isdigit(c)  ((unsigned)((c) - '0') < 10)
-#define isalpha(c) ( \
-    (((c) >= 'A' && (c) <= 'Z')) || \
-    (((c) >= 'a' && (c) <= 'z'))   \
-)
+#define isdigit(c) ((unsigned) ((c) - '0') < 10)
+#define isalpha(c) ((((c) >= 'A' && (c) <= 'Z')) || (((c) >= 'a' && (c) <= 'z')))
 
 bool check_descriptor(const char *descriptor, bbn_policy_type_t type);

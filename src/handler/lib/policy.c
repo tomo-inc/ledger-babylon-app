@@ -2087,17 +2087,6 @@ int is_policy_sane(dispatcher_context_t *dispatcher_context,
     return 0;
 }
 
-void debug_printf(const char *fmt, ...) {
-#ifdef BBN_DEBUG
-    va_list args;
-    va_start(args, fmt);
-    PRINTF(fmt, args);
-    va_end(args);
-#else
-    (void) fmt;  // avoid unused parameter warning   // no debug output in release builds   
-#endif
-}
-
 BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]) {
     // BBN_LEAFHASH_DISPLAY_FP  fingerprint for leafhash, will be shown in the UI
     // BBN_LEAFHASH_CHECK_FP    fingerprint for leafhash. check only
@@ -2123,30 +2112,24 @@ BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]) {
 }
 
 int get_action_type(const char *str) {
-    char name[128] = { 0 };
+    char name[128] = {0};
     memset(name, 0, sizeof(name));
-    if(strlen(str) > 127) {
+    if (strlen(str) > 127) {
         PRINTF("get_action_type: name too long\n");
         return BBN_POLICY_UNKNOWN;
     }
     memcpy(name, str, strlen(str));
     if (memcmp(name, BBN_POLICY_NAME_SLASHING, strlen(name)) == 0) {
         return BBN_POLICY_SLASHING;
-    } else if (memcmp(name,
-                      BBN_POLICY_NAME_SLASHING_UNBONDING,
-                      strlen(name)) == 0) {
+    } else if (memcmp(name, BBN_POLICY_NAME_SLASHING_UNBONDING, strlen(name)) == 0) {
         return BBN_POLICY_SLASHING_UNBONDING;
-    } else if (memcmp(name,
-                      BBN_POLICY_NAME_STAKE_TRANSFER,
-                      strlen(name)) == 0) {
+    } else if (memcmp(name, BBN_POLICY_NAME_STAKE_TRANSFER, strlen(name)) == 0) {
         return BBN_POLICY_STAKE_TRANSFER;
     } else if (memcmp(name, BBN_POLICY_NAME_UNBOND, strlen(name)) == 0) {
         return BBN_POLICY_UNBOND;
     } else if (memcmp(name, BBN_POLICY_NAME_WITHDRAW, strlen(name)) == 0) {
         return BBN_POLICY_WITHDRAW;
-    } else if (memcmp(name,
-                      BBN_POLICY_NAME_BIP322_MESSAGE,
-                      strlen(name)) == 0) {
+    } else if (memcmp(name, BBN_POLICY_NAME_BIP322_MESSAGE, strlen(name)) == 0) {
         return BBN_POLICY_BIP322;
     }
     return BBN_POLICY_UNKNOWN;
@@ -2156,7 +2139,10 @@ static bool validate_multi_a(const char *p) {
     p += 2;
     for (;;) {
         if (*p == ')') return true;
-        if (*p == ',') { p++; continue; }
+        if (*p == ',') { 
+            p++; 
+            continue; 
+        }
         if (*p != '@') return false;
         p++;
         if (!isdigit((unsigned char)*p)) return false;
@@ -2170,15 +2156,18 @@ static bool validate_older(const char *p) {
     PRINTF("validate_older: %s\n", p);
     for (;;) {
         if (*p == ')') return true;
-        if (*p == ',') { p++; continue; }
+        if (*p == ',') { 
+            p++; 
+            continue; 
+        }
         if (*p == '@') {
             p++;
-            if (!isdigit((unsigned char)*p)) return false;
-            while (isdigit((unsigned char)*p)) p++;
+            if (!isdigit((unsigned char) *p)) return false;
+            while (isdigit((unsigned char) *p)) p++;
             if (p[0] != '/' || p[1] != '*' || p[2] != '*') return false;
             p += 3;
-        } else if (isdigit((unsigned char)*p)) {
-            while (isdigit((unsigned char)*p)) p++;
+        } else if (isdigit((unsigned char) *p)) {
+            while (isdigit((unsigned char) *p)) p++;
         } else {
             return false;
         }
@@ -2188,8 +2177,7 @@ static bool validate_older(const char *p) {
 int check_prefix(const char *descriptor, bbn_policy_type_t type) {
     switch (type) {
         case BBN_POLICY_SLASHING:
-            if (memcmp(descriptor, BBN_DESCRIPTOR_SLASHING, 53) == 0)
-                return BBN_POLICY_SLASHING;
+            if (memcmp(descriptor, BBN_DESCRIPTOR_SLASHING, 53) == 0) return BBN_POLICY_SLASHING;
             break;
         case BBN_POLICY_SLASHING_UNBONDING:
             if (memcmp(descriptor, BBN_DESCRIPTOR_SLASHING_UNBONDING, 53) == 0)
@@ -2200,16 +2188,13 @@ int check_prefix(const char *descriptor, bbn_policy_type_t type) {
                 return BBN_POLICY_STAKE_TRANSFER;
             break;
         case BBN_POLICY_UNBOND:
-            if (memcmp(descriptor, BBN_DESCRIPTOR_UNBOND, 35) == 0)
-                return BBN_POLICY_UNBOND;
+            if (memcmp(descriptor, BBN_DESCRIPTOR_UNBOND, 35) == 0) return BBN_POLICY_UNBOND;
             break;
         case BBN_POLICY_WITHDRAW:
-            if (memcmp(descriptor, BBN_DESCRIPTOR_WITHDRAW, 32) == 0)
-                return BBN_POLICY_WITHDRAW;
+            if (memcmp(descriptor, BBN_DESCRIPTOR_WITHDRAW, 32) == 0) return BBN_POLICY_WITHDRAW;
             break;
         case BBN_POLICY_BIP322:
-            if (memcmp(descriptor, BBN_DESCRIPTOR_BIP322, 41) == 0)
-                return BBN_POLICY_BIP322;
+            if (memcmp(descriptor, BBN_DESCRIPTOR_BIP322, 41) == 0) return BBN_POLICY_BIP322;
             break;
         case BBN_POLICY_UNKNOWN:
             break;
@@ -2220,9 +2205,8 @@ int check_prefix(const char *descriptor, bbn_policy_type_t type) {
 }
 
 static bool validate_no_letters_after_last_paren(const char *s) {
-    if(strlen(s) > 128) 
-        return false;   
-    char buffer[128] = { 0 };
+    if (strlen(s) > 128) return false;  
+    char buffer[128] = {0};
     memset(buffer, 0, 128);
     memcpy(buffer, s, strlen(s));
     const char *p = strstr(buffer, ")");
@@ -2233,7 +2217,7 @@ static bool validate_no_letters_after_last_paren(const char *s) {
         return true;
     }
     for (++p; *p; ++p) {
-        if (isalpha((unsigned char)*p)) {
+        if (isalpha((unsigned char) *p)) {
             PRINTF("validate_no_letters_after_last_paren fail: %s\n", p);
             return false;
         }
@@ -2252,7 +2236,7 @@ static bool validate_no_letters_after_last_paren(const char *s) {
 // for BBN_POLICY_WITHDRAW only the older
 bool check_descriptor(const char *descriptor, bbn_policy_type_t type) {
     int descriptor_type = check_prefix(descriptor, type);
-    if (descriptor_type < 0){
+    if (descriptor_type < 0) {
         PRINTF("check_descriptor: unknown descriptor type: %s\n", descriptor);
         return false;
     }    
@@ -2264,32 +2248,28 @@ bool check_descriptor(const char *descriptor, bbn_policy_type_t type) {
         case BBN_POLICY_SLASHING:
         case BBN_POLICY_SLASHING_UNBONDING:
             str2check = strstr(descriptor, "multi_a(");
-            if (!validate_multi_a(str2check + strlen("multi_a("))) 
-                return false;
+            if (!validate_multi_a(str2check + strlen("multi_a("))) return false;
             break;
         case BBN_POLICY_STAKE_TRANSFER:
         case BBN_POLICY_UNBOND:
             str2check = strstr(descriptor, "multi_a(");
-            if (!validate_multi_a(str2check + strlen("multi_a("))) 
-                return false;
+            if (!validate_multi_a(str2check + strlen("multi_a("))) return false;
             lock2check = strstr(str2check, "older(");
-            if (!lock2check) 
-                return false;
-            if (!validate_older(lock2check + strlen("older("))) 
-                return false;
-            if(!validate_no_letters_after_last_paren(lock2check + strlen("older("))) {
-                PRINTF("check_descriptor: letters after last parenthesis in descriptor: %s\n", descriptor);
+            if (!lock2check) return false;
+            if (!validate_older(lock2check + strlen("older("))) return false;
+            if (!validate_no_letters_after_last_paren(lock2check + strlen("older("))) {
+               PRINTF("check_descriptor: letters after last parenthesis in descriptor: %s\n",
+                       descriptor);
                 return false;
             }
             break;
         case BBN_POLICY_WITHDRAW:
             lock2check = strstr(descriptor, "older(");
-            if (!lock2check) 
-                return false;
-            if (!validate_older(lock2check + strlen("older("))) 
-                return false;
-            if(!validate_no_letters_after_last_paren(lock2check + strlen("older("))) {
-                PRINTF("check_descriptor: letters after last parenthesis in descriptor: %s\n", descriptor);
+            if (!lock2check) return false;
+            if (!validate_older(lock2check + strlen("older("))) return false;
+            if (!validate_no_letters_after_last_paren(lock2check + strlen("older("))) {
+                PRINTF("check_descriptor: letters after last parenthesis in descriptor: %s\n",
+                       descriptor);
                 return false;
             }
             break;

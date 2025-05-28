@@ -2832,11 +2832,11 @@ static bool __attribute__((noinline)) sign_transaction(
             // BAP-008
             // for the most important operation, staking
             // we re-compute the address by all the informaiton
-            // three taproot script in babylon protocol 
+            // three taproot script in babylon protocol
             // get the merkle root and tweak the pubkey
             // to VALIDATION to address is right
             // if the address checked, then it means all the information
-            // including the slashing script, timelock script and 
+            // including the slashing script, timelock script and
             // unbonding script is right
             // the confirmation task for users is quite normal
             // to confirm the value like amount they input from front-end
@@ -2894,7 +2894,6 @@ static bool __attribute__((noinline)) sign_transaction(
             if (!display_transaction(dc, st, internal_outputs)) return false;
             // Signing always takes some time, so we rather not wait before showing the spinner
             io_show_processing_screen();
-            
             if (!sign_transaction_input(dc,
                                         st,
                                         sign_psbt_cache,
