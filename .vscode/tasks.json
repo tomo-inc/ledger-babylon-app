@@ -50,18 +50,6 @@
             ]
         },
         {
-            "label": "run unit tests",
-            "type": "shell",
-            "command": "cd unit-tests && rm -rf  build && cmake -Bbuild -H. && make -C build && CTEST_OUTPUT_ON_FAILURE=1 make -C build test",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": [
-                "$gcc"
-            ]
-        },
-        {
             "label": "run Speculos",
             "type": "shell",
             "command": "python /path/to/speculos/speculos.py ${workspaceFolder}/bin/app.elf --ontop --sdk 1.6 --apdu-port 9999 --button-port 42000 --automation-port 43000",

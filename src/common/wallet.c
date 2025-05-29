@@ -430,23 +430,17 @@ int parse_policy_map_key_info(buffer_t *buffer, policy_map_key_info_t *out, int 
  * - Single key index:
  *   - @IDX/**
  *   - @IDX/<M;N>/*
- * - MuSig2 aggregate key (only if is_taproot is true):
- *   - musig(@IDX,@IDX,...,@IDX)/**
- *   - musig(@IDX,@IDX,...,@IDX)/<M;N>/*
  * where IDX is a key index.
  */
 #pragma GCC diagnostic pop
 static int parse_keyexpr(buffer_t *in_buf,
                          int version,
                          policy_node_keyexpr_t *out,
-                         bool is_taproot,
-                         buffer_t *out_buf,
                          uint16_t *keyexpr_index) {
     char c;
     if (!buffer_read_u8(in_buf, (uint8_t *) &c)) {
         return WITH_ERROR(-1, "Expected key expression");
     }
-
     if (c == '@') {
         out->type = KEY_EXPRESSION_NORMAL;
 
@@ -456,82 +450,6 @@ static int parse_keyexpr(buffer_t *in_buf,
         }
 
         out->k.key_index = (int16_t) k;
-    } else if (c == 'm') {
-        // parse a musig(key1,...,keyn) expression, where each key is a key expression
-        if (!consume_characters(in_buf, "usig(", 5)) {
-            return WITH_ERROR(-1, "Expected musig key expression");
-        }
-
-        if (!is_taproot) {
-            return WITH_ERROR(-1, "musig is only allowed in taproot");
-        }
-
-        out->type = KEY_EXPRESSION_MUSIG;
-
-        if (version != WALLET_POLICY_VERSION_V2) {
-            return WITH_ERROR(-1, "musig key expressions are only supported with version number 2");
-        }
-
-        uint16_t keys[MAX_PUBKEYS_PER_MUSIG];
-        int n_musig_keys = 0;
-
-        // parse comma-separated list of @NUM
-        while (true) {
-            if (!buffer_read_u8(in_buf, (uint8_t *) &c) || c != '@') {
-                return WITH_ERROR(-1, "Expected key placeholder starting with '@'");
-            }
-
-            uint32_t k;
-            if (parse_unsigned_decimal(in_buf, &k) == -1 || k > INT16_MAX) {
-                return WITH_ERROR(-1, "The key index in a placeholder must be at most 32767");
-            }
-
-            if (n_musig_keys >= MAX_PUBKEYS_PER_MUSIG) {
-                return WITH_ERROR(-1, "Too many keys in musig");
-            }
-
-            keys[n_musig_keys] = (uint16_t) k;
-            ++n_musig_keys;
-
-            // the next character must be "," if there are more keys, or ')' otherwise
-            if (!buffer_read_u8(in_buf, (uint8_t *) &c)) {
-                return WITH_ERROR(-1, "Expression terminated prematurely");
-            }
-
-            if (c == ')') {
-                break;
-            } else if (c != ',') {
-                return WITH_ERROR(-1, "Invalid character in musig; expected ',' or ')'");
-            }
-        }
-
-        if (n_musig_keys < 2) {
-            return WITH_ERROR(-1, "musig must have at least 2 key indexes");
-        }
-
-        // sanity check; the loop above should never exit with too many keys
-        LEDGER_ASSERT(n_musig_keys <= MAX_PUBKEYS_PER_MUSIG, "Too many keys in musig");
-
-        // allocate musig structures
-
-        musig_aggr_key_info_t *musig_info =
-            (musig_aggr_key_info_t *) buffer_alloc(out_buf, sizeof(musig_info), true);
-
-        if (musig_info == NULL) {
-            return WITH_ERROR(-1, "Out of memory");
-        }
-
-        uint16_t *key_indexes =
-            (uint16_t *) buffer_alloc(out_buf, sizeof(uint16_t) * n_musig_keys, true);
-        if (key_indexes == NULL) {
-            return WITH_ERROR(-1, "Out of memory");
-        }
-        memcpy(key_indexes, keys, sizeof(uint16_t) * n_musig_keys);
-
-        musig_info->n = n_musig_keys;
-        i_uint16(&musig_info->key_indexes, key_indexes);
-
-        i_musig_aggr_key_info(&out->m.musig_info, musig_info);
     } else {
         return WITH_ERROR(-1, "Expected key expression starting with '@', or musig");
     }
@@ -1498,13 +1416,7 @@ static int parse_script(buffer_t *in_buf,
 
             node->base.type = token;
 
-            bool is_taproot = (context_flags & CONTEXT_WITHIN_TR) != 0;
-            if (0 > parse_keyexpr(in_buf,
-                                  version,
-                                  key_expr,
-                                  is_taproot,
-                                  out_buf,
-                                  &key_expression_count)) {
+            if (0 > parse_keyexpr(in_buf, version, key_expr, &key_expression_count)) {
                 return WITH_ERROR(-1, "Couldn't parse key expression");
             }
 
@@ -1574,8 +1486,7 @@ static int parse_script(buffer_t *in_buf,
             }
             i_policy_node_keyexpr(&node->key, key_expr);
 
-            if (0 >
-                parse_keyexpr(in_buf, version, key_expr, true, out_buf, &key_expression_count)) {
+            if (0 > parse_keyexpr(in_buf, version, key_expr, &key_expression_count)) {
                 return WITH_ERROR(-1, "Couldn't parse key expression");
             }
 
@@ -1715,12 +1626,7 @@ static int parse_script(buffer_t *in_buf,
                     return WITH_ERROR(-1, "Out of memory");
                 }
 
-                if (0 > parse_keyexpr(in_buf,
-                                      version,
-                                      key_expr,
-                                      is_taproot,
-                                      out_buf,
-                                      &key_expression_count)) {
+                if (0 > parse_keyexpr(in_buf, version, key_expr, &key_expression_count)) {
                     return WITH_ERROR(-1, "Error parsing key expression");
                 }
 

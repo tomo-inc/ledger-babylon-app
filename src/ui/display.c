@@ -45,17 +45,14 @@ uint8_t get_streaming_index(void) {
 }
 
 void reset_streaming_index(void) {
-    PRINTF("Reset streaming index\n");
     g_current_streaming_index = 0;
 }
 
 void increase_streaming_index(void) {
-    PRINTF("Increase streaming index\n");
     g_current_streaming_index += 1;
 }
 
 void decrease_streaming_index(void) {
-    PRINTF("Decrease streaming index\n");
     if (g_current_streaming_index > 0) {
         g_current_streaming_index -= 1;
     }
@@ -420,17 +417,25 @@ bool ui_confirm_cov_pks(dispatcher_context_t *context,
 #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
     return true;
 #endif
-    PRINTF("enter ui_confirm_cov_pks\n");
-    if (count > 9) count = 9;
+    // Here we checked the count is not more than 9
+    // The current babylon protocol have 9 cov keys
+    // We design to support up to 16 keys in the future
+    // But for now, we cannot find a decent way to display variable number of keys in nano device
+    // So we limit the number of keys to 9
+    // We realize that this is not a good design if the keys more then 9
+    // But only shows 9
+    // So we return false if the count is more than 9
+    if (count > 9) {
+        PRINTF("ui_confirm_cov_pks count is more than 9\n");
+        return false;
+    }
     ui_cov_pk_state_t *state = (ui_cov_pk_state_t *) &g_ui_state;
     for (uint32_t j = 0; j < count; j++) {
         for (uint32_t i = 0; i < 32; i++) {
             snprintf(state->pk[j] + i * 2, 64, "%02x", pk[j][i]);
         }
         state->pk[j][64] = '\0';
-        PRINTF("ui_confirm_cov_pks %d %s\n", j, state->pk[j]);
     }
-    PRINTF("ui_confirm_cov_pks for for\n");
     snprintf(state->quorum_str, sizeof(state->quorum_str), "%u", quorum);
 
     ui_confirm_cov_pks_flow(count);
@@ -442,7 +447,7 @@ bool ui_confirm_bbn_timelock(dispatcher_context_t *context, const char *value, c
 #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
     return true;
 #endif
-    PRINTF("ENTER ui_confirm_bbn_timelock\n");
+
     ui_bbn_value_state_t *state = (ui_bbn_value_state_t *) &g_ui_state;
     snprintf((char *) state->value, sizeof(state->value), "%s", value);
     snprintf((char *) state->name, sizeof(state->name), "%s", name);
@@ -457,7 +462,6 @@ bool ui_confirm_bbn_timelock_unbonding(dispatcher_context_t *context,
 #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
     return true;
 #endif
-    PRINTF("ENTER ui_confirm_bbn_timelock_unbonding\n");
     ui_bbn_value_state_t *state = (ui_bbn_value_state_t *) &g_ui_state;
     snprintf((char *) state->value, sizeof(state->value), "%s", value);
     snprintf((char *) state->name, sizeof(state->name), "%s", name);
@@ -470,7 +474,6 @@ bool ui_confirm_bbn_message(dispatcher_context_t *context, const char *value, co
 #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
     return true;
 #endif
-    PRINTF("ENTER ui_confirm_bbn_message_flow\n");
     ui_bbn_value_state_t *state = (ui_bbn_value_state_t *) &g_ui_state;
     snprintf((char *) state->value, sizeof(state->value), "%s", value);
     snprintf((char *) state->name, sizeof(state->name), "%s", name);
