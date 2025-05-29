@@ -77,9 +77,9 @@ endif
 ########################################
 #     Application custom permissions   #
 ########################################
-HAVE_APPLICATION_FLAG_DERIVE_MASTER = 0
-HAVE_APPLICATION_FLAG_GLOBAL_PIN = 0
-HAVE_APPLICATION_FLAG_BOLOS_SETTINGS = 0
+HAVE_APPLICATION_FLAG_DERIVE_MASTER = 1
+HAVE_APPLICATION_FLAG_GLOBAL_PIN = 1
+HAVE_APPLICATION_FLAG_BOLOS_SETTINGS = 1
 
 
 ifeq ($(COIN),BBNST_test)
