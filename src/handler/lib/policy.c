@@ -2115,7 +2115,7 @@ int get_action_type(const char *name) {
     if (name == NULL) {
         return BBN_POLICY_UNKNOWN;
     }
-    if (strlen(name) > 128) {
+    if (strlen(name) > BBN_POLICY_NAME_MAX_LEN) {
         return BBN_POLICY_UNKNOWN;
     }
     if (strcmp(name, BBN_POLICY_NAME_SLASHING) == 0) {
@@ -2176,9 +2176,7 @@ static bool validate_older(const char *p) {
 int check_prefix(const char *descriptor, bbn_policy_type_t type) {
     switch (type) {
         case BBN_POLICY_SLASHING:
-            if (memcmp(descriptor,
-                       BBN_DESCRIPTOR_SLASHING,
-                       strlen(BBN_DESCRIPTOR_SLASHING)) == 0)
+            if (memcmp(descriptor, BBN_DESCRIPTOR_SLASHING, strlen(BBN_DESCRIPTOR_SLASHING)) == 0)
                 return BBN_POLICY_SLASHING;
             break;
         case BBN_POLICY_SLASHING_UNBONDING:
@@ -2194,21 +2192,15 @@ int check_prefix(const char *descriptor, bbn_policy_type_t type) {
                 return BBN_POLICY_STAKE_TRANSFER;
             break;
         case BBN_POLICY_UNBOND:
-            if (memcmp(descriptor,
-                       BBN_DESCRIPTOR_UNBOND,
-                       strlen(BBN_DESCRIPTOR_UNBOND)) == 0)
+            if (memcmp(descriptor, BBN_DESCRIPTOR_UNBOND, strlen(BBN_DESCRIPTOR_UNBOND)) == 0)
                 return BBN_POLICY_UNBOND;
             break;
         case BBN_POLICY_WITHDRAW:
-            if (memcmp(descriptor,
-                       BBN_DESCRIPTOR_WITHDRAW,
-                       strlen(BBN_DESCRIPTOR_WITHDRAW)) == 0) 
+            if (memcmp(descriptor, BBN_DESCRIPTOR_WITHDRAW, strlen(BBN_DESCRIPTOR_WITHDRAW)) == 0) 
                 return BBN_POLICY_WITHDRAW;
             break;
         case BBN_POLICY_BIP322:
-            if (memcmp(descriptor,
-                       BBN_DESCRIPTOR_BIP322,
-                       strlen(BBN_DESCRIPTOR_WITHDRAW)) == 0) 
+            if (memcmp(descriptor, BBN_DESCRIPTOR_BIP322, strlen(BBN_DESCRIPTOR_WITHDRAW)) == 0) 
                 return BBN_POLICY_BIP322;
             break;
         case BBN_POLICY_UNKNOWN:
@@ -2220,7 +2212,7 @@ int check_prefix(const char *descriptor, bbn_policy_type_t type) {
 }
 
 static bool validate_no_letters_after_last_paren(const char *s) {
-    if (strlen(s) > BBN_DESCRIPTOR_MAX_LEN-1) return false;
+    if (strlen(s) > BBN_DESCRIPTOR_MAX_LEN - 1) return false;
     char buffer[BBN_DESCRIPTOR_MAX_LEN] = {0};
     memset(buffer, 0, BBN_DESCRIPTOR_MAX_LEN);
     memcpy(buffer, s, strlen(s));

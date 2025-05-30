@@ -290,6 +290,8 @@ typedef enum {
 
 } BBN_FingerPrintType;
 
+#define BBN_POLICY_NAME_MAX_LEN             128
+
 #define BBN_POLICY_NAME_SLASHING           "Consent to slashing"
 #define BBN_POLICY_NAME_SLASHING_UNBONDING "Consent to unbonding slashing"
 #define BBN_POLICY_NAME_STAKE_TRANSFER     "Staking transaction"
