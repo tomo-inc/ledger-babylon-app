@@ -2111,25 +2111,24 @@ BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]) {
     }
 }
 
-int get_action_type(const char *str) {
-    char name[128] = {0};
-    memset(name, 0, sizeof(name));
-    if (strlen(str) > 127) {
-        PRINTF("get_action_type: name too long\n");
+int get_action_type(const char *name) {
+    if (name == NULL) {
         return BBN_POLICY_UNKNOWN;
     }
-    memcpy(name, str, strlen(str));
-    if (memcmp(name, BBN_POLICY_NAME_SLASHING, strlen(name)) == 0) {
+    if (strlen(name) > 128) {
+        return BBN_POLICY_UNKNOWN;
+    }
+    if (strcmp(name, BBN_POLICY_NAME_SLASHING) == 0) {
         return BBN_POLICY_SLASHING;
-    } else if (memcmp(name, BBN_POLICY_NAME_SLASHING_UNBONDING, strlen(name)) == 0) {
+    } else if (strcmp(name, BBN_POLICY_NAME_SLASHING_UNBONDING) == 0) {
         return BBN_POLICY_SLASHING_UNBONDING;
-    } else if (memcmp(name, BBN_POLICY_NAME_STAKE_TRANSFER, strlen(name)) == 0) {
+    } else if (strcmp(name, BBN_POLICY_NAME_STAKE_TRANSFER) == 0) {
         return BBN_POLICY_STAKE_TRANSFER;
-    } else if (memcmp(name, BBN_POLICY_NAME_UNBOND, strlen(name)) == 0) {
+    } else if (strcmp(name, BBN_POLICY_NAME_UNBOND) == 0) {
         return BBN_POLICY_UNBOND;
-    } else if (memcmp(name, BBN_POLICY_NAME_WITHDRAW, strlen(name)) == 0) {
+    } else if (strcmp(name, BBN_POLICY_NAME_WITHDRAW) == 0) {
         return BBN_POLICY_WITHDRAW;
-    } else if (memcmp(name, BBN_POLICY_NAME_BIP322_MESSAGE, strlen(name)) == 0) {
+    } else if (strcmp(name, BBN_POLICY_NAME_BIP322_MESSAGE) == 0) {
         return BBN_POLICY_BIP322;
     }
     return BBN_POLICY_UNKNOWN;
@@ -2177,24 +2176,40 @@ static bool validate_older(const char *p) {
 int check_prefix(const char *descriptor, bbn_policy_type_t type) {
     switch (type) {
         case BBN_POLICY_SLASHING:
-            if (memcmp(descriptor, BBN_DESCRIPTOR_SLASHING, 53) == 0) return BBN_POLICY_SLASHING;
+            if (memcmp(descriptor,
+                       BBN_DESCRIPTOR_SLASHING,
+                       strlen(BBN_DESCRIPTOR_SLASHING)) == 0)
+                return BBN_POLICY_SLASHING;
             break;
         case BBN_POLICY_SLASHING_UNBONDING:
-            if (memcmp(descriptor, BBN_DESCRIPTOR_SLASHING_UNBONDING, 53) == 0)
+            if (memcmp(descriptor,
+                       BBN_DESCRIPTOR_SLASHING_UNBONDING,
+                       strlen(BBN_DESCRIPTOR_SLASHING_UNBONDING)) == 0)
                 return BBN_POLICY_SLASHING_UNBONDING;
             break;
         case BBN_POLICY_STAKE_TRANSFER:
-            if (memcmp(descriptor, BBN_DESCRIPTOR_STAKE_TRANSFER, 59) == 0)
+            if (memcmp(descriptor,
+                       BBN_DESCRIPTOR_STAKE_TRANSFER,
+                       strlen(BBN_DESCRIPTOR_STAKE_TRANSFER)) == 0)
                 return BBN_POLICY_STAKE_TRANSFER;
             break;
         case BBN_POLICY_UNBOND:
-            if (memcmp(descriptor, BBN_DESCRIPTOR_UNBOND, 35) == 0) return BBN_POLICY_UNBOND;
+            if (memcmp(descriptor,
+                       BBN_DESCRIPTOR_UNBOND,
+                       strlen(BBN_DESCRIPTOR_UNBOND)) == 0)
+                return BBN_POLICY_UNBOND;
             break;
         case BBN_POLICY_WITHDRAW:
-            if (memcmp(descriptor, BBN_DESCRIPTOR_WITHDRAW, 32) == 0) return BBN_POLICY_WITHDRAW;
+            if (memcmp(descriptor,
+                       BBN_DESCRIPTOR_WITHDRAW,
+                       strlen(BBN_DESCRIPTOR_WITHDRAW)) == 0) 
+                return BBN_POLICY_WITHDRAW;
             break;
         case BBN_POLICY_BIP322:
-            if (memcmp(descriptor, BBN_DESCRIPTOR_BIP322, 41) == 0) return BBN_POLICY_BIP322;
+            if (memcmp(descriptor,
+                       BBN_DESCRIPTOR_BIP322,
+                       strlen(BBN_DESCRIPTOR_WITHDRAW)) == 0) 
+                return BBN_POLICY_BIP322;
             break;
         case BBN_POLICY_UNKNOWN:
             break;
@@ -2205,9 +2220,9 @@ int check_prefix(const char *descriptor, bbn_policy_type_t type) {
 }
 
 static bool validate_no_letters_after_last_paren(const char *s) {
-    if (strlen(s) > 128) return false;
-    char buffer[128] = {0};
-    memset(buffer, 0, 128);
+    if (strlen(s) > BBN_DESCRIPTOR_MAX_LEN-1) return false;
+    char buffer[BBN_DESCRIPTOR_MAX_LEN] = {0};
+    memset(buffer, 0, BBN_DESCRIPTOR_MAX_LEN);
     memcpy(buffer, s, strlen(s));
     const char *p = strstr(buffer, ")");
     if (!p) {

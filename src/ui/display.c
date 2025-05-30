@@ -109,10 +109,9 @@ bool ui_display_pubkey(dispatcher_context_t *context,
 #endif
 
     ui_path_and_pubkey_state_t *state = (ui_path_and_pubkey_state_t *) &g_ui_state;
-
+    memset(state, 0, sizeof(ui_path_and_pubkey_state_t));
     strncpy(state->bip32_path_str, bip32_path_str, sizeof(state->bip32_path_str));
     strncpy(state->pubkey, pubkey, sizeof(state->pubkey));
-
     if (!is_path_suspicious) {
         ui_display_pubkey_flow();
     } else {
@@ -130,6 +129,7 @@ bool ui_display_path_and_message_content(dispatcher_context_t *context,
 #endif
 
     ui_path_and_message_state_t *state = (ui_path_and_message_state_t *) &g_ui_state;
+    memset(state, 0, sizeof(ui_path_and_message_state_t));
     strncpy(state->bip32_path_str, path_str, sizeof(state->bip32_path_str));
     strncpy(state->message, message_content, sizeof(state->message));
 
@@ -146,6 +146,7 @@ bool ui_display_message_path_hash_and_confirm(dispatcher_context_t *context,
 #endif
 
     ui_path_and_message_state_t *state = (ui_path_and_message_state_t *) &g_ui_state;
+    memset(state, 0, sizeof(ui_path_and_message_state_t));
     strncpy(state->bip32_path_str, path_str, sizeof(state->bip32_path_str));
     strncpy(state->message, message_hash, sizeof(state->message));
 
@@ -198,7 +199,7 @@ bool ui_display_policy_map_cosigner_pubkey(dispatcher_context_t *context,
 
     ui_cosigner_pubkey_and_index_state_t *state =
         (ui_cosigner_pubkey_and_index_state_t *) &g_ui_state;
-
+    memset(state, 0, sizeof(ui_cosigner_pubkey_and_index_state_t));
     strncpy(state->pubkey, pubkey, sizeof(state->pubkey));
 
     if (key_type == PUBKEY_TYPE_INTERNAL) {
@@ -282,9 +283,8 @@ bool ui_display_wallet_address(dispatcher_context_t *context,
 #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
     return true;
 #endif
-
+    memset(state, 0, sizeof(ui_wallet_state_t));
     strncpy(state->address, address, sizeof(state->address));
-
     if (wallet_name == NULL) {
         ui_display_default_wallet_address_flow();
     } else {
@@ -301,8 +301,9 @@ bool ui_authorize_wallet_spend(dispatcher_context_t *context, const char *wallet
 #ifdef HAVE_AUTOAPPROVE_FOR_PERF_TESTS
     return true;
 #endif
-
+    memset(state, 0, sizeof(ui_wallet_state_t));
     strncpy(state->wallet_name, wallet_name, sizeof(state->wallet_name));
+    
     ui_display_spend_from_wallet_flow();
 
     return io_ui_process(context, SET_UX_DIRTY);
@@ -355,7 +356,7 @@ bool ui_validate_output(dispatcher_context_t *context,
 #endif
 
     ui_validate_output_state_t *state = (ui_validate_output_state_t *) &g_ui_state;
-
+    memset(state, 0, sizeof(ui_validate_output_state_t));                        
     strncpy(state->address_or_description,
             address_or_description,
             sizeof(state->address_or_description));
