@@ -2196,11 +2196,11 @@ int check_prefix(const char *descriptor, bbn_policy_type_t type) {
                 return BBN_POLICY_UNBOND;
             break;
         case BBN_POLICY_WITHDRAW:
-            if (memcmp(descriptor, BBN_DESCRIPTOR_WITHDRAW, strlen(BBN_DESCRIPTOR_WITHDRAW)) == 0) 
+            if (memcmp(descriptor, BBN_DESCRIPTOR_WITHDRAW, strlen(BBN_DESCRIPTOR_WITHDRAW)) == 0)
                 return BBN_POLICY_WITHDRAW;
             break;
         case BBN_POLICY_BIP322:
-            if (memcmp(descriptor, BBN_DESCRIPTOR_BIP322, strlen(BBN_DESCRIPTOR_WITHDRAW)) == 0) 
+            if (memcmp(descriptor, BBN_DESCRIPTOR_BIP322, strlen(BBN_DESCRIPTOR_BIP322)) == 0)
                 return BBN_POLICY_BIP322;
             break;
         case BBN_POLICY_UNKNOWN:
