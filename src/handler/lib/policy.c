@@ -2111,13 +2111,14 @@ BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]) {
     }
 }
 
-int get_action_type(const char *name) {
-    if (name == NULL) {
+int get_action_type(const char *str) {
+    if (str == NULL) {
         return BBN_POLICY_UNKNOWN;
     }
-    if (strlen(name) > BBN_POLICY_NAME_MAX_LEN) {
-        return BBN_POLICY_UNKNOWN;
-    }
+    char name[BBN_POLICY_NAME_MAX_LEN + 1] = {0};
+    memset(name, 0, sizeof(name));
+    strncpy(name, str, sizeof(name));
+
     if (strcmp(name, BBN_POLICY_NAME_SLASHING) == 0) {
         return BBN_POLICY_SLASHING;
     } else if (strcmp(name, BBN_POLICY_NAME_SLASHING_UNBONDING) == 0) {
@@ -2212,10 +2213,10 @@ int check_prefix(const char *descriptor, bbn_policy_type_t type) {
 }
 
 static bool validate_no_letters_after_last_paren(const char *s) {
-    if (strlen(s) > BBN_DESCRIPTOR_MAX_LEN - 1) return false;
-    char buffer[BBN_DESCRIPTOR_MAX_LEN] = {0};
-    memset(buffer, 0, BBN_DESCRIPTOR_MAX_LEN);
-    memcpy(buffer, s, strlen(s));
+    char buffer[BBN_DESCRIPTOR_MAX_LEN + 1] = {0};
+    memset(buffer, 0, sizeof(buffer));
+    strncpy(buffer, s, sizeof(buffer));
+
     const char *p = strstr(buffer, ")");
     if (!p) {
         // if there is no ')'
