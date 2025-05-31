@@ -2138,6 +2138,7 @@ int get_action_type(const char *str) {
 static bool validate_multi_a(const char *p) {
     p += 2;
     for (;;) {
+        if (*p == '\0') return false;
         if (*p == ')') return true;
         if (*p == ',') {
             p++;
@@ -2153,8 +2154,8 @@ static bool validate_multi_a(const char *p) {
 }
 
 static bool validate_older(const char *p) {
-    PRINTF("validate_older: %s\n", p);
     for (;;) {
+        if (*p == '\0') return false;
         if (*p == ')') return true;
         if (*p == ',') {
             p++;
@@ -2242,7 +2243,11 @@ static bool validate_no_letters_after_last_paren(const char *s) {
 // check if there is only key wildcard, only number in the older
 // and no other info or characters behind it
 // for BBN_POLICY_WITHDRAW only the older
-bool check_descriptor(const char *descriptor, bbn_policy_type_t type) {
+bool check_descriptor(const char *s, bbn_policy_type_t type) {
+    char descriptor[BBN_DESCRIPTOR_MAX_LEN + 1] = {0};
+    strncpy(descriptor, s, sizeof(descriptor));
+    descriptor[sizeof(descriptor) - 1] = '\0';
+
     int descriptor_type = check_prefix(descriptor, type);
     if (descriptor_type < 0) {
         PRINTF("check_descriptor: unknown descriptor type: %s\n", descriptor);

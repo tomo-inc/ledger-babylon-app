@@ -323,4 +323,4 @@ int get_action_type(const char *str);
 #define isdigit(c) ((unsigned) ((c) - '0') < 10)
 #define isalpha(c) ((((c) >= 'A' && (c) <= 'Z')) || (((c) >= 'a' && (c) <= 'z')))
 
-bool check_descriptor(const char *descriptor, bbn_policy_type_t type);
+bool check_descriptor(const char *s, bbn_policy_type_t type);
