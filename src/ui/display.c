@@ -112,6 +112,8 @@ bool ui_display_pubkey(dispatcher_context_t *context,
     memset(state, 0, sizeof(ui_path_and_pubkey_state_t));
     strncpy(state->bip32_path_str, bip32_path_str, sizeof(state->bip32_path_str));
     strncpy(state->pubkey, pubkey, sizeof(state->pubkey));
+    state->bip32_path_str[sizeof(state->bip32_path_str) - 1] = '\0';
+    state->pubkey[sizeof(state->pubkey) - 1] = '\0';
     if (!is_path_suspicious) {
         ui_display_pubkey_flow();
     } else {
@@ -132,6 +134,8 @@ bool ui_display_path_and_message_content(dispatcher_context_t *context,
     memset(state, 0, sizeof(ui_path_and_message_state_t));
     strncpy(state->bip32_path_str, path_str, sizeof(state->bip32_path_str));
     strncpy(state->message, message_content, sizeof(state->message));
+    state->bip32_path_str[sizeof(state->bip32_path_str) - 1] = '\0';
+    state->message[sizeof(state->message) - 1] = '\0';
 
     ui_sign_message_content_flow();
 
@@ -149,6 +153,8 @@ bool ui_display_message_path_hash_and_confirm(dispatcher_context_t *context,
     memset(state, 0, sizeof(ui_path_and_message_state_t));
     strncpy(state->bip32_path_str, path_str, sizeof(state->bip32_path_str));
     strncpy(state->message, message_hash, sizeof(state->message));
+    state->bip32_path_str[sizeof(state->bip32_path_str) - 1] = '\0';
+    state->message[sizeof(state->message) - 1] = '\0';
 
     ui_sign_message_path_hash_and_confirm_flow();
 
@@ -201,6 +207,7 @@ bool ui_display_policy_map_cosigner_pubkey(dispatcher_context_t *context,
         (ui_cosigner_pubkey_and_index_state_t *) &g_ui_state;
     memset(state, 0, sizeof(ui_cosigner_pubkey_and_index_state_t));
     strncpy(state->pubkey, pubkey, sizeof(state->pubkey));
+    state->pubkey[sizeof(state->pubkey) - 1] = '\0';
 
     if (key_type == PUBKEY_TYPE_INTERNAL) {
         snprintf(state->signer_index, sizeof(state->signer_index), "Key @%u, ours", cosigner_index);
@@ -285,10 +292,12 @@ bool ui_display_wallet_address(dispatcher_context_t *context,
 #endif
     memset(state, 0, sizeof(ui_wallet_state_t));
     strncpy(state->address, address, sizeof(state->address));
+    state->address[sizeof(state->address) - 1] = '\0';
     if (wallet_name == NULL) {
         ui_display_default_wallet_address_flow();
     } else {
         strncpy(state->wallet_name, wallet_name, sizeof(state->wallet_name));
+        state->wallet_name[sizeof(state->wallet_name) - 1] = '\0';
         ui_display_receive_in_wallet_flow();
     }
 
@@ -303,6 +312,7 @@ bool ui_authorize_wallet_spend(dispatcher_context_t *context, const char *wallet
 #endif
     memset(state, 0, sizeof(ui_wallet_state_t));
     strncpy(state->wallet_name, wallet_name, sizeof(state->wallet_name));
+    
     ui_display_spend_from_wallet_flow();
 
     return io_ui_process(context, SET_UX_DIRTY);
@@ -359,6 +369,7 @@ bool ui_validate_output(dispatcher_context_t *context,
     strncpy(state->address_or_description,
             address_or_description,
             sizeof(state->address_or_description));
+    state->address_or_description[sizeof(state->address_or_description) - 1] = '\0';
     format_sats_amount(coin_name, amount, state->amount);
 
     if (total_count == 1) {
@@ -518,6 +529,7 @@ bool ui_validate_transaction_simplified(dispatcher_context_t *context,
 
     if (wallet_policy_name != NULL) {
         strncpy(state->wallet_policy_name, wallet_policy_name, sizeof(state->wallet_policy_name));
+        state->wallet_policy_name[sizeof(state->wallet_policy_name) - 1] = '\0';
         state->has_wallet_policy = true;
     } else {
         memset(state->wallet_policy_name, 0, sizeof(state->wallet_policy_name));
@@ -529,6 +541,7 @@ bool ui_validate_transaction_simplified(dispatcher_context_t *context,
         strncpy(state->address_or_description,
                 address_or_description,
                 sizeof(state->address_or_description));
+        state->address_or_description[sizeof(state->address_or_description) - 1] = '\0';
     }
     state->warnings = warnings;
     format_sats_amount(coin_name, fee, state->fee);

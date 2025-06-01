@@ -29,6 +29,7 @@ bool copy_transaction_parameters(create_transaction_parameters_t* sign_transacti
     strncpy(destination_address,
             sign_transaction_params->destination_address,
             sizeof(destination_address) - 1);
+    destination_address[sizeof(destination_address) - 1] = '\0';
 
     if (sign_transaction_params->destination_address_extra_id != NULL) {
         memcpy(destination_address_extra_data,
