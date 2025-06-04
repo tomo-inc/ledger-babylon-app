@@ -644,6 +644,7 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                     update_output(state, compressed_pubkey, 33);
                 } else {
                     if (state->st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
+                        state->st->bbn_action_type == BBN_POLICY_SLASHING ||
                         state->st->bbn_action_type == BBN_POLICY_UNBOND) {
                         if (state->st->psbt_staker_pk_state == 0 ||
                             state->st->psbt_finality_pk_state == 0) {
@@ -2260,9 +2261,6 @@ bool check_descriptor(const char *s, bbn_policy_type_t type) {
     switch (descriptor_type) {
         case BBN_POLICY_SLASHING:
         case BBN_POLICY_SLASHING_UNBONDING:
-            str2check = strstr(descriptor, "multi_a(");
-            if (!validate_multi_a(str2check + strlen("multi_a("))) return false;
-            break;
         case BBN_POLICY_STAKE_TRANSFER:
         case BBN_POLICY_UNBOND:
             str2check = strstr(descriptor, "multi_a(");

@@ -174,8 +174,9 @@ typedef struct {
 
 #define BBN_MIN_QUORUM 2
 
+
 // 函数声明
-static inline int count_psbt_covenant_pk_state(
+static inline unsigned int count_psbt_covenant_pk_state(
     const uint32_t state_array[BBN_COV_PUBKEY_MAX_COUNT]);
 
 // Atomic byte constants

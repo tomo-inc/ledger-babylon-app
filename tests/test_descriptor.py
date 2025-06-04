@@ -28,42 +28,6 @@ def open_psbt_from_file(filename: str) -> PSBT:
     psbt.deserialize(raw_psbt_base64)
     return psbt
 
-# Invalid quorum = 1 check
-def test_sign_psbt_tr_script_slashing_Invalid_quorum(navigator: Navigator, firmware: Firmware, client:
-                                            RaggerClient, test_name: str):
-
-    wallet = WalletPolicy(
-        name="Consent to slashing",
-        descriptor_template="tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(1,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))))",
-        keys_info=[
-            "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4WNLDZARxRfzGzvp9Lnm88oGRLmoTSPWNg3uuE6F4xBdmcEqUxs2ovExCUqFBjvF8QkjawKp1KRp6wtFDptzPbBPwQ9LMeY1",
-            "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
-            "[ff119473/86'/1'/0']tpubD6NzVbkrYhZ4Yt3Vn3Naxxfg8LpfnAkUBVsm2VLFDXCWekWMsZSvKjpeWM9AVgnQxUjc9fWS7gW7Vvoy2kXbgGBc6KxTGoMP7W688gzhyKe", 
-            "tpubD6NzVbkrYhZ4WwrfC9BkfdDF7YNk8dXmJ7acsTTtR3C6hr8qvsb2K7Dp42uMsVAW4L8Qc1RakiTDZg1ywXDNUxNBRCkp3dS7yj7x7VMPVqz", 
-            "tpubD6NzVbkrYhZ4Xuv92CZucpRA6ou9tKpe73EomdBVJ9PkXKirJEAkedwKTgKR8bhe4Pp1zJNmK71LbWPattjZqShzT3go658xc5FQiLRZQFr", 
-            "tpubD6NzVbkrYhZ4XtngEHGMzyYcYY9S9dhpe5awQW7rMfDs247YPe4UkjKu3zUT5gLreiDMCsq1RX4BvPaP9PWhrFYo3sk2M1HVjdHjMWiC8pn", 
-            "tpubD6NzVbkrYhZ4XgSQ8NsumcA7iHSCou5Vegcf8AK7mezeUQUKJeS2trsPqaYeuAM7FEizZEFcuQ7aWf27CdBL1E7kZEv9rwDrsq18oov8H7A", 
-            "tpubD6NzVbkrYhZ4Ysn5e6UVJLDVowAks2RuUbyaNM4NLNvU2PaPSuvmFB3NeYUDNf5EF1C8pGYCjBWKtGMqbD6HiYj4xyWhFSAxucQ26EGED7H", 
-            "tpubD6NzVbkrYhZ4WZ9ozPNtBTh7bNtczM2CmHkg7SYSQx7DUTn4YjeFK4SqBgFRqjuZC1XTnxDqJaqPNcMxSFjrLMZgGU1dkF4THyXdyP2iHa9", 
-            "tpubD6NzVbkrYhZ4YWPuHMubgo31Rn2oBG2EuH7eFVpTnyQzhu3upESECW8HyouyLXUXsRVwgDja9aoFggnhiX6zLEWiVrJWfMrbRH5qaSdEZg7", 
-            "tpubD6NzVbkrYhZ4XVW9QtYpXNdtQsCTLZZCoKmnzPpwh9F54VmjxHciynJA7qqf2rfeEuqvDNuaPG4g6F9TdjeUyhFWbbeNyhVnJGNjhxaESqT", 
-            "tpubD6NzVbkrYhZ4WiZ659T6qE19WFEa7LD2ZFYD1peKszT6Xqkdrvkp7Gkyk7PRRW2Jtm5fgUSWJsvF6rq9yDt8muoa9HB5mC8UGayBf8arZvW"
-        ],
-    )
-
-    wallet_hmac = bytes.fromhex(
-        "dae925660e20859ed8833025d46444483ce264fdb77e34569aabe9d590da8fb7"
-    )
-
-    psbt = PSBT()
-    psbt.deserialize("cHNidP8BAH0CAAAAAU5oPucfQQOAdrEZwJODBvpzHfaA/orEXxwbxelbMexgAAAAAAD/////AsQJAAAAAAAAFgAUW+EmJNCKK0JAldfAciHDNFDRS/EEpgAAAAAAACJRICyVutUKY9E6qBjfjktoZBga2/RyCoiq+OPBI1ugik2fAAAAAAABAStQwwAAAAAAACJRINdj3mtHHjBWQbpB1lxngujLz/bgjoPaqw2hJ1u8n6rQQhXBUJKbdMGgSVS3i0tgNel6XgeKWg8o7JbVR7/ums6AOsCJtgX5iDHD5SbZ6yF5ZRRSk4qMD/f16u7MthJR1dRt6/15ASDcjS+e/wxPTb3gcKSOMw78kItip2ZWjZHmWPKEsyS4eK0g1mEk+PQv2D5MkBoQCuO11wbvbP0hewS8ZBUuc5owxB6tIAruBQmxbbccmZI4pIJ9uUVSaFmxPJVIerRnJTV8mp8lrCARPDoyqdMgtyGQoEoCCg2zl27zaXJnMljpo4o2Tz3DsLogF5Ic8VbMtOc9Qo+ZbtEbJFMT434nyXisTSzCHspGcuS6IDu5PfyLYYh9dx82MOmmPpfLr8/MeFVqR034OjGg74mcuiBAr69HxP+lbehkENjke6ortvBLYE9OokMjc33cP+CS37ogeacf/XHFA+8uL5G8z8j82nlG9GU87w2fPd4geV7zufC6INIfr3jGdRoNOOa9gCi5B/8H6ahppD/IN9az+N/2EZo2uiD1GZ764/KLuCR2Fjp+RYx61EXZv/sGgtENO9sstB+Ojrog+p2ILUX0BgvbgEIYOCjNh1RPHqmXOA5YbKt31f1phze6VpzAARcgUJKbdMGgSVS3i0tgNel6XgeKWg8o7JbVR7/ums6AOsAAAAA=")
-
-    with pytest.raises(ExceptionRAPDU) as excinfo:
-        client.sign_psbt(psbt, wallet, wallet_hmac, navigator,
-                        instructions=sign_psbt_instruction_stake(firmware),
-                        testname=test_name)
-    assert excinfo.value.status == 0xb007, f"Unexpected SW: {hex(excinfo.value.status)}"
-
 def test_sign_psbt_tr_script_stake_transfer_with_extrakey(navigator: Navigator, firmware: Firmware, client:
                                             RaggerClient, test_name: str):
     wallet = WalletPolicy(

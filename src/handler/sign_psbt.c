@@ -130,8 +130,11 @@ static void compute_bbn_leafhash_slasing(sign_psbt_state_t *st, uint8_t *leafhas
     offset += 32;
     tapscript[offset++] = 0xad;
 
-    int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    for (int i = 0; i < cov_count; i++) {
+    unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    if (cov_count > BBN_COV_PUBKEY_CURRENT_COUNT) {
+        cov_count = cov_count -1;
+    }
+    for (unsigned int i = 0; i < cov_count; i++) {
         tapscript[offset++] = 0x20;
         memcpy(tapscript + offset, st->psbt_covenant_pk[i], 32);
         offset += 32;
@@ -157,8 +160,11 @@ static void compute_bbn_leafhash_unbonding(sign_psbt_state_t *st, uint8_t *leafh
     offset += 32;
     tapscript[offset++] = 0xad;
 
-    int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    for (int i = 0; i < cov_count; i++) {
+    unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    if (cov_count > BBN_COV_PUBKEY_CURRENT_COUNT) {
+        cov_count = cov_count -1;
+    }
+    for (unsigned int i = 0; i < cov_count; i++) {
         tapscript[offset++] = 0x20;
         memcpy(tapscript + offset, st->psbt_covenant_pk[i], 32);
         offset += 32;
@@ -267,13 +273,69 @@ static bool bbn_check_address(sign_psbt_state_t *st) {
     memcpy(out_scriptPubKey, st->outputs.output_scripts[0], out_scriptPubKey_len);
 
     if (memcmp(out_scriptPubKey + 2, tweaked_pubkey, 32)) {
-        PRINTF("Tweaked public key:\n");
-        // PRINTF_BUF(tweaked_pubkey, 32);
-        PRINTF("out_scriptPubKey_len: %d\n", out_scriptPubKey_len);
-        // PRINTF_BUF(out_scriptPubKey + 2, 32);
+        PRINTF("tweak public key cmp fail\n");
+        PRINTF_BUF(tweaked_pubkey, 32);
+        PRINTF_BUF(out_scriptPubKey + 2, 32);
+        return false;
+    }
+    return true;
+}
+
+static bool bbn_check_slashing(sign_psbt_state_t *st) {
+    uint8_t tweaked_pubkey[34];
+    uint8_t merkle_root[32];
+
+    // to check uint32_t psbt_timelock here
+    // if 0 or negative, return false
+    // to advoid BBN-#04 Potential buffer overflow
+
+    // Compute the merkle root
+    compute_bbn_leafhash_timelock(st, merkle_root);
+    uint8_t parity;
+    // Tweak the staker public key with the merkle root
+    uint8_t NUMS_PUBKEY[] = {0x02, 0x50, 0x92, 0x9b, 0x74, 0xc1, 0xa0, 0x49, 0x54, 0xb7, 0x8b,
+                             0x4b, 0x60, 0x35, 0xe9, 0x7a, 0x5e, 0x07, 0x8a, 0x5a, 0x0f, 0x28,
+                             0xec, 0x96, 0xd5, 0x47, 0xbf, 0xee, 0x9a, 0xce, 0x80, 0x3a, 0xc0};
+    if (crypto_tr_tweak_pubkey(NUMS_PUBKEY + 1, merkle_root, 32, &parity, tweaked_pubkey) != 0) {
+        PRINTF("Failed to tweak public key\n");
+        PRINTF_BUF(tweaked_pubkey, 32);
+        return false;
+    }
+
+    uint8_t out_scriptPubKey[MAX_OUTPUT_SCRIPTPUBKEY_LEN];
+    size_t out_scriptPubKey_len;
+    out_scriptPubKey_len = st->outputs.output_script_lengths[1];
+    memcpy(out_scriptPubKey, st->outputs.output_scripts[1], out_scriptPubKey_len);
+
+    // check the slashing output refund address
+    if (memcmp(out_scriptPubKey + 2, tweaked_pubkey, 32)) {
+        PRINTF("Slashing Tweaked public key:\n");
+        PRINTF_BUF(tweaked_pubkey, 32);
+        PRINTF("Slashing out_scriptPubKey_len 1: %d\n", out_scriptPubKey_len);
+        PRINTF_BUF(out_scriptPubKey + 2, 32);
         PRINTF("tweak public key cmp fail\n");
         return false;
     }
+
+    // check the burn address
+    unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    if (cov_count < BBN_COV_PUBKEY_CURRENT_COUNT + 1) {
+        PRINTF("missing burn address info\n");
+        return false;
+    }
+    uint8_t *slashPkScript = st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT];
+    if (slashPkScript == NULL) {
+        PRINTF("missing burn address null\n");
+        return false;
+    }
+    if (memcmp(st->outputs.output_scripts[0], slashPkScript, 32)) {
+        PRINTF("Slashing burn address:\n");
+        PRINTF_BUF(slashPkScript, 32);
+        PRINTF_BUF(st->outputs.output_scripts[0], 32);
+        PRINTF("tweak public key cmp fail\n");
+        return false;
+    }
+        
     return true;
 }
 
@@ -1593,9 +1655,12 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
         return false;
     }
 
-    int cov_counts = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    for (int i = 0; i < cov_counts; i++) {
-        for (int j = i + 1; j < cov_counts; j++) {
+    unsigned int cov_counts = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    if (cov_counts > BBN_COV_PUBKEY_CURRENT_COUNT) {
+        cov_counts = cov_counts -1;
+    }
+    for (unsigned int i = 0; i < cov_counts; i++) {
+        for (unsigned int j = i + 1; j < cov_counts; j++) {
             if (memcmp(st->psbt_covenant_pk[i], st->psbt_covenant_pk[j], 32) == 0) {
                 PRINTF("Duplicate covenant pk\n");
                 SEND_SW(dc, SW_DENY);
@@ -2059,7 +2124,7 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
     }
 
     if ((sighash_byte & 3) != SIGHASH_NONE && (sighash_byte & 3) != SIGHASH_SINGLE) {
-        PRINTF("(sighash_byte & 3) != SIGHASH_NONE && (sighash_byte & 3) != SIGHASH_SINGLE\n");
+        //PRINTF("(sighash_byte & 3) != SIGHASH_NONE && (sighash_byte & 3) != SIGHASH_SINGLE\n");
         crypto_hash_update(&sighash_context.header, hashes->sha_outputs, 32);
     }
     // chester
@@ -2163,26 +2228,9 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
     if (keyexpr_info->is_tapscript) {
         // If spending a tapscript, append the Common Signature Message Extension per BIP-0342
         if (st->psbt_leafhash_state != BBN_LEAF_HASH_NULL) {
-            if (st->bbn_action_type == BBN_POLICY_UNBOND) {
-                // for unbonding, the leafhash
-                // since the leafhash could not be caculated automatically
-                // so we compute it and check at Line 2840
-                // Search BAP-010 for it
-                memcpy(keyexpr_info->tapleaf_hash, st->psbt_leafhash, 32);
-            } else {
-                // BAP-008
-                // for operation except staking
-                // check the leafhash
-                // if the leafhash is correct, then it means the taproot script is right
-                // firmware code caculates the leafhash using information passed from client
-                // and the miniscript in policy
-                if (memcmp(keyexpr_info->tapleaf_hash, st->psbt_leafhash, 32)) {
-                    PRINTF("check leaf_hash wrong\n");
-                    SEND_SW(dc, SW_INCORRECT_DATA);
-                    return false;
-                }
-            }
-
+            // just copy to buffer
+            // will check later before display
+            memcpy(keyexpr_info->tapleaf_hash, st->psbt_leafhash, 32);
         } else {
             PRINTF("check leaf_hash not provided\n");
             SEND_SW(dc, SW_INCORRECT_DATA);
@@ -2848,6 +2896,22 @@ static bool __attribute__((noinline)) sign_transaction(
                 }
             }
 
+             if (st->bbn_action_type == BBN_POLICY_SLASHING) {
+                uint8_t slashing_leafhash[32];
+                // BAP-010
+                compute_bbn_leafhash_slasing(st, slashing_leafhash);
+                if (memcmp(st->psbt_leafhash, slashing_leafhash, 32) != 0) {
+                    PRINTF("bbn_check_slashing leafhash fail\n");
+                    SEND_SW(dc, SW_DENY);
+                    return false;
+                }
+                if (!bbn_check_slashing(st)) {
+                    PRINTF("bbn_check_slashing fail\n");
+                    SEND_SW(dc, SW_DENY);
+                    return false;
+                }
+            }
+
             if (st->bbn_action_type == BBN_POLICY_UNBOND) {
                 if (!bbn_check_unbond(st)) {
                     PRINTF("bbn_check_unbond fail\n");
@@ -2973,7 +3037,7 @@ void handler_sign_psbt(dispatcher_context_t *dc, uint8_t protocol_version) {
     SEND_SW(dc, SW_OK);
 }
 
-static inline int count_psbt_covenant_pk_state(
+static inline unsigned int count_psbt_covenant_pk_state(
     const uint32_t state_array[BBN_COV_PUBKEY_MAX_COUNT]) {
     int count = 0;
     for (unsigned int i = 0; i < BBN_COV_PUBKEY_MAX_COUNT; i++) {
