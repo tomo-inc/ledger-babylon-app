@@ -65,7 +65,21 @@ static const uint8_t BIP0341_sighash_tag[] = {'T', 'a', 'p', 'S', 'i', 'g', 'h',
 static const uint8_t BIP0322_msghash_tag[] = {'B', 'I', 'P', '0', '3', '2', '2', '-',
                                               's', 'i', 'g', 'n', 'e', 'd', '-', 'm',
                                               'e', 's', 's', 'a', 'g', 'e'};
-
+static void get_fee_from_desciptor(sign_psbt_state_t *st) {
+    unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    if (cov_count <= BBN_COV_PUBKEY_CURRENT_COUNT) {
+        st->psbt_fee = 0;
+    }
+    if (st->bbn_action_type == BBN_POLICY_UNBOND) {
+        memcpy(&st->psbt_fee, st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT], 8);
+    } else if (st->bbn_action_type == BBN_POLICY_SLASHING) {
+        memcpy(&st->psbt_fee, st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT + 1], 8);
+    } else {
+        st->psbt_fee = 0;
+    }
+    PRINTF_BUF(st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT + 1], 8);
+    
+}
 void bytes_to_ascii_hex(const uint8_t *input, size_t input_len, uint8_t *output) {
     const char hex_chars[] = "0123456789abcdef";
 
@@ -132,7 +146,7 @@ static void compute_bbn_leafhash_slasing(sign_psbt_state_t *st, uint8_t *leafhas
 
     unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
     if (cov_count > BBN_COV_PUBKEY_CURRENT_COUNT) {
-        cov_count = cov_count -1;
+        cov_count = BBN_COV_PUBKEY_CURRENT_COUNT;
     }
     for (unsigned int i = 0; i < cov_count; i++) {
         tapscript[offset++] = 0x20;
@@ -162,7 +176,7 @@ static void compute_bbn_leafhash_unbonding(sign_psbt_state_t *st, uint8_t *leafh
 
     unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
     if (cov_count > BBN_COV_PUBKEY_CURRENT_COUNT) {
-        cov_count = cov_count -1;
+        cov_count = BBN_COV_PUBKEY_CURRENT_COUNT;
     }
     for (unsigned int i = 0; i < cov_count; i++) {
         tapscript[offset++] = 0x20;
@@ -285,6 +299,13 @@ static bool bbn_check_slashing(sign_psbt_state_t *st) {
     uint8_t tweaked_pubkey[34];
     uint8_t merkle_root[32];
 
+    get_fee_from_desciptor(st);
+    uint64_t fee = st->inputs_total_amount - st->outputs.total_amount;
+    if (fee < st->psbt_fee) {
+        PRINTF("Fee too low\n");
+        return false;
+    }
+
     // to check uint32_t psbt_timelock here
     // if 0 or negative, return false
     // to advoid BBN-#04 Potential buffer overflow
@@ -319,8 +340,8 @@ static bool bbn_check_slashing(sign_psbt_state_t *st) {
 
     // check the burn address
     unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    if (cov_count < BBN_COV_PUBKEY_CURRENT_COUNT + 1) {
-        PRINTF("missing burn address info\n");
+    if (cov_count < BBN_COV_PUBKEY_CURRENT_COUNT + 2) {
+        PRINTF("missing burn address info or fee\n");
         return false;
     }
     uint8_t *slashPkScript = st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT];
@@ -355,6 +376,12 @@ static bool bbn_check_unbond(sign_psbt_state_t *st) {
         PRINTF("timelock state is 0\n");
         return false;
     }
+    uint64_t fee = st->inputs_total_amount - st->outputs.total_amount;
+    get_fee_from_desciptor(st);
+    if (fee != st->psbt_fee) {
+        PRINTF("unbond fee mismatch\n");
+        return false;
+    }
     compute_bbn_unbond_root(st, merkle_root);
     uint8_t parity;
 
@@ -366,7 +393,7 @@ static bool bbn_check_unbond(sign_psbt_state_t *st) {
         PRINTF("Failed to tweak public key\n");
         return false;
     }
-
+    
     uint8_t out_scriptPubKey[MAX_OUTPUT_SCRIPTPUBKEY_LEN];
     size_t out_scriptPubKey_len;
     out_scriptPubKey_len = st->outputs.output_script_lengths[0];
@@ -1657,7 +1684,7 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
 
     unsigned int cov_counts = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
     if (cov_counts > BBN_COV_PUBKEY_CURRENT_COUNT) {
-        cov_counts = cov_counts -1;
+        cov_counts = BBN_COV_PUBKEY_CURRENT_COUNT;
     }
     for (unsigned int i = 0; i < cov_counts; i++) {
         for (unsigned int j = i + 1; j < cov_counts; j++) {
