@@ -72,7 +72,8 @@ static void get_fee_from_desciptor(sign_psbt_state_t *st) {
     }
     if (st->bbn_action_type == BBN_POLICY_UNBOND) {
         memcpy(&st->psbt_fee, st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT], 8);
-    } else if (st->bbn_action_type == BBN_POLICY_SLASHING) {
+    } else if (st->bbn_action_type == BBN_POLICY_SLASHING ||
+               st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER) {
         memcpy(&st->psbt_fee, st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT + 1], 8);
     } else {
         st->psbt_fee = 0;
@@ -356,7 +357,13 @@ static bool bbn_check_slashing(sign_psbt_state_t *st) {
         PRINTF("tweak public key cmp fail\n");
         return false;
     }
-        
+    // to check OP_return is the first byte of the burn address script
+    // however, this is only for mainnet, not for testnet due to test data
+
+    if (BIP32_PUBKEY_VERSION == BIP32_PUBKEY_MAINNET && st->outputs.output_scripts[0][0] != OP_RETURN) {
+        PRINTF("Burn address script is not OP_RETURN\n");
+        return false;
+    }
     return true;
 }
 
@@ -393,7 +400,7 @@ static bool bbn_check_unbond(sign_psbt_state_t *st) {
         PRINTF("Failed to tweak public key\n");
         return false;
     }
-    
+
     uint8_t out_scriptPubKey[MAX_OUTPUT_SCRIPTPUBKEY_LEN];
     size_t out_scriptPubKey_len;
     out_scriptPubKey_len = st->outputs.output_script_lengths[0];
@@ -2151,7 +2158,6 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
     }
 
     if ((sighash_byte & 3) != SIGHASH_NONE && (sighash_byte & 3) != SIGHASH_SINGLE) {
-        //PRINTF("(sighash_byte & 3) != SIGHASH_NONE && (sighash_byte & 3) != SIGHASH_SINGLE\n");
         crypto_hash_update(&sighash_context.header, hashes->sha_outputs, 32);
     }
     // chester
@@ -2856,7 +2862,7 @@ static bool __attribute__((noinline)) sign_transaction(
     signing_state_t *signing_state,
     const uint8_t internal_outputs[static BITVECTOR_REAL_SIZE(MAX_N_OUTPUTS_CAN_SIGN)]) {
     LOG_PROCESSOR(__FILE__, __LINE__, __func__);
-
+ 
     int key_expression_index = 0;
     // Iterate over all the key expressions that correspond to keys owned by us
     for (size_t i_keyexpr = 0; i_keyexpr < st->n_internal_key_expressions; i_keyexpr++) {
@@ -2893,7 +2899,6 @@ static bool __attribute__((noinline)) sign_transaction(
                                            sign_psbt_cache)) {
                 return false;
             }
-
             // check if the name in list, if not deny
             // then display it to user for confirmation
             if (!st->is_wallet_default) {
@@ -2902,7 +2907,8 @@ static bool __attribute__((noinline)) sign_transaction(
                     SEND_SW(dc, SW_DENY);
                     return false;
                 }
-            }
+            }    
+
             // chester
             // BAP-008
             // for the most important operation, staking
@@ -2918,22 +2924,6 @@ static bool __attribute__((noinline)) sign_transaction(
             if (st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER) {
                 if (!bbn_check_address(st)) {
                     PRINTF("bbn_check_address fail\n");
-                    SEND_SW(dc, SW_DENY);
-                    return false;
-                }
-            }
-
-             if (st->bbn_action_type == BBN_POLICY_SLASHING) {
-                uint8_t slashing_leafhash[32];
-                // BAP-010
-                compute_bbn_leafhash_slasing(st, slashing_leafhash);
-                if (memcmp(st->psbt_leafhash, slashing_leafhash, 32) != 0) {
-                    PRINTF("bbn_check_slashing leafhash fail\n");
-                    SEND_SW(dc, SW_DENY);
-                    return false;
-                }
-                if (!bbn_check_slashing(st)) {
-                    PRINTF("bbn_check_slashing fail\n");
                     SEND_SW(dc, SW_DENY);
                     return false;
                 }
@@ -2968,7 +2958,6 @@ static bool __attribute__((noinline)) sign_transaction(
                 st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
                 st->bbn_action_type == BBN_POLICY_UNBOND) {
                 if (!display_bbn_pk(dc, st)) {
-                    SEND_SW(dc, SW_DENY);
                     PRINTF("display_bbn_pk fail \n");
                     return false;
                 }

@@ -645,6 +645,7 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                 } else {
                     if (state->st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
                         state->st->bbn_action_type == BBN_POLICY_SLASHING ||
+                        state->st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING ||
                         state->st->bbn_action_type == BBN_POLICY_UNBOND) {
                         if (state->st->psbt_staker_pk_state == 0 ||
                             state->st->psbt_finality_pk_state == 0) {

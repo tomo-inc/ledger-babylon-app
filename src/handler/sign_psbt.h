@@ -210,3 +210,5 @@ static inline unsigned int count_psbt_covenant_pk_state(
 #define TX_MIDFIX TX_SEQ_BYTES, TX_OUT_CNT, TX_OUT_VALUE, TX_SPK_LEN, TX_SPK_TAG
 
 #define TX_SUFFIX TX_LOCKTIME
+
+#define BIP32_PUBKEY_MAINNET 0x0488B21E
