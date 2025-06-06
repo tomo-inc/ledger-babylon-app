@@ -317,4 +317,3 @@ def test_sign_psbt_bip322_message_display(navigator: Navigator, firmware: Firmwa
 
     assert len(hww_sigs) == 1
 
-

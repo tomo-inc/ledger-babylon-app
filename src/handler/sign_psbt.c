@@ -73,13 +73,11 @@ static void get_fee_from_desciptor(sign_psbt_state_t *st) {
     if (st->bbn_action_type == BBN_POLICY_UNBOND) {
         memcpy(&st->psbt_fee, st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT], 8);
     } else if (st->bbn_action_type == BBN_POLICY_SLASHING ||
-               st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER) {
+               st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING) {
         memcpy(&st->psbt_fee, st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT + 1], 8);
     } else {
         st->psbt_fee = 0;
-    }
-    PRINTF_BUF(st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT + 1], 8);
-    
+    } 
 }
 void bytes_to_ascii_hex(const uint8_t *input, size_t input_len, uint8_t *output) {
     const char hex_chars[] = "0123456789abcdef";
@@ -306,10 +304,6 @@ static bool bbn_check_slashing(sign_psbt_state_t *st) {
         PRINTF("Fee too low\n");
         return false;
     }
-
-    // to check uint32_t psbt_timelock here
-    // if 0 or negative, return false
-    // to advoid BBN-#04 Potential buffer overflow
 
     // Compute the merkle root
     compute_bbn_leafhash_timelock(st, merkle_root);
@@ -2862,7 +2856,6 @@ static bool __attribute__((noinline)) sign_transaction(
     signing_state_t *signing_state,
     const uint8_t internal_outputs[static BITVECTOR_REAL_SIZE(MAX_N_OUTPUTS_CAN_SIGN)]) {
     LOG_PROCESSOR(__FILE__, __LINE__, __func__);
- 
     int key_expression_index = 0;
     // Iterate over all the key expressions that correspond to keys owned by us
     for (size_t i_keyexpr = 0; i_keyexpr < st->n_internal_key_expressions; i_keyexpr++) {
@@ -2872,7 +2865,6 @@ static bool __attribute__((noinline)) sign_transaction(
             PRINTF("fill_keyexpr_info_if_internal XX\n");
             continue;
         }
-
         for (unsigned int i = 0; i < st->n_inputs; i++) {
             input_info_t input;
             memset(&input, 0, sizeof(input));
@@ -2907,8 +2899,23 @@ static bool __attribute__((noinline)) sign_transaction(
                     SEND_SW(dc, SW_DENY);
                     return false;
                 }
-            }    
-
+            }
+            if (st->bbn_action_type == BBN_POLICY_SLASHING ||
+                st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING) {
+                uint8_t slashing_leafhash[32];
+                // BAP-010
+                compute_bbn_leafhash_slasing(st, slashing_leafhash);
+                if (memcmp(st->psbt_leafhash, slashing_leafhash, 32) != 0) {
+                    PRINTF("bbn_check_slashing leafhash fail\n");
+                    SEND_SW(dc, SW_DENY);
+                    return false;
+                }
+                if (!bbn_check_slashing(st)) {
+                    PRINTF("bbn_check_slashing fail\n");
+                    SEND_SW(dc, SW_DENY);
+                    return false;
+                }
+            }
             // chester
             // BAP-008
             // for the most important operation, staking
@@ -2928,7 +2935,6 @@ static bool __attribute__((noinline)) sign_transaction(
                     return false;
                 }
             }
-
             if (st->bbn_action_type == BBN_POLICY_UNBOND) {
                 if (!bbn_check_unbond(st)) {
                     PRINTF("bbn_check_unbond fail\n");
@@ -2946,13 +2952,11 @@ static bool __attribute__((noinline)) sign_transaction(
                 memcpy(st->psbt_leafhash, unbond_leafhash, 32);
                 st->psbt_leafhash_state = BBN_LEAF_HASH_CHECK;
             }
-
             if (st->bbn_action_type == BBN_POLICY_BIP322 &&
                 !bbn_check_and_display_message(dc, st)) {
                 PRINTF("bbn_check_and_display_message fail\n");
                 return false;
             }
-
             if (st->bbn_action_type == BBN_POLICY_SLASHING ||
                 st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING ||
                 st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
@@ -2962,7 +2966,6 @@ static bool __attribute__((noinline)) sign_transaction(
                     return false;
                 }
             }
-
             if (st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
                 st->bbn_action_type == BBN_POLICY_UNBOND) {
                 if (!display_bbn_timelock(dc, st)) {
