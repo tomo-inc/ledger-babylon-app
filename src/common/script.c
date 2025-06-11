@@ -130,6 +130,7 @@ int format_opscript_script(const uint8_t script[],
     }
 
     strncpy(out, "OP_RETURN ", MAX_OPRETURN_OUTPUT_DESC_SIZE);
+    out[MAX_OPRETURN_OUTPUT_DESC_SIZE - 1] = '\0';
     int out_ctr = 10;
 
     // If the length of the script is 1 (just "OP_RETURN"), then it's not standard per bitcoin-core.

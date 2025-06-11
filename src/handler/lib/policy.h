@@ -66,7 +66,8 @@ typedef struct {
  * @param[out] out Pointer to a `serialized_extended_pubkey_t` that will contain the requested
  * extended pubkey.
  *
- * @return -1 on error, 0 if the returned key info has no wildcard (**), 1 if it has the wildcard.
+ * @return // returns: -1 on error, 0 if the Fingerprint is known,l en of the derivation path if the
+ * fingerprint is unknown
  */
 __attribute__((warn_unused_result)) int get_extended_pubkey_from_client(
     dispatcher_context_t *dispatcher_context,
@@ -254,23 +255,21 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
                                                        int wallet_version,
                                                        const uint8_t keys_merkle_root[static 32],
                                                        uint32_t n_keys);
-//#define BBN_PRT_BUF
 
-// #ifdef BBN_PRT_BUF
-// #define PRINTF_BUF(ptr, len) \
-//     do {                     \
-//     } while (0)
-// #else
-// #define PRINTF_BUF(ptr, len)                             \
-//     do {                                                 \
-//         PRINTF("Buffer: ");                              \
-//         for (uint32_t i = 0; i < (uint32_t)(len); i++) { \
-//             PRINTF("%02X", (ptr)[i]);                    \
-//         }                                                \
-//         PRINTF("\n");                                    \
-//         \                                                \
-//     } while (0)
-// #endif
+#ifdef BBN_PRT_BUF
+#define PRINTF_BUF(ptr, len) \
+    do {                     \
+    } while (0)
+#else
+#define PRINTF_BUF(ptr, len)                              \
+    do {                                                  \
+        PRINTF("Buffer: ");                               \
+        for (uint32_t i = 0; i < (uint32_t) (len); i++) { \
+            PRINTF("%02X", (ptr)[i]);                     \
+        }                                                 \
+        PRINTF("\n");                                     \
+    } while (0)
+#endif
 
 #define BBN_NULL_FP             ((uint8_t[]){0x00, 0x00, 0x00, 0x00})
 #define BBN_LEAFHASH_DISPLAY_FP ((uint8_t[]){0x69, 0x84, 0x6d, 0x00})
@@ -288,6 +287,8 @@ typedef enum {
     FP_OTHER
 
 } BBN_FingerPrintType;
+
+#define BBN_POLICY_NAME_MAX_LEN 128
 
 #define BBN_POLICY_NAME_SLASHING           "Consent to slashing"
 #define BBN_POLICY_NAME_SLASHING_UNBONDING "Consent to unbonding slashing"
@@ -308,13 +309,22 @@ typedef enum {
 
 BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]);
 
-int get_action_type(const char *name);
+int get_action_type(const char *str);
+#define BBN_DESCRIPTOR_MAX_LEN  512
+#define BBN_DESCRIPTOR_SLASHING "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_SLASHING_UNBONDING \
+    "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_STAKE_TRANSFER "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_UNBOND         "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
+#define BBN_DESCRIPTOR_WITHDRAW       "tr(@0/**,and_v(pk_k(@1/**),older"
+#define BBN_DESCRIPTOR_BIP322         "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))"
 
-#define BBN_DESCRIPTOR_SLASHING           "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
-#define BBN_DESCRIPTOR_SLASHING_UNBONDING "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
-#define BBN_DESCRIPTOR_STAKE_TRANSFER     "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
-#define BBN_DESCRIPTOR_UNBOND             "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
-#define BBN_DESCRIPTOR_WITHDRAW           "tr(@0/**,and_v(pk_k(@1/**),older"
-#define BBN_DESCRIPTOR_BIP322             "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))"
+#define isdigit(c) ((unsigned) ((c) - '0') < 10)
+#define isalpha(c) ((((c) >= 'A' && (c) <= 'Z')) || (((c) >= 'a' && (c) <= 'z')))
 
-bool check_descriptor(const char *descriptor, bbn_policy_type_t type);
+#define BBN_UNBONDING_MAX_FEE_CONST 9000
+#define BBN_UNBONDING_MIN_FEE_CONST 1000
+#define BBN_SLASHING_MAX_FEE_CONST  9000
+#define BBN_SLASHING_MIN_FEE_CONST  1000
+
+bool check_descriptor(const char *s, bbn_policy_type_t type);

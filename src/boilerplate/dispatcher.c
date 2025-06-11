@@ -88,16 +88,16 @@ static int process_interruption(dispatcher_context_t *dc) {
         return -1;
     }
 
-    PRINTF("=> CLA=%02X | INS=%02X | P1=%02X | P2=%02X | Lc=%02X | CData=",
-           cmd.cla,
-           cmd.ins,
-           cmd.p1,
-           cmd.p2,
-           cmd.lc);
-    for (int i = 0; i < cmd.lc; i++) {
-        PRINTF("%02X", cmd.data[i]);
-    }
-    PRINTF("\n");
+    // PRINTF("=> CLA=%02X | INS=%02X | P1=%02X | P2=%02X | Lc=%02X | CData=",
+    //        cmd.cla,
+    //        cmd.ins,
+    //        cmd.p1,
+    //        cmd.p2,
+    //        cmd.lc);
+    // for (int i = 0; i < cmd.lc; i++) {
+    //     PRINTF("%02X", cmd.data[i]);
+    // }
+    // PRINTF("\n");
 
     // INS_CONTINUE is the only valid apdu here
     if (cmd.cla != CLA_FRAMEWORK || cmd.ins != INS_CONTINUE) {

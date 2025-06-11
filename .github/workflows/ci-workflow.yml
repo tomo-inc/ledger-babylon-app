@@ -4,12 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches:
-    - master
-    - develop
+      - babylon
   pull_request:
-    branches:
-    - master
-    - develop
+
 
 jobs:
   job_build:

@@ -176,6 +176,24 @@ def sign_psbt_instruction_slasing(model: Firmware,save_screenshot: bool = False)
         instructions.confirm_transaction(save_screenshot=save_screenshot)
     return instructions
 
+# def sign_psbt_instruction_slasing_error(model: Firmware,save_screenshot: bool = False) -> Instructions:
+#     instructions = Instructions(model)
+#     if model.name.startswith("nano"):
+#         # Nano 系列设备交互流程
+#         instructions.new_request("Continue", save_screenshot=save_screenshot)
+#         instructions.same_request("Continue", save_screenshot=save_screenshot)
+#         instructions.same_request("Continue", save_screenshot=save_screenshot)
+#         instructions.same_request("Sign", save_screenshot=save_screenshot)
+#     else:
+#         instructions.new_request("Approve", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_CHOICE_CONFIRM,
+#                          save_screenshot=save_screenshot)
+#         instructions.same_request("Approve", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_CHOICE_CONFIRM,
+#                          save_screenshot=save_screenshot)
+#         instructions.same_request("Approve", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_CHOICE_CONFIRM,
+#                          save_screenshot=save_screenshot)
+#         instructions.confirm_transaction(save_screenshot=save_screenshot)
+#     return instructions
+
 def sign_psbt_instruction_stake(model: Firmware,save_screenshot: bool = False) -> Instructions:
     instructions = Instructions(model)
     if model.name.startswith("nano"):

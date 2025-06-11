@@ -446,7 +446,10 @@ execute_processor(policy_parser_state_t *state, policy_parser_processor_t proc, 
 // p2wpkh or p2wsh           ==> bech32         (sart with bc1 on mainnet, tb1 on testnet)
 
 // convenience function, split from get_derived_pubkey only to improve stack usage
-// returns -1 on error, 0 if the returned key info has no wildcard (**), 1 if it has the wildcard
+// returns:
+// -1 on error
+// 0 if the Fingerprint is known
+// len of the derivation path if the fingerprint is unknown
 __attribute__((noinline, warn_unused_result)) int get_extended_pubkey_from_client(
     dispatcher_context_t *dispatcher_context,
     const wallet_derivation_info_t *wdi,
@@ -478,6 +481,18 @@ __attribute__((noinline, warn_unused_result)) int get_extended_pubkey_from_clien
     }
     *out = key_info.ext_pubkey;
     // chester
+    // BAP-009
+    // the keys got from client are for Babylon taproot script
+    // One is finiality provider, others are covenants pubkeys
+    // some @0 is the leafhash caculated by the client
+    // All the keys will be shown on screen for user confirmation
+    // The leafhash will be caculated on device and comparing
+    // with the one from client
+    // To see details, please go definition of get_fingerprint
+    // When there is FP_OTHER, it should be @1, staker PK
+    // not the fingerprint for special use
+    // So it will follow the normal way to handle
+    // which means deriving normally
     if (get_fingerprint(key_info.master_key_fingerprint) == FP_OTHER) {
         return key_info.master_key_derivation_len;
     } else {
@@ -629,6 +644,8 @@ __attribute__((warn_unused_result)) static int process_generic_node(policy_parse
                     update_output(state, compressed_pubkey, 33);
                 } else {
                     if (state->st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
+                        state->st->bbn_action_type == BBN_POLICY_SLASHING ||
+                        state->st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING ||
                         state->st->bbn_action_type == BBN_POLICY_UNBOND) {
                         if (state->st->psbt_staker_pk_state == 0 ||
                             state->st->psbt_finality_pk_state == 0) {
@@ -1007,6 +1024,10 @@ __attribute__((warn_unused_result)) static int process_multi_a_sortedmulti_a_nod
     }
 
     state->st->psbt_quorum = policy->k;
+    if (state->st->psbt_quorum > 0 && state->st->psbt_quorum < BBN_MIN_QUORUM) {
+        PRINTF("Invalid quorum %d\n", state->st->psbt_quorum);
+        return -1;
+    }
 
     update_output_u8(state, 0x50 + policy->k);  // <k>
     update_output_op_v(state, OP_NUMEQUAL);     // OP_NUMEQUAL
@@ -2069,6 +2090,12 @@ int is_policy_sane(dispatcher_context_t *dispatcher_context,
 }
 
 BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]) {
+    // BBN_LEAFHASH_DISPLAY_FP  fingerprint for leafhash, will be shown in the UI
+    // BBN_LEAFHASH_CHECK_FP    fingerprint for leafhash. check only
+    // FP_FINALITY_PUB          fingerprint for finality pubkey
+    // FP_BIP322_MESSAGE        fingerprint for BIP322 message
+    // FP_BIP322_TAPPUB         fingerprint for BIP322 taproot pubkey
+    // FP_OTHER                 not special fingerprint
     if (!memcmp(fingerprint, BBN_NULL_FP, 4)) {
         return FP_NULL;
     } else if (!memcmp(fingerprint, BBN_LEAFHASH_DISPLAY_FP, 4)) {
@@ -2086,50 +2113,185 @@ BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]) {
     }
 }
 
-int get_action_type(const char *name) {
-    if (memcmp(name, BBN_POLICY_NAME_SLASHING, strlen(BBN_POLICY_NAME_SLASHING)) == 0) {
+int get_action_type(const char *str) {
+    if (str == NULL) {
+        return BBN_POLICY_UNKNOWN;
+    }
+    char name[BBN_POLICY_NAME_MAX_LEN + 1] = {0};
+    strncpy(name, str, sizeof(name));
+    name[sizeof(name) - 1] = '\0';
+
+    if (strcmp(name, BBN_POLICY_NAME_SLASHING) == 0) {
         return BBN_POLICY_SLASHING;
-    } else if (memcmp(name,
-                      BBN_POLICY_NAME_SLASHING_UNBONDING,
-                      strlen(BBN_POLICY_NAME_SLASHING_UNBONDING)) == 0) {
+    } else if (strcmp(name, BBN_POLICY_NAME_SLASHING_UNBONDING) == 0) {
         return BBN_POLICY_SLASHING_UNBONDING;
-    } else if (memcmp(name,
-                      BBN_POLICY_NAME_STAKE_TRANSFER,
-                      strlen(BBN_POLICY_NAME_STAKE_TRANSFER)) == 0) {
+    } else if (strcmp(name, BBN_POLICY_NAME_STAKE_TRANSFER) == 0) {
         return BBN_POLICY_STAKE_TRANSFER;
-    } else if (memcmp(name, BBN_POLICY_NAME_UNBOND, strlen(BBN_POLICY_NAME_UNBOND)) == 0) {
+    } else if (strcmp(name, BBN_POLICY_NAME_UNBOND) == 0) {
         return BBN_POLICY_UNBOND;
-    } else if (memcmp(name, BBN_POLICY_NAME_WITHDRAW, strlen(BBN_POLICY_NAME_WITHDRAW)) == 0) {
+    } else if (strcmp(name, BBN_POLICY_NAME_WITHDRAW) == 0) {
         return BBN_POLICY_WITHDRAW;
-    } else if (memcmp(name,
-                      BBN_POLICY_NAME_BIP322_MESSAGE,
-                      strlen(BBN_POLICY_NAME_BIP322_MESSAGE)) == 0) {
+    } else if (strcmp(name, BBN_POLICY_NAME_BIP322_MESSAGE) == 0) {
         return BBN_POLICY_BIP322;
     }
-    PRINTF("--get_action_type %s\n", name);
     return BBN_POLICY_UNKNOWN;
 }
 
-bool check_descriptor(const char *descriptor, bbn_policy_type_t type) {
+static bool validate_multi_a(const char *p) {
+    p += 2;
+    for (;;) {
+        if (*p == '\0') return false;
+        if (*p == ')') return true;
+        if (*p == ',') {
+            p++;
+            continue;
+        }
+        if (*p != '@') return false;
+        p++;
+        if (!isdigit((unsigned char) *p)) return false;
+        while (isdigit((unsigned char) *p)) p++;
+        if (p[0] != '/' || p[1] != '*' || p[2] != '*') return false;
+        p += 3;
+    }
+}
+
+static bool validate_older(const char *p) {
+    for (;;) {
+        if (*p == '\0') return false;
+        if (*p == ')') return true;
+        if (*p == ',') {
+            p++;
+            continue;
+        }
+        if (*p == '@') {
+            p++;
+            if (!isdigit((unsigned char) *p)) return false;
+            while (isdigit((unsigned char) *p)) p++;
+            if (p[0] != '/' || p[1] != '*' || p[2] != '*') return false;
+            p += 3;
+        } else if (isdigit((unsigned char) *p)) {
+            while (isdigit((unsigned char) *p)) p++;
+        } else {
+            return false;
+        }
+    }
+}
+
+int check_prefix(const char *descriptor, bbn_policy_type_t type) {
     switch (type) {
         case BBN_POLICY_SLASHING:
-            return memcmp(descriptor, BBN_DESCRIPTOR_SLASHING, 53) == 0;
+            if (memcmp(descriptor, BBN_DESCRIPTOR_SLASHING, strlen(BBN_DESCRIPTOR_SLASHING)) == 0)
+                return BBN_POLICY_SLASHING;
+            break;
         case BBN_POLICY_SLASHING_UNBONDING:
-            return memcmp(descriptor, BBN_DESCRIPTOR_SLASHING_UNBONDING, 53) == 0;
+            if (memcmp(descriptor,
+                       BBN_DESCRIPTOR_SLASHING_UNBONDING,
+                       strlen(BBN_DESCRIPTOR_SLASHING_UNBONDING)) == 0)
+                return BBN_POLICY_SLASHING_UNBONDING;
+            break;
         case BBN_POLICY_STAKE_TRANSFER:
-            return memcmp(descriptor, BBN_DESCRIPTOR_STAKE_TRANSFER, 59) == 0;
+            if (memcmp(descriptor,
+                       BBN_DESCRIPTOR_STAKE_TRANSFER,
+                       strlen(BBN_DESCRIPTOR_STAKE_TRANSFER)) == 0)
+                return BBN_POLICY_STAKE_TRANSFER;
+            break;
         case BBN_POLICY_UNBOND:
-            return memcmp(descriptor, BBN_DESCRIPTOR_UNBOND, 35) == 0;
+            if (memcmp(descriptor, BBN_DESCRIPTOR_UNBOND, strlen(BBN_DESCRIPTOR_UNBOND)) == 0)
+                return BBN_POLICY_UNBOND;
+            break;
         case BBN_POLICY_WITHDRAW:
-            return memcmp(descriptor, BBN_DESCRIPTOR_WITHDRAW, 32) == 0;
+            if (memcmp(descriptor, BBN_DESCRIPTOR_WITHDRAW, strlen(BBN_DESCRIPTOR_WITHDRAW)) == 0)
+                return BBN_POLICY_WITHDRAW;
+            break;
         case BBN_POLICY_BIP322:
-            return memcmp(descriptor, BBN_DESCRIPTOR_BIP322, 41) == 0;
+            if (memcmp(descriptor, BBN_DESCRIPTOR_BIP322, strlen(BBN_DESCRIPTOR_BIP322)) == 0)
+                return BBN_POLICY_BIP322;
+            break;
         case BBN_POLICY_UNKNOWN:
+            break;
         default:
-            PRINTF("--check_descriptor %s\n", descriptor);
-            PRINTF("--check_descriptor type %d\n", type);
+            return -1;
+    }
+    return -1;
+}
+
+static bool validate_no_letters_after_last_paren(const char *s) {
+    char buffer[BBN_DESCRIPTOR_MAX_LEN + 1] = {0};
+    strncpy(buffer, s, sizeof(buffer));
+    buffer[sizeof(buffer) - 1] = '\0';
+
+    const char *p = strstr(buffer, ")");
+    if (!p) {
+        // if there is no ')'
+        // there is no risk since miniscript parser will not accept it
+        // so we can return true
+        return true;
+    }
+    for (++p; *p; ++p) {
+        if (isalpha((unsigned char) *p)) {
+            PRINTF("validate_no_letters_after_last_paren fail: %s\n", p);
+            return false;
+        }
+    }
+    return true;
+}
+
+// check_descriptor checks whether the descriptor is secure
+// check the prefix first to determine the type
+// then for BBN_POLICY_SLASHING and BBN_POLICY_SLASHING_UNBONDING
+// check if there is only key wildcard, no other info or characters behind it
+// no worries about threshold, it is checked somewhere else
+// for BBN_POLICY_STAKE_TRANSFER and BBN_POLICY_UNBOND
+// check if there is only key wildcard, only number in the older
+// and no other info or characters behind it
+// for BBN_POLICY_WITHDRAW only the older
+bool check_descriptor(const char *s, bbn_policy_type_t type) {
+    char descriptor[BBN_DESCRIPTOR_MAX_LEN + 1] = {0};
+    strncpy(descriptor, s, sizeof(descriptor));
+    descriptor[sizeof(descriptor) - 1] = '\0';
+
+    int descriptor_type = check_prefix(descriptor, type);
+    if (descriptor_type < 0) {
+        PRINTF("check_descriptor: unknown descriptor type: %s\n", descriptor);
+        return false;
+    }
+
+    char *str2check;
+    char *lock2check;
+
+    switch (descriptor_type) {
+        case BBN_POLICY_SLASHING:
+        case BBN_POLICY_SLASHING_UNBONDING:
+        case BBN_POLICY_STAKE_TRANSFER:
+        case BBN_POLICY_UNBOND:
+            str2check = strstr(descriptor, "multi_a(");
+            if (!validate_multi_a(str2check + strlen("multi_a("))) return false;
+            lock2check = strstr(str2check, "older(");
+            if (!lock2check) return false;
+            if (!validate_older(lock2check + strlen("older("))) return false;
+            if (!validate_no_letters_after_last_paren(lock2check + strlen("older("))) {
+                PRINTF("check_descriptor: letters after last parenthesis in descriptor: %s\n",
+                       descriptor);
+                return false;
+            }
+            break;
+        case BBN_POLICY_WITHDRAW:
+            lock2check = strstr(descriptor, "older(");
+            if (!lock2check) return false;
+            if (!validate_older(lock2check + strlen("older("))) return false;
+            if (!validate_no_letters_after_last_paren(lock2check + strlen("older("))) {
+                PRINTF("check_descriptor: letters after last parenthesis in descriptor: %s\n",
+                       descriptor);
+                return false;
+            }
+            break;
+        case BBN_POLICY_BIP322:
+            break;
+        default:
+            PRINTF("check_descriptor fail%s\n", descriptor);
             return false;
     }
+    return true;
 }
 
 #pragma GCC diagnostic pop

@@ -170,12 +170,14 @@ typedef struct {
 
     uint32_t psbt_timelock_state;
     uint32_t psbt_timelock;
+
+    uint64_t psbt_fee;
 } sign_psbt_state_t;
 
 #define BBN_MIN_QUORUM 2
 
 // 函数声明
-static inline int count_psbt_covenant_pk_state(
+static inline unsigned int count_psbt_covenant_pk_state(
     const uint32_t state_array[BBN_COV_PUBKEY_MAX_COUNT]);
 
 // Atomic byte constants
@@ -207,3 +209,5 @@ static inline int count_psbt_covenant_pk_state(
 #define TX_MIDFIX TX_SEQ_BYTES, TX_OUT_CNT, TX_OUT_VALUE, TX_SPK_LEN, TX_SPK_TAG
 
 #define TX_SUFFIX TX_LOCKTIME
+
+#define BIP32_PUBKEY_MAINNET 0x0488B21E

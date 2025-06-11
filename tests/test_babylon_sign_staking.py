@@ -46,7 +46,7 @@ def test_sign_psbt_tr_script_slashing(navigator: Navigator, firmware: Firmware, 
 
     wallet = WalletPolicy(
         name="Consent to slashing",
-        descriptor_template="tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))))",
+        descriptor_template="tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**,@12/**,@13/**))),older(1008)))",
         keys_info=[
             "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4WNLDZARxRfzGzvp9Lnm88oGRLmoTSPWNg3uuE6F4xBdmcEqUxs2ovExCUqFBjvF8QkjawKp1KRp6wtFDptzPbBPwQ9LMeY1",
             "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
@@ -59,7 +59,9 @@ def test_sign_psbt_tr_script_slashing(navigator: Navigator, firmware: Firmware, 
             "tpubD6NzVbkrYhZ4WZ9ozPNtBTh7bNtczM2CmHkg7SYSQx7DUTn4YjeFK4SqBgFRqjuZC1XTnxDqJaqPNcMxSFjrLMZgGU1dkF4THyXdyP2iHa9", 
             "tpubD6NzVbkrYhZ4YWPuHMubgo31Rn2oBG2EuH7eFVpTnyQzhu3upESECW8HyouyLXUXsRVwgDja9aoFggnhiX6zLEWiVrJWfMrbRH5qaSdEZg7", 
             "tpubD6NzVbkrYhZ4XVW9QtYpXNdtQsCTLZZCoKmnzPpwh9F54VmjxHciynJA7qqf2rfeEuqvDNuaPG4g6F9TdjeUyhFWbbeNyhVnJGNjhxaESqT", 
-            "tpubD6NzVbkrYhZ4WiZ659T6qE19WFEa7LD2ZFYD1peKszT6Xqkdrvkp7Gkyk7PRRW2Jtm5fgUSWJsvF6rq9yDt8muoa9HB5mC8UGayBf8arZvW"
+            "tpubD6NzVbkrYhZ4WiZ659T6qE19WFEa7LD2ZFYD1peKszT6Xqkdrvkp7Gkyk7PRRW2Jtm5fgUSWJsvF6rq9yDt8muoa9HB5mC8UGayBf8arZvW",
+            "tpubD6NzVbkrYhZ4YQYKM9N9ySSZbVmvJGRYGxcWtKodjaz1NygcwFHeo6uCedYvggqNrP2wEZcUvYfoBixDgzZpZ9rhRFdGrRnioFKLYM4Ze4J",
+            "tpubD6NzVbkrYhZ4XpXxDwUaMMg7KKWRsQGtsXu1CAtnQKoBxQGvt6qWQtFXw5opkh8Ta8PNVPL84ceUftWyMjbFLuszbDWsfRMrVgPPzWHiMZH"
         ],
     )
 
@@ -95,7 +97,7 @@ def test_sign_psbt_tr_script_slashing_unbounding(navigator: Navigator, firmware:
 
     wallet = WalletPolicy(
         name="Consent to unbonding slashing",
-        descriptor_template="tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))))",
+        descriptor_template="tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**,@12/**,@13/**))),older(1008)))",
         keys_info=[
             "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4WNLDZARxRfzGzvp9Lnm88oGRLmoTSPWNg3uuE6F4xBdmcEqUxs2ovExCUqFBjvF8QkjawKp1KRp6wtFDptzPbBPwQ9LMeY1",
             "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
@@ -108,7 +110,9 @@ def test_sign_psbt_tr_script_slashing_unbounding(navigator: Navigator, firmware:
             "tpubD6NzVbkrYhZ4WZ9ozPNtBTh7bNtczM2CmHkg7SYSQx7DUTn4YjeFK4SqBgFRqjuZC1XTnxDqJaqPNcMxSFjrLMZgGU1dkF4THyXdyP2iHa9", 
             "tpubD6NzVbkrYhZ4YWPuHMubgo31Rn2oBG2EuH7eFVpTnyQzhu3upESECW8HyouyLXUXsRVwgDja9aoFggnhiX6zLEWiVrJWfMrbRH5qaSdEZg7", 
             "tpubD6NzVbkrYhZ4XVW9QtYpXNdtQsCTLZZCoKmnzPpwh9F54VmjxHciynJA7qqf2rfeEuqvDNuaPG4g6F9TdjeUyhFWbbeNyhVnJGNjhxaESqT", 
-            "tpubD6NzVbkrYhZ4WiZ659T6qE19WFEa7LD2ZFYD1peKszT6Xqkdrvkp7Gkyk7PRRW2Jtm5fgUSWJsvF6rq9yDt8muoa9HB5mC8UGayBf8arZvW"
+            "tpubD6NzVbkrYhZ4WiZ659T6qE19WFEa7LD2ZFYD1peKszT6Xqkdrvkp7Gkyk7PRRW2Jtm5fgUSWJsvF6rq9yDt8muoa9HB5mC8UGayBf8arZvW",
+            "tpubD6NzVbkrYhZ4YQYKM9N9ySSZbVmvJGRYGxcWtKodjaz1NygcwFHeo6uCedYvggqNrP2wEZcUvYfoBixDgzZpZ9rhRFdGrRnioFKLYM4Ze4J",
+            "tpubD6NzVbkrYhZ4XpXxDwUaMMg7KKWRsQGtsXu1CAtnQKoBxQGvt6qWQtFXw5opkh8Ta8PNVPL84ceUftWyMjbFLuszbDWsfRMrVgPPzWHiMZH"
         ],
     )
 
@@ -191,7 +195,7 @@ def test_sign_psbt_tr_script_unbounding(navigator: Navigator, firmware: Firmware
 
     wallet = WalletPolicy(
         name="Unbonding",
-        descriptor_template="tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**))),older(1008)))",
+        descriptor_template="tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(6,@3/**,@4/**,@5/**,@6/**,@7/**,@8/**,@9/**,@10/**,@11/**,@12/**))),older(1008)))",
         keys_info=[
            "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4XWi3SqSnoi6YERXhkUcjv6qJxF8Ujdk4HDY6oyr6gxA56UVRr3TbnwK9pPchZgVzh9RwAgLMAvPadvGBdjVDqoz5DwDjMVP",
             "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
@@ -204,7 +208,8 @@ def test_sign_psbt_tr_script_unbounding(navigator: Navigator, firmware: Firmware
             "tpubD6NzVbkrYhZ4WZ9ozPNtBTh7bNtczM2CmHkg7SYSQx7DUTn4YjeFK4SqBgFRqjuZC1XTnxDqJaqPNcMxSFjrLMZgGU1dkF4THyXdyP2iHa9", 
             "tpubD6NzVbkrYhZ4YWPuHMubgo31Rn2oBG2EuH7eFVpTnyQzhu3upESECW8HyouyLXUXsRVwgDja9aoFggnhiX6zLEWiVrJWfMrbRH5qaSdEZg7", 
             "tpubD6NzVbkrYhZ4XVW9QtYpXNdtQsCTLZZCoKmnzPpwh9F54VmjxHciynJA7qqf2rfeEuqvDNuaPG4g6F9TdjeUyhFWbbeNyhVnJGNjhxaESqT", 
-            "tpubD6NzVbkrYhZ4WiZ659T6qE19WFEa7LD2ZFYD1peKszT6Xqkdrvkp7Gkyk7PRRW2Jtm5fgUSWJsvF6rq9yDt8muoa9HB5mC8UGayBf8arZvW"
+            "tpubD6NzVbkrYhZ4WiZ659T6qE19WFEa7LD2ZFYD1peKszT6Xqkdrvkp7Gkyk7PRRW2Jtm5fgUSWJsvF6rq9yDt8muoa9HB5mC8UGayBf8arZvW",
+            "tpubD6NzVbkrYhZ4Y8DPjVoSXUc7gn37FA2zGVKkmkqwWWzooEbbUf9yzaNoZ7MTaSQswqUbaAB2am7UYHDJktQQ4R38TknUc5ZvKRkSYCM1XZd"
         ],
     )
 
@@ -311,5 +316,4 @@ def test_sign_psbt_bip322_message_display(navigator: Navigator, firmware: Firmwa
                                 testname=test_name)
 
     assert len(hww_sigs) == 1
-
 

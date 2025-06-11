@@ -65,7 +65,20 @@ static const uint8_t BIP0341_sighash_tag[] = {'T', 'a', 'p', 'S', 'i', 'g', 'h',
 static const uint8_t BIP0322_msghash_tag[] = {'B', 'I', 'P', '0', '3', '2', '2', '-',
                                               's', 'i', 'g', 'n', 'e', 'd', '-', 'm',
                                               'e', 's', 's', 'a', 'g', 'e'};
-
+static void get_fee_from_desciptor(sign_psbt_state_t *st) {
+    unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    if (cov_count <= BBN_COV_PUBKEY_CURRENT_COUNT) {
+        st->psbt_fee = 0;
+    }
+    if (st->bbn_action_type == BBN_POLICY_UNBOND) {
+        memcpy(&st->psbt_fee, st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT], 8);
+    } else if (st->bbn_action_type == BBN_POLICY_SLASHING ||
+               st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING) {
+        memcpy(&st->psbt_fee, st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT + 1], 8);
+    } else {
+        st->psbt_fee = 0;
+    }
+}
 void bytes_to_ascii_hex(const uint8_t *input, size_t input_len, uint8_t *output) {
     const char hex_chars[] = "0123456789abcdef";
 
@@ -130,8 +143,11 @@ static void compute_bbn_leafhash_slasing(sign_psbt_state_t *st, uint8_t *leafhas
     offset += 32;
     tapscript[offset++] = 0xad;
 
-    int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    for (int i = 0; i < cov_count; i++) {
+    unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    if (cov_count > BBN_COV_PUBKEY_CURRENT_COUNT) {
+        cov_count = BBN_COV_PUBKEY_CURRENT_COUNT;
+    }
+    for (unsigned int i = 0; i < cov_count; i++) {
         tapscript[offset++] = 0x20;
         memcpy(tapscript + offset, st->psbt_covenant_pk[i], 32);
         offset += 32;
@@ -157,8 +173,11 @@ static void compute_bbn_leafhash_unbonding(sign_psbt_state_t *st, uint8_t *leafh
     offset += 32;
     tapscript[offset++] = 0xad;
 
-    int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    for (int i = 0; i < cov_count; i++) {
+    unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    if (cov_count > BBN_COV_PUBKEY_CURRENT_COUNT) {
+        cov_count = BBN_COV_PUBKEY_CURRENT_COUNT;
+    }
+    for (unsigned int i = 0; i < cov_count; i++) {
         tapscript[offset++] = 0x20;
         memcpy(tapscript + offset, st->psbt_covenant_pk[i], 32);
         offset += 32;
@@ -267,11 +286,77 @@ static bool bbn_check_address(sign_psbt_state_t *st) {
     memcpy(out_scriptPubKey, st->outputs.output_scripts[0], out_scriptPubKey_len);
 
     if (memcmp(out_scriptPubKey + 2, tweaked_pubkey, 32)) {
-        PRINTF("Tweaked public key:\n");
-        // PRINTF_BUF(tweaked_pubkey, 32);
-        PRINTF("out_scriptPubKey_len: %d\n", out_scriptPubKey_len);
-        // PRINTF_BUF(out_scriptPubKey + 2, 32);
         PRINTF("tweak public key cmp fail\n");
+        PRINTF_BUF(tweaked_pubkey, 32);
+        PRINTF_BUF(out_scriptPubKey + 2, 32);
+        return false;
+    }
+    return true;
+}
+
+static bool bbn_check_slashing(sign_psbt_state_t *st) {
+    uint8_t tweaked_pubkey[34];
+    uint8_t merkle_root[32];
+
+    get_fee_from_desciptor(st);
+    uint64_t fee = st->inputs_total_amount - st->outputs.total_amount;
+    if (fee < st->psbt_fee) {
+        PRINTF("Fee too low\n");
+        return false;
+    }
+
+    // Compute the merkle root
+    compute_bbn_leafhash_timelock(st, merkle_root);
+    uint8_t parity;
+    // Tweak the staker public key with the merkle root
+    uint8_t NUMS_PUBKEY[] = {0x02, 0x50, 0x92, 0x9b, 0x74, 0xc1, 0xa0, 0x49, 0x54, 0xb7, 0x8b,
+                             0x4b, 0x60, 0x35, 0xe9, 0x7a, 0x5e, 0x07, 0x8a, 0x5a, 0x0f, 0x28,
+                             0xec, 0x96, 0xd5, 0x47, 0xbf, 0xee, 0x9a, 0xce, 0x80, 0x3a, 0xc0};
+    if (crypto_tr_tweak_pubkey(NUMS_PUBKEY + 1, merkle_root, 32, &parity, tweaked_pubkey) != 0) {
+        PRINTF("Failed to tweak public key\n");
+        PRINTF_BUF(tweaked_pubkey, 32);
+        return false;
+    }
+
+    uint8_t out_scriptPubKey[MAX_OUTPUT_SCRIPTPUBKEY_LEN];
+    size_t out_scriptPubKey_len;
+    out_scriptPubKey_len = st->outputs.output_script_lengths[1];
+    memcpy(out_scriptPubKey, st->outputs.output_scripts[1], out_scriptPubKey_len);
+
+    // check the slashing output refund address
+    if (memcmp(out_scriptPubKey + 2, tweaked_pubkey, 32)) {
+        PRINTF("Slashing Tweaked public key:\n");
+        PRINTF_BUF(tweaked_pubkey, 32);
+        PRINTF("Slashing out_scriptPubKey_len 1: %d\n", out_scriptPubKey_len);
+        PRINTF_BUF(out_scriptPubKey + 2, 32);
+        PRINTF("tweak public key cmp fail\n");
+        return false;
+    }
+
+    // check the burn address
+    unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    if (cov_count < BBN_COV_PUBKEY_CURRENT_COUNT + 2) {
+        PRINTF("missing burn address info or fee\n");
+        return false;
+    }
+    uint8_t *slashPkScript = st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT];
+    if (slashPkScript == NULL) {
+        PRINTF("missing burn address null\n");
+        return false;
+    }
+    if (memcmp(st->outputs.output_scripts[0], slashPkScript, 32)) {
+        PRINTF("Slashing burn address:\n");
+        PRINTF_BUF(slashPkScript, 32);
+        PRINTF_BUF(st->outputs.output_scripts[0], 32);
+        PRINTF("tweak public key cmp fail\n");
+        return false;
+    }
+    // to check OP_return is the first byte of the burn address script
+    // however, this is only for mainnet, not for testnet due to test data
+
+    if (BIP32_PUBKEY_VERSION == BIP32_PUBKEY_MAINNET &&
+        st->outputs.output_scripts[0][0] != OP_RETURN) {
+        PRINTF("Burn address script is not OP_RETURN\n");
         return false;
     }
     return true;
@@ -291,6 +376,12 @@ static bool bbn_check_unbond(sign_psbt_state_t *st) {
     uint8_t merkle_root[32];
     if (st->psbt_timelock == 0) {
         PRINTF("timelock state is 0\n");
+        return false;
+    }
+    uint64_t fee = st->inputs_total_amount - st->outputs.total_amount;
+    get_fee_from_desciptor(st);
+    if (fee != st->psbt_fee) {
+        PRINTF("unbond fee mismatch\n");
         return false;
     }
     compute_bbn_unbond_root(st, merkle_root);
@@ -1593,9 +1684,12 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
         return false;
     }
 
-    int cov_counts = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    for (int i = 0; i < cov_counts; i++) {
-        for (int j = i + 1; j < cov_counts; j++) {
+    unsigned int cov_counts = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    if (cov_counts > BBN_COV_PUBKEY_CURRENT_COUNT) {
+        cov_counts = BBN_COV_PUBKEY_CURRENT_COUNT;
+    }
+    for (unsigned int i = 0; i < cov_counts; i++) {
+        for (unsigned int j = i + 1; j < cov_counts; j++) {
             if (memcmp(st->psbt_covenant_pk[i], st->psbt_covenant_pk[j], 32) == 0) {
                 PRINTF("Duplicate covenant pk\n");
                 SEND_SW(dc, SW_DENY);
@@ -1642,15 +1736,14 @@ display_bbn_timelock(dispatcher_context_t *dc, sign_psbt_state_t *st) {
 
 static bool __attribute__((noinline))
 display_warnings(dispatcher_context_t *dc, sign_psbt_state_t *st) {
-    // If any segwitv0 input is missing the non-witness-utxo, we warn the user and ask for
-    // confirmation
-    if (st->warnings.missing_nonwitnessutxo && !ui_warn_unverified_segwit_inputs(dc)) {
+    // If any input has non-default sighash, we deny to sign
+    if (st->warnings.non_default_sighash) {
         SEND_SW(dc, SW_DENY);
         return false;
     }
-
-    // If any input has non-default sighash, we warn the user
-    if (st->warnings.non_default_sighash && !ui_warn_nondefault_sighash(dc)) {
+    // If any segwitv0 input is missing the non-witness-utxo, we warn the user and ask for
+    // confirmation
+    if (st->warnings.missing_nonwitnessutxo && !ui_warn_unverified_segwit_inputs(dc)) {
         SEND_SW(dc, SW_DENY);
         return false;
     }
@@ -2060,7 +2153,6 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
     }
 
     if ((sighash_byte & 3) != SIGHASH_NONE && (sighash_byte & 3) != SIGHASH_SINGLE) {
-        PRINTF("(sighash_byte & 3) != SIGHASH_NONE && (sighash_byte & 3) != SIGHASH_SINGLE\n");
         crypto_hash_update(&sighash_context.header, hashes->sha_outputs, 32);
     }
     // chester
@@ -2164,16 +2256,9 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
     if (keyexpr_info->is_tapscript) {
         // If spending a tapscript, append the Common Signature Message Extension per BIP-0342
         if (st->psbt_leafhash_state != BBN_LEAF_HASH_NULL) {
-            if (st->bbn_action_type == BBN_POLICY_UNBOND) {
-                memcpy(keyexpr_info->tapleaf_hash, st->psbt_leafhash, 32);  //
-            } else {
-                if (memcmp(keyexpr_info->tapleaf_hash, st->psbt_leafhash, 32)) {
-                    PRINTF("check leaf_hash wrong\n");
-                    SEND_SW(dc, SW_INCORRECT_DATA);
-                    return false;
-                }
-            }
-
+            // just copy to buffer
+            // will check later before display
+            memcpy(keyexpr_info->tapleaf_hash, st->psbt_leafhash, 32);
         } else {
             PRINTF("check leaf_hash not provided\n");
             SEND_SW(dc, SW_INCORRECT_DATA);
@@ -2772,7 +2857,6 @@ static bool __attribute__((noinline)) sign_transaction(
     signing_state_t *signing_state,
     const uint8_t internal_outputs[static BITVECTOR_REAL_SIZE(MAX_N_OUTPUTS_CAN_SIGN)]) {
     LOG_PROCESSOR(__FILE__, __LINE__, __func__);
-
     int key_expression_index = 0;
     // Iterate over all the key expressions that correspond to keys owned by us
     for (size_t i_keyexpr = 0; i_keyexpr < st->n_internal_key_expressions; i_keyexpr++) {
@@ -2782,7 +2866,6 @@ static bool __attribute__((noinline)) sign_transaction(
             PRINTF("fill_keyexpr_info_if_internal XX\n");
             continue;
         }
-
         for (unsigned int i = 0; i < st->n_inputs; i++) {
             input_info_t input;
             memset(&input, 0, sizeof(input));
@@ -2809,7 +2892,6 @@ static bool __attribute__((noinline)) sign_transaction(
                                            sign_psbt_cache)) {
                 return false;
             }
-
             // check if the name in list, if not deny
             // then display it to user for confirmation
             if (!st->is_wallet_default) {
@@ -2819,7 +2901,34 @@ static bool __attribute__((noinline)) sign_transaction(
                     return false;
                 }
             }
+            if (st->bbn_action_type == BBN_POLICY_SLASHING ||
+                st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING) {
+                uint8_t slashing_leafhash[32];
+                // BAP-010
+                compute_bbn_leafhash_slasing(st, slashing_leafhash);
+                if (memcmp(st->psbt_leafhash, slashing_leafhash, 32) != 0) {
+                    PRINTF("bbn_check_slashing leafhash fail\n");
+                    SEND_SW(dc, SW_DENY);
+                    return false;
+                }
+                if (!bbn_check_slashing(st)) {
+                    PRINTF("bbn_check_slashing fail\n");
+                    SEND_SW(dc, SW_DENY);
+                    return false;
+                }
+            }
             // chester
+            // BAP-008
+            // for the most important operation, staking
+            // we re-compute the address by all the informaiton
+            // three taproot script in babylon protocol
+            // get the merkle root and tweak the pubkey
+            // to VALIDATION to address is right
+            // if the address checked, then it means all the information
+            // including the slashing script, timelock script and
+            // unbonding script is right
+            // the confirmation task for users is quite normal
+            // to confirm the value like amount they input from front-end
             if (st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER) {
                 if (!bbn_check_address(st)) {
                     PRINTF("bbn_check_address fail\n");
@@ -2827,7 +2936,6 @@ static bool __attribute__((noinline)) sign_transaction(
                     return false;
                 }
             }
-
             if (st->bbn_action_type == BBN_POLICY_UNBOND) {
                 if (!bbn_check_unbond(st)) {
                     PRINTF("bbn_check_unbond fail\n");
@@ -2835,6 +2943,7 @@ static bool __attribute__((noinline)) sign_transaction(
                     return false;
                 }
                 uint8_t unbond_leafhash[32];
+                // BAP-010
                 compute_bbn_leafhash_unbonding(st, unbond_leafhash);
                 if (memcmp(st->psbt_leafhash, unbond_leafhash, 32) != 0) {
                     PRINTF("bbn_check_unbond leafhash fail\n");
@@ -2844,13 +2953,11 @@ static bool __attribute__((noinline)) sign_transaction(
                 memcpy(st->psbt_leafhash, unbond_leafhash, 32);
                 st->psbt_leafhash_state = BBN_LEAF_HASH_CHECK;
             }
-
             if (st->bbn_action_type == BBN_POLICY_BIP322 &&
                 !bbn_check_and_display_message(dc, st)) {
                 PRINTF("bbn_check_and_display_message fail\n");
                 return false;
             }
-
             if (st->bbn_action_type == BBN_POLICY_SLASHING ||
                 st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING ||
                 st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
@@ -2860,7 +2967,6 @@ static bool __attribute__((noinline)) sign_transaction(
                     return false;
                 }
             }
-
             if (st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
                 st->bbn_action_type == BBN_POLICY_UNBOND) {
                 if (!display_bbn_timelock(dc, st)) {
@@ -2948,11 +3054,10 @@ void handler_sign_psbt(dispatcher_context_t *dc, uint8_t protocol_version) {
     if (!sign_result) {
         return;
     }
-
     SEND_SW(dc, SW_OK);
 }
 
-static inline int count_psbt_covenant_pk_state(
+static inline unsigned int count_psbt_covenant_pk_state(
     const uint32_t state_array[BBN_COV_PUBKEY_MAX_COUNT]) {
     int count = 0;
     for (unsigned int i = 0; i < BBN_COV_PUBKEY_MAX_COUNT; i++) {
