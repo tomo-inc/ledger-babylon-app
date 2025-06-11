@@ -6,10 +6,12 @@ on:
     branches:
     - master
     - develop
+    - unit-test
   pull_request:
     branches:
     - master
     - develop
+    - unit-test
 
 jobs:
     job_unit_test:
