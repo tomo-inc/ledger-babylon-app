@@ -77,7 +77,7 @@ static void get_fee_from_desciptor(sign_psbt_state_t *st) {
         memcpy(&st->psbt_fee, st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT + 1], 8);
     } else {
         st->psbt_fee = 0;
-    } 
+    }
 }
 void bytes_to_ascii_hex(const uint8_t *input, size_t input_len, uint8_t *output) {
     const char hex_chars[] = "0123456789abcdef";
@@ -354,7 +354,8 @@ static bool bbn_check_slashing(sign_psbt_state_t *st) {
     // to check OP_return is the first byte of the burn address script
     // however, this is only for mainnet, not for testnet due to test data
 
-    if (BIP32_PUBKEY_VERSION == BIP32_PUBKEY_MAINNET && st->outputs.output_scripts[0][0] != OP_RETURN) {
+    if (BIP32_PUBKEY_VERSION == BIP32_PUBKEY_MAINNET &&
+        st->outputs.output_scripts[0][0] != OP_RETURN) {
         PRINTF("Burn address script is not OP_RETURN\n");
         return false;
     }

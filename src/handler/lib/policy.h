@@ -256,7 +256,6 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
                                                        const uint8_t keys_merkle_root[static 32],
                                                        uint32_t n_keys);
 
-
 #ifdef BBN_PRT_BUF
 #define PRINTF_BUF(ptr, len) \
     do {                     \
@@ -311,7 +310,7 @@ typedef enum {
 BBN_FingerPrintType get_fingerprint(const uint8_t fingerprint[static 4]);
 
 int get_action_type(const char *str);
-#define BBN_DESCRIPTOR_MAX_LEN            512
+#define BBN_DESCRIPTOR_MAX_LEN  512
 #define BBN_DESCRIPTOR_SLASHING "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_SLASHING_UNBONDING \
     "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
