@@ -4,14 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches:
-    - master
-    - develop
+    - babylon
     - unit-test
   pull_request:
-    branches:
-    - master
-    - develop
-    - unit-test
 
 jobs:
     job_unit_test:
@@ -25,7 +20,7 @@ jobs:
         - name: Clone
           uses: actions/checkout@v4
 
-        - name: Build unit tests
+        - name: Build and Run unit tests
           run: |
             cd unit-tests/
             cmake -Bbuild -H. && make -C build && make -C build test

@@ -11,9 +11,7 @@
     workflow_dispatch:
     push:
       branches:
-        - master
-        - main
-        - develop
+        - babylon
     pull_request:
 
   jobs:
