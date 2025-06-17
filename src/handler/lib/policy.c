@@ -357,7 +357,14 @@ int read_and_parse_wallet_policy(
 
     buffer_t policy_map_buffer =
         buffer_create(policy_map_descriptor_template, wallet_header->descriptor_template_len);
-
+        
+    int desc_temp_len = parse_descriptor_template(&policy_map_buffer,
+                                                  policy_map_bytes,
+                                                  policy_map_bytes_len,
+                                                  wallet_header->version);
+    if (desc_temp_len < 0) {
+        return WITH_ERROR(-1, "Failed parsing descriptor template");
+    }
     // chester
     // set action here
     if (is_sign) {
@@ -379,13 +386,6 @@ int read_and_parse_wallet_policy(
         }
     }
 
-    int desc_temp_len = parse_descriptor_template(&policy_map_buffer,
-                                                  policy_map_bytes,
-                                                  policy_map_bytes_len,
-                                                  wallet_header->version);
-    if (desc_temp_len < 0) {
-        return WITH_ERROR(-1, "Failed parsing descriptor template");
-    }
     return desc_temp_len;
 }
 
@@ -2137,11 +2137,14 @@ int get_action_type(const char *str) {
     return BBN_POLICY_UNKNOWN;
 }
 
-static bool validate_multi_a(const char *p) {
+static bool validate_multi_a(char *p, char** end_ptr) {
     p += 2;
     for (;;) {
         if (*p == '\0') return false;
-        if (*p == ')') return true;
+        if (*p == ')') {
+            *end_ptr = p;
+            return true;
+        }
         if (*p == ',') {
             p++;
             continue;
@@ -2159,21 +2162,8 @@ static bool validate_older(const char *p) {
     for (;;) {
         if (*p == '\0') return false;
         if (*p == ')') return true;
-        if (*p == ',') {
-            p++;
-            continue;
-        }
-        if (*p == '@') {
-            p++;
-            if (!isdigit((unsigned char) *p)) return false;
-            while (isdigit((unsigned char) *p)) p++;
-            if (p[0] != '/' || p[1] != '*' || p[2] != '*') return false;
-            p += 3;
-        } else if (isdigit((unsigned char) *p)) {
-            while (isdigit((unsigned char) *p)) p++;
-        } else {
-            return false;
-        }
+        if (!isdigit((unsigned char) *p)) return false;
+        p++;
     }
 }
 
@@ -2265,9 +2255,26 @@ bool check_descriptor(const char *s, bbn_policy_type_t type) {
         case BBN_POLICY_STAKE_TRANSFER:
         case BBN_POLICY_UNBOND:
             str2check = strstr(descriptor, "multi_a(");
-            if (!validate_multi_a(str2check + strlen("multi_a("))) return false;
+            char* end_of_multi_a;
+            // get the end address of multi_a
+            if (!validate_multi_a(str2check + strlen("multi_a("), &end_of_multi_a)) return false;
+        
             lock2check = strstr(str2check, "older(");
             if (!lock2check) return false;
+            // no letters between multi_a and older
+            // we check the gap len bewtween them
+            PRINTF("%x\n",lock2check);
+            PRINTF("%x\n",end_of_multi_a);
+            if(lock2check - end_of_multi_a != 4) {
+                PRINTF("lock2check - end_of_multi_a != 4\n");
+                return false; 
+            }
+            for(int i=0; i<4; i++) {
+                if(*(end_of_multi_a + i) != ')' && *(end_of_multi_a + i) != ',') {
+                    PRINTF("check_descriptor: other between multi and older %c\n", *(end_of_multi_a + i));
+                    return false;
+                }
+            }  
             if (!validate_older(lock2check + strlen("older("))) return false;
             if (!validate_no_letters_after_last_paren(lock2check + strlen("older("))) {
                 PRINTF("check_descriptor: letters after last parenthesis in descriptor: %s\n",
@@ -2284,6 +2291,7 @@ bool check_descriptor(const char *s, bbn_policy_type_t type) {
                        descriptor);
                 return false;
             }
+
             break;
         case BBN_POLICY_BIP322:
             break;

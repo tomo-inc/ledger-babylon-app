@@ -28,6 +28,31 @@ def open_psbt_from_file(filename: str) -> PSBT:
     psbt = PSBT()
     psbt.deserialize(raw_psbt_base64)
     return psbt
+def test_sign_psbt_tr_script_invalid_multi_A(navigator: Navigator, firmware: Firmware, client:
+                                            RaggerClient, test_name: str):
+    wallet = WalletPolicy(
+        name="Staking transaction",
+        descriptor_template="tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a(,,@3/**,@4/**)),older(1234)))))",
+         keys_info=[
+            "[69846d00/86'/1'/0']tpubD6NzVbkrYhZ4WLczPJWReQycCJdd6YVWXubbVUFnJ5KgU5MDQrD998ZJLSmaB7GVcCnJSDWprxmrGkJ6SvgQC6QAffVpqSvonXmeizXcrkN",
+            "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
+            "[ff119473/86'/1'/0']tpubD6NzVbkrYhZ4Yt3Vn3Naxxfg8LpfnAkUBVsm2VLFDXCWekWMsZSvKjpeWM9AVgnQxUjc9fWS7gW7Vvoy2kXbgGBc6KxTGoMP7W688gzhyKe", 
+            "tpubD6NzVbkrYhZ4WwrfC9BkfdDF7YNk8dXmJ7acsTTtR3C6hr8qvsb2K7Dp42uMsVAW4L8Qc1RakiTDZg1ywXDNUxNBRCkp3dS7yj7x7VMPVqz"
+        ],
+    )
+
+    wallet_hmac = bytes.fromhex(
+        "dae925660e20859ed8833025d46444483ce264fdb77e34569aabe9d590da8fb7"
+    )
+
+    psbt = PSBT()
+    psbt.deserialize("cHNidP8BAIkCAAAAAQoDdUgOA5oDhvrH0NWZTa/GJzvd4UhFIbmbOiWufc84AAAAAAD/////AlDDAAAAAAAAIlEg12Pea0ceMFZBukHWXGeC6MvP9uCOg9qrDaEnW7yfqtAcAi0AAAAAACJRIHQO5k5FLjuu4SewPBlbzCGtPt3tLvJsWvSD2cVjBNHlAAAAAAABASvAxi0AAAAAACJRIHQO5k5FLjuu4SewPBlbzCGtPt3tLvJsWvSD2cVjBNHlARcg3I0vnv8MT0294HCkjjMO/JCLYqdmVo2R5ljyhLMkuHgAAAA=")
+
+    with pytest.raises(ExceptionRAPDU) as excinfo:
+        client.sign_psbt(psbt, wallet, wallet_hmac, navigator,
+                        instructions=sign_psbt_instruction_stake(firmware),
+                        testname=test_name)
+    assert excinfo.value.status == 0x6A80, f"Unexpected SW: {hex(excinfo.value.status)}"
 
 def test_sign_psbt_tr_script_stake_transfer_with_extrakey(navigator: Navigator, firmware: Firmware, client:
                                             RaggerClient, test_name: str):
