@@ -67,14 +67,14 @@ static const uint8_t BIP0322_msghash_tag[] = {'B', 'I', 'P', '0', '3', '2', '2',
                                               'e', 's', 's', 'a', 'g', 'e'};
 static void get_fee_from_desciptor(sign_psbt_state_t *st) {
     unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    if (cov_count <= BBN_COV_PUBKEY_CURRENT_COUNT) {
-        st->psbt_fee = 0;
-    }
+    // if (cov_count <= BBN_COV_PUBKEY_CURRENT_COUNT) {
+    //     st->psbt_fee = 0;
+    // }
     if (st->bbn_action_type == BBN_POLICY_UNBOND) {
-        memcpy(&st->psbt_fee, st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT], 8);
+        memcpy(&st->psbt_fee, st->psbt_covenant_pk[cov_count - 1], 8);
     } else if (st->bbn_action_type == BBN_POLICY_SLASHING ||
                st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING) {
-        memcpy(&st->psbt_fee, st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT + 1], 8);
+        memcpy(&st->psbt_fee, st->psbt_covenant_pk[cov_count - 1], 8);
     } else {
         st->psbt_fee = 0;
     }
@@ -335,11 +335,12 @@ static bool bbn_check_slashing(sign_psbt_state_t *st) {
 
     // check the burn address
     unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    if (cov_count < BBN_COV_PUBKEY_CURRENT_COUNT + 2) {
-        PRINTF("missing burn address info or fee\n");
-        return false;
-    }
-    uint8_t *slashPkScript = st->psbt_covenant_pk[BBN_COV_PUBKEY_CURRENT_COUNT];
+    // if (cov_count < BBN_COV_PUBKEY_CURRENT_COUNT + 2) {
+    //     PRINTF("missing burn address info or fee\n");
+    //     return false;
+    // }
+
+    uint8_t *slashPkScript = st->psbt_covenant_pk[cov_count - 2];
     if (slashPkScript == NULL) {
         PRINTF("missing burn address null\n");
         return false;
