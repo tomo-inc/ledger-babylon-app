@@ -2908,6 +2908,8 @@ static bool __attribute__((noinline)) sign_transaction(
                 // BAP-010
                 compute_bbn_leafhash_slasing(st, slashing_leafhash);
                 if (memcmp(st->psbt_leafhash, slashing_leafhash, 32) != 0) {
+                    PRINTF_BUF(st->psbt_leafhash, 32);
+                    PRINTF_BUF(slashing_leafhash, 32);
                     PRINTF("bbn_check_slashing leafhash fail\n");
                     SEND_SW(dc, SW_DENY);
                     return false;
