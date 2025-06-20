@@ -882,7 +882,7 @@ init_global_state(dispatcher_context_t *dc, sign_psbt_state_t *st) {
                                                          true);
         if (desc_temp_len < 0) {
             PRINTF("Failed to read or parse wallet policy");
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_SECURITY_STATUS_NOT_SATISFIED);
             return false;
         }
 

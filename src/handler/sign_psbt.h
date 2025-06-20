@@ -153,7 +153,7 @@ typedef struct {
     tx_ux_warning_t warnings;
 
     // babylon data defines
-    uint32_t bbn_action_type;
+    int32_t bbn_action_type;
 
     uint8_t psbt_leafhash[BBN_LEAF_HASH_LEN];
     uint32_t psbt_leafhash_state;

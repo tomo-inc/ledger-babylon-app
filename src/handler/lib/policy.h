@@ -264,8 +264,8 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
 #define PRINTF_BUF(ptr, len)                              \
     do {                                                  \
         PRINTF("Buffer: ");                               \
-        for (uint32_t i = 0; i < (uint32_t) (len); i++) { \
-            PRINTF("%02X", (ptr)[i]);                     \
+        for (uint32_t k = 0; k < (uint32_t) (len); k++) { \
+            PRINTF("%02X", (ptr)[k]);                     \
         }                                                 \
         PRINTF("\n");                                     \
     } while (0)

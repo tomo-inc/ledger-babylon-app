@@ -2212,10 +2212,8 @@ static bool validate_no_letters_after_last_paren(const char *s) {
 
     const char *p = strstr(buffer, ")");
     if (!p) {
-        // if there is no ')'
-        // there is no risk since miniscript parser will not accept it
-        // so we can return true
-        return true;
+        // BAP-003
+        return false;
     }
     for (++p; *p; ++p) {
         if (isalpha((unsigned char) *p)) {
