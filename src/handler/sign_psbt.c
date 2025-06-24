@@ -67,9 +67,6 @@ static const uint8_t BIP0322_msghash_tag[] = {'B', 'I', 'P', '0', '3', '2', '2',
                                               'e', 's', 's', 'a', 'g', 'e'};
 static void get_fee_from_desciptor(sign_psbt_state_t *st) {
     unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    // if (cov_count <= BBN_COV_PUBKEY_CURRENT_COUNT) {
-    //     st->psbt_fee = 0;
-    // }
     if (st->bbn_action_type == BBN_POLICY_UNBOND) {
         memcpy(&st->psbt_fee, st->psbt_covenant_pk[cov_count - 1], 8);
     } else if (st->bbn_action_type == BBN_POLICY_SLASHING ||
@@ -136,20 +133,32 @@ static void compute_bbn_leafhash_slasing(sign_psbt_state_t *st, uint8_t *leafhas
 
     tapscript[offset++] = 0x20;
     memcpy(tapscript + offset, st->psbt_staker_pk, 32);
+    PRINTF("staker_pk: ");
+    PRINTF_BUF(st->psbt_staker_pk, 32);
     offset += 32;
     tapscript[offset++] = 0xad;
     tapscript[offset++] = 0x20;
     memcpy(tapscript + offset, st->psbt_finality_pk, 32);
+    PRINTF("finality_pk: ");
+    PRINTF_BUF(st->psbt_finality_pk, 32);
     offset += 32;
     tapscript[offset++] = 0xad;
 
     unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    if (cov_count > BBN_COV_PUBKEY_CURRENT_COUNT) {
-        cov_count = BBN_COV_PUBKEY_CURRENT_COUNT;
+    if (cov_count < 3) {
+        return;
+    } else {
+        if (st->bbn_action_type == BBN_POLICY_SLASHING ||
+            st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING)
+            cov_count = cov_count - 2;
+        if (st->bbn_action_type == BBN_POLICY_UNBOND)
+            cov_count = cov_count - 1;
     }
     for (unsigned int i = 0; i < cov_count; i++) {
         tapscript[offset++] = 0x20;
         memcpy(tapscript + offset, st->psbt_covenant_pk[i], 32);
+        PRINTF("covenant_pk[%d]: ", i);
+        PRINTF_BUF(st->psbt_covenant_pk[i], 32);
         offset += 32;
         if (i == 0)
             tapscript[offset++] = 0xac;
@@ -174,8 +183,11 @@ static void compute_bbn_leafhash_unbonding(sign_psbt_state_t *st, uint8_t *leafh
     tapscript[offset++] = 0xad;
 
     unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    if (cov_count > BBN_COV_PUBKEY_CURRENT_COUNT) {
-        cov_count = BBN_COV_PUBKEY_CURRENT_COUNT;
+    if (cov_count < 2) {
+        return;
+    } else {
+        if (st->bbn_action_type != BBN_POLICY_STAKE_TRANSFER)
+            cov_count = cov_count - 1;
     }
     for (unsigned int i = 0; i < cov_count; i++) {
         tapscript[offset++] = 0x20;
@@ -335,10 +347,6 @@ static bool bbn_check_slashing(sign_psbt_state_t *st) {
 
     // check the burn address
     unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    // if (cov_count < BBN_COV_PUBKEY_CURRENT_COUNT + 2) {
-    //     PRINTF("missing burn address info or fee\n");
-    //     return false;
-    // }
 
     uint8_t *slashPkScript = st->psbt_covenant_pk[cov_count - 2];
     if (slashPkScript == NULL) {
@@ -1685,12 +1693,22 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
         return false;
     }
 
-    unsigned int cov_counts = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    if (cov_counts > BBN_COV_PUBKEY_CURRENT_COUNT) {
-        cov_counts = BBN_COV_PUBKEY_CURRENT_COUNT;
+    unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
+    PRINTF("count_psbt_covenant_pk_state count =%d\n", cov_count);
+    if (cov_count <2) {
+        return false;
+    } else {
+        if (st->bbn_action_type == BBN_POLICY_SLASHING ||
+            st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING)
+            cov_count = cov_count - 2;
+        if (st->bbn_action_type == BBN_POLICY_UNBOND)
+            cov_count = cov_count - 1;
     }
-    for (unsigned int i = 0; i < cov_counts; i++) {
-        for (unsigned int j = i + 1; j < cov_counts; j++) {
+
+    PRINTF("display bbn pk count =%d\n", cov_count);
+    
+    for (unsigned int i = 0; i < cov_count; i++) {
+        for (unsigned int j = i + 1; j < cov_count; j++) {
             if (memcmp(st->psbt_covenant_pk[i], st->psbt_covenant_pk[j], 32) == 0) {
                 PRINTF("Duplicate covenant pk\n");
                 SEND_SW(dc, SW_DENY);
@@ -1705,7 +1723,7 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
         return false;
     }
 
-    if (!ui_confirm_cov_pks(dc, st->psbt_covenant_pk, cov_counts, st->psbt_quorum)) {
+    if (!ui_confirm_cov_pks(dc, st->psbt_covenant_pk, cov_count, st->psbt_quorum)) {
         SEND_SW(dc, SW_DENY);
         return false;
     }

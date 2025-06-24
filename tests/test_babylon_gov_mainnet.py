@@ -20,7 +20,7 @@ from .instructions import *
 
 tests_root: Path = Path(__file__).parent
 
-
+# F8697B29D5CF628753FB7B6CFBD99BC9695EA5F2ED4F345E5CE5493F7AADF6CB
 # def test_sign_psbt_tr_script_slashing(navigator: Navigator, firmware: Firmware, client:
 #                                             RaggerClient, test_name: str):
 
