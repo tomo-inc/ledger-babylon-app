@@ -2261,8 +2261,8 @@ bool check_descriptor(const char *s, bbn_policy_type_t type) {
             if (!lock2check) return false;
             // no letters between multi_a and older
             // we check the gap len bewtween them
-            PRINTF("%x\n",lock2check);
-            PRINTF("%x\n",end_of_multi_a);
+            //PRINTF("%x\n",lock2check);
+            //PRINTF("%x\n",end_of_multi_a);
             if(lock2check - end_of_multi_a != 4) {
                 PRINTF("lock2check - end_of_multi_a != 4\n");
                 return false; 

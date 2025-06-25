@@ -133,14 +133,14 @@ static void compute_bbn_leafhash_slasing(sign_psbt_state_t *st, uint8_t *leafhas
 
     tapscript[offset++] = 0x20;
     memcpy(tapscript + offset, st->psbt_staker_pk, 32);
-    PRINTF("staker_pk: ");
-    PRINTF_BUF(st->psbt_staker_pk, 32);
+    //PRINTF("staker_pk: ");
+    //PRINTF_BUF(st->psbt_staker_pk, 32);
     offset += 32;
     tapscript[offset++] = 0xad;
     tapscript[offset++] = 0x20;
     memcpy(tapscript + offset, st->psbt_finality_pk, 32);
-    PRINTF("finality_pk: ");
-    PRINTF_BUF(st->psbt_finality_pk, 32);
+    //PRINTF("finality_pk: ");
+    //PRINTF_BUF(st->psbt_finality_pk, 32);
     offset += 32;
     tapscript[offset++] = 0xad;
 
@@ -157,8 +157,8 @@ static void compute_bbn_leafhash_slasing(sign_psbt_state_t *st, uint8_t *leafhas
     for (unsigned int i = 0; i < cov_count; i++) {
         tapscript[offset++] = 0x20;
         memcpy(tapscript + offset, st->psbt_covenant_pk[i], 32);
-        PRINTF("covenant_pk[%d]: ", i);
-        PRINTF_BUF(st->psbt_covenant_pk[i], 32);
+        //PRINTF("covenant_pk[%d]: ", i);
+        //PRINTF_BUF(st->psbt_covenant_pk[i], 32);
         offset += 32;
         if (i == 0)
             tapscript[offset++] = 0xac;
@@ -1141,7 +1141,7 @@ static bool fill_internal_key_expressions(dispatcher_context_t *dc, sign_psbt_st
             memcpy(&st->internal_key_expressions[st->n_internal_key_expressions],
                    &keyexpr_info,
                    sizeof(keyexpr_info_t));
-            PRINTF("fill_internal_key_expressions print %d\n", sizeof(keyexpr_info_t));
+            //PRINTF("fill_internal_key_expressions print %d\n", sizeof(keyexpr_info_t));
             // PRINTF_BUF(keyexpr_info.pubkey.compressed_pubkey, 33);
             ++st->n_internal_key_expressions;
         }
@@ -1694,7 +1694,6 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
     }
 
     unsigned int cov_count = count_psbt_covenant_pk_state(st->psbt_covenant_pk_state);
-    PRINTF("count_psbt_covenant_pk_state count =%d\n", cov_count);
     if (cov_count <2) {
         return false;
     } else {
@@ -1705,8 +1704,6 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
             cov_count = cov_count - 1;
     }
 
-    PRINTF("display bbn pk count =%d\n", cov_count);
-    
     for (unsigned int i = 0; i < cov_count; i++) {
         for (unsigned int j = i + 1; j < cov_count; j++) {
             if (memcmp(st->psbt_covenant_pk[i], st->psbt_covenant_pk[j], 32) == 0) {
@@ -2191,7 +2188,7 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
     crypto_hash_update_u8(&sighash_context.header, spend_type);
 
     if ((sighash_byte & 0x80) == SIGHASH_ANYONECANPAY) {
-        PRINTF("(sighash_byte & 0x80) == SIGHASH_ANYONECANPAY\n");
+        //PRINTF("(sighash_byte & 0x80) == SIGHASH_ANYONECANPAY\n");
         // outpoint (hash)
         if (32 != call_get_merkleized_map_value(dc,
                                                 &input->in_out.map,
