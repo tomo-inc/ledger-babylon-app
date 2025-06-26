@@ -2137,7 +2137,7 @@ int get_action_type(const char *str) {
     return BBN_POLICY_UNKNOWN;
 }
 
-static bool validate_multi_a(char *p, char** end_ptr) {
+static bool validate_multi_a(char *p, char **end_ptr) {
     p += 2;
     for (;;) {
         if (*p == '\0') return false;
@@ -2253,26 +2253,23 @@ bool check_descriptor(const char *s, bbn_policy_type_t type) {
         case BBN_POLICY_STAKE_TRANSFER:
         case BBN_POLICY_UNBOND:
             str2check = strstr(descriptor, "multi_a(");
-            char* end_of_multi_a;
+            char *end_of_multi_a;
             // get the end address of multi_a
             if (!validate_multi_a(str2check + strlen("multi_a("), &end_of_multi_a)) return false;
         
             lock2check = strstr(str2check, "older(");
             if (!lock2check) return false;
-            // no letters between multi_a and older
-            // we check the gap len bewtween them
-            //PRINTF("%x\n",lock2check);
-            //PRINTF("%x\n",end_of_multi_a);
             if(lock2check - end_of_multi_a != 4) {
                 PRINTF("lock2check - end_of_multi_a != 4\n");
-                return false; 
+                return false;
             }
-            for(int i=0; i<4; i++) {
-                if(*(end_of_multi_a + i) != ')' && *(end_of_multi_a + i) != ',') {
-                    PRINTF("check_descriptor: other between multi and older %c\n", *(end_of_multi_a + i));
+            for(int i = 0; i < 4; i++) {
+                if (*(end_of_multi_a + i) != ')' && *(end_of_multi_a + i) != ',') {
+                    PRINTF("check_descriptor: other between multi and older %c\n",
+                           *(end_of_multi_a + i));
                     return false;
                 }
-            }  
+            }
             if (!validate_older(lock2check + strlen("older("))) return false;
             if (!validate_no_letters_after_last_paren(lock2check + strlen("older("))) {
                 PRINTF("check_descriptor: letters after last parenthesis in descriptor: %s\n",
