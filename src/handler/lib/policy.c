@@ -357,7 +357,7 @@ int read_and_parse_wallet_policy(
 
     buffer_t policy_map_buffer =
         buffer_create(policy_map_descriptor_template, wallet_header->descriptor_template_len);
-        
+
     int desc_temp_len = parse_descriptor_template(&policy_map_buffer,
                                                   policy_map_bytes,
                                                   policy_map_bytes_len,
@@ -2256,14 +2256,14 @@ bool check_descriptor(const char *s, bbn_policy_type_t type) {
             char *end_of_multi_a;
             // get the end address of multi_a
             if (!validate_multi_a(str2check + strlen("multi_a("), &end_of_multi_a)) return false;
-        
+
             lock2check = strstr(str2check, "older(");
             if (!lock2check) return false;
-            if(lock2check - end_of_multi_a != 4) {
+            if (lock2check - end_of_multi_a != 4) {
                 PRINTF("lock2check - end_of_multi_a != 4\n");
                 return false;
             }
-            for(int i = 0; i < 4; i++) {
+            for (int i = 0; i < 4; i++) {
                 if (*(end_of_multi_a + i) != ')' && *(end_of_multi_a + i) != ',') {
                     PRINTF("check_descriptor: other between multi and older %c\n",
                            *(end_of_multi_a + i));

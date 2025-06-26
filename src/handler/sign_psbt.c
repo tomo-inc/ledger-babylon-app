@@ -1690,8 +1690,7 @@ display_bbn_pk(dispatcher_context_t *dc, sign_psbt_state_t *st) {
         if (st->bbn_action_type == BBN_POLICY_SLASHING ||
             st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING)
             cov_count = cov_count - 2;
-        if (st->bbn_action_type == BBN_POLICY_UNBOND)
-            cov_count = cov_count - 1;
+        if (st->bbn_action_type == BBN_POLICY_UNBOND) cov_count = cov_count - 1;
     }
 
     for (unsigned int i = 0; i < cov_count; i++) {
