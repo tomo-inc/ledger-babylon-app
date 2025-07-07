@@ -2423,7 +2423,6 @@ static bool __attribute__((noinline)) sign_sighash_schnorr_and_yield(dispatcher_
             if (isnull_policy_node_tree(&policy->tree) ||
                 st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
                 st->bbn_action_type == BBN_POLICY_BIP322) {
-                PRINTF("crypto_tr_tweak_seckey BIP-86 \n");
                 // tweak as specified in BIP-86 and BIP-386
                 crypto_tr_tweak_seckey(seckey, (uint8_t[]){}, 0, seckey);
             } else {
@@ -2899,11 +2898,14 @@ static bool __attribute__((noinline)) sign_transaction(
             // check if the name in list, if not deny
             // then display it to user for confirmation
             if (!st->is_wallet_default) {
-                if (!ui_authorize_wallet_spend(dc, st->wallet_header.name)) {
+                if (st->psbt_display_once == 0) {
+                    if (!ui_authorize_wallet_spend(dc, st->wallet_header.name)) {
                     PRINTF("ui_authorize_wallet_spend fail \n");
                     SEND_SW(dc, SW_DENY);
                     return false;
+                    }
                 }
+                
             }
             if (st->bbn_action_type == BBN_POLICY_SLASHING ||
                 st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING) {
@@ -2959,31 +2961,33 @@ static bool __attribute__((noinline)) sign_transaction(
                 memcpy(st->psbt_leafhash, unbond_leafhash, 32);
                 st->psbt_leafhash_state = BBN_LEAF_HASH_CHECK;
             }
-            if (st->bbn_action_type == BBN_POLICY_BIP322 &&
-                !bbn_check_and_display_message(dc, st)) {
-                PRINTF("bbn_check_and_display_message fail\n");
-                return false;
-            }
-            if (st->bbn_action_type == BBN_POLICY_SLASHING ||
-                st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING ||
-                st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
-                st->bbn_action_type == BBN_POLICY_UNBOND) {
-                if (!display_bbn_pk(dc, st)) {
-                    PRINTF("display_bbn_pk fail \n");
+                if (st->psbt_display_once==0) {
+                    if (st->bbn_action_type == BBN_POLICY_BIP322 &&
+                    !bbn_check_and_display_message(dc, st)) {
+                    PRINTF("bbn_check_and_display_message fail\n");
                     return false;
                 }
-            }
-            if (st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
-                st->bbn_action_type == BBN_POLICY_UNBOND) {
-                if (!display_bbn_timelock(dc, st)) {
-                    PRINTF("display_bbn_timelock fail \n");
-                    return false;
+                if (st->bbn_action_type == BBN_POLICY_SLASHING ||
+                    st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING ||
+                    st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
+                    st->bbn_action_type == BBN_POLICY_UNBOND) {
+                    if (!display_bbn_pk(dc, st)) {
+                        PRINTF("display_bbn_pk fail \n");
+                        return false;
+                    }
                 }
-            }
+                if (st->bbn_action_type == BBN_POLICY_STAKE_TRANSFER ||
+                    st->bbn_action_type == BBN_POLICY_UNBOND) {
+                    if (!display_bbn_timelock(dc, st)) {
+                        PRINTF("display_bbn_timelock fail \n");
+                        return false;
+                    }
+                }
 
-            if (!display_transaction(dc, st, internal_outputs)) return false;
-            // Signing always takes some time, so we rather not wait before showing the spinner
-            io_show_processing_screen();
+                if (!display_transaction(dc, st, internal_outputs)) return false;
+                io_show_processing_screen();
+                st->psbt_display_once = 1;
+            }
             if (!sign_transaction_input(dc,
                                         st,
                                         sign_psbt_cache,
