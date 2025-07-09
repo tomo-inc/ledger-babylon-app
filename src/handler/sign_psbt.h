@@ -172,6 +172,7 @@ typedef struct {
     uint32_t psbt_timelock;
 
     uint64_t psbt_fee;
+    uint32_t psbt_display_once;
 } sign_psbt_state_t;
 
 #define BBN_MIN_QUORUM 2
