@@ -2899,9 +2899,9 @@ static bool __attribute__((noinline)) sign_transaction(
             if (!st->is_wallet_default) {
                 if (st->psbt_display_once == 0) {
                     if (!ui_authorize_wallet_spend(dc, st->wallet_header.name)) {
-                    PRINTF("ui_authorize_wallet_spend fail \n");
-                    SEND_SW(dc, SW_DENY);
-                    return false;
+                        PRINTF("ui_authorize_wallet_spend fail \n");
+                        SEND_SW(dc, SW_DENY);
+                        return false;
                     }
                 }
             }
@@ -2960,7 +2960,7 @@ static bool __attribute__((noinline)) sign_transaction(
                 st->psbt_leafhash_state = BBN_LEAF_HASH_CHECK;
             }
 
-            if (st->psbt_display_once==0) {
+            if (st->psbt_display_once == 0) {
                 if (st->bbn_action_type == BBN_POLICY_BIP322 &&
                     !bbn_check_and_display_message(dc, st)) {
                     PRINTF("bbn_check_and_display_message fail\n");
