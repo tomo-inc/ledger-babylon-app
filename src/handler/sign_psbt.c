@@ -2429,7 +2429,6 @@ static bool __attribute__((noinline)) sign_sighash_schnorr_and_yield(dispatcher_
                 // tweak with the taptree hash, per BIP-341
                 // The taptree hash is computed in sign_transaction_input in order to
                 // reduce stack usage.
-                PRINTF("crypto_tr_tweak_seckey BIP-341 \n");
                 crypto_tr_tweak_seckey(seckey, input->taptree_hash, 32, seckey);
             }
         } else {
@@ -2905,7 +2904,6 @@ static bool __attribute__((noinline)) sign_transaction(
                     return false;
                     }
                 }
-                
             }
             if (st->bbn_action_type == BBN_POLICY_SLASHING ||
                 st->bbn_action_type == BBN_POLICY_SLASHING_UNBONDING) {
@@ -2961,8 +2959,9 @@ static bool __attribute__((noinline)) sign_transaction(
                 memcpy(st->psbt_leafhash, unbond_leafhash, 32);
                 st->psbt_leafhash_state = BBN_LEAF_HASH_CHECK;
             }
-                if (st->psbt_display_once==0) {
-                    if (st->bbn_action_type == BBN_POLICY_BIP322 &&
+
+            if (st->psbt_display_once==0) {
+                if (st->bbn_action_type == BBN_POLICY_BIP322 &&
                     !bbn_check_and_display_message(dc, st)) {
                     PRINTF("bbn_check_and_display_message fail\n");
                     return false;
@@ -3000,7 +2999,6 @@ static bool __attribute__((noinline)) sign_transaction(
                 return false;
             }
         }
-
         ++key_expression_index;
     }
 
