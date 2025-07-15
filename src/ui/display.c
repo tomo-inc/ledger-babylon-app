@@ -312,7 +312,7 @@ bool ui_authorize_wallet_spend(dispatcher_context_t *context, const char *wallet
 #endif
     memset(state, 0, sizeof(ui_wallet_state_t));
     strncpy(state->wallet_name, wallet_name, sizeof(state->wallet_name));
-
+    state->wallet_name[sizeof(state->wallet_name) - 1] = '\0';
     ui_display_spend_from_wallet_flow();
 
     return io_ui_process(context, SET_UX_DIRTY);
