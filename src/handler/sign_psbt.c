@@ -85,26 +85,37 @@ void bytes_to_ascii_hex(const uint8_t *input, size_t input_len, uint8_t *output)
     }
 }
 
-static void compute_bip322_txid_by_message(const uint8_t *message,
+static bool compute_bip322_txid_by_message(const uint8_t *message,
                                            size_t message_len,
                                            const uint8_t *tappub,
+                                           const uint8_t *message_hash,
                                            uint8_t *txid_out) {
     uint8_t tx[] = {TX_PREFIX, TX_DUMMY_TXID, TX_MIDFIX, TX_DUMMY_TXID, TX_SUFFIX};
     cx_sha256_t sighash_context, txhash_context, txid_context;
     uint8_t hash[32];
     uint8_t converted_5bit[32 * 2] = {0};
     size_t datalen = 0;
-    char converted_message[32 * 4] = {0};
+    char address_str[128] = { 0 };
+    uint8_t converted_message[256] = {0};
+    char prefix[16] = { 0 };
+    int32_t prefix_len = 0;
 
     crypto_tr_tagged_hash_init(&sighash_context, BIP0322_msghash_tag, sizeof(BIP0322_msghash_tag));
-
+    prefix_len = message[21];
+    if(prefix_len > 10) {
+        return false;
+    }                        
     convert_bits(converted_5bit, &datalen, 5, message, message_len, 8, 1);
-    bech32_encode(converted_message,
-                  (const char *) "bbn",
+    memcpy(prefix, message + 22, prefix_len);
+    prefix[prefix_len] = '\0';
+    bech32_encode(address_str,
+                  (const char *) prefix,
                   converted_5bit,
                   datalen,
                   BECH32_ENCODING_BECH32);  // bech32 encode the message
-    crypto_hash_update(&sighash_context.header, converted_message, strlen(converted_message));
+    bytes_to_ascii_hex(message_hash, 32, converted_message);
+    memcpy(converted_message + 64, address_str, strlen(address_str));
+    crypto_hash_update(&sighash_context.header, converted_message, 64 + strlen(address_str));
     crypto_hash_digest(&sighash_context.header, hash, 32);
 
     memcpy(tx + OFFSET_MSG_HASH, hash, 32);
@@ -116,6 +127,7 @@ static void compute_bip322_txid_by_message(const uint8_t *message,
     cx_sha256_init(&txid_context);
     crypto_hash_update(&txid_context.header, hash, 32);
     crypto_hash_digest(&txid_context.header, txid_out, 32);
+    return true;
 }
 
 static void bbn_leafhash_compute(uint8_t *tapscript, int tapscript_len, uint8_t *leafhash) {
@@ -422,6 +434,7 @@ static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_st
     compute_bip322_txid_by_message(st->psbt_leafhash + 1,
                                    st->psbt_leafhash_state,
                                    st->psbt_finality_pk,
+                                   st->psbt_message_hash,
                                    txid);
     if (memcmp(txid, st->psbt_staker_pk, 32) != 0) {
         PRINTF("txid\n");
@@ -972,6 +985,12 @@ static bool __attribute__((noinline)) get_and_verify_key_info(dispatcher_context
     }
     if (get_fingerprint(key_info.master_key_fingerprint) == FP_BIP322_TAPPUB) {
         memcpy(st->psbt_finality_pk,
+               keyexpr_info->pubkey.compressed_pubkey + 1,
+               32);  // reuse for save memoroy
+    }
+    if (get_fingerprint(key_info.master_key_fingerprint) == FP_BIP322_HASH) {
+        PRINTF("FP_BIP322_HASH\n");
+        memcpy(st->psbt_message_hash,
                keyexpr_info->pubkey.compressed_pubkey + 1,
                32);  // reuse for save memoroy
     }

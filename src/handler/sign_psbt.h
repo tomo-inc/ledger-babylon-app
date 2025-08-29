@@ -173,6 +173,7 @@ typedef struct {
 
     uint64_t psbt_fee;
     uint32_t psbt_display_once;
+    uint8_t psbt_message_hash[BBN_LEAF_HASH_LEN];
 } sign_psbt_state_t;
 
 #define BBN_MIN_QUORUM 2
