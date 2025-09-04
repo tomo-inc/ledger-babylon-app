@@ -826,7 +826,7 @@ init_global_state(dispatcher_context_t *dc, sign_psbt_state_t *st) {
     {  // process global map
         // Check integrity of the global map
         if (call_check_merkle_tree_sorted(dc, global_map.keys_root, (size_t) global_map.size) < 0) {
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+51);
             return false;
         }
 
@@ -841,7 +841,7 @@ init_global_state(dispatcher_context_t *dc, sign_psbt_state_t *st) {
                                                    raw_result,
                                                    sizeof(raw_result));
         if (result_len != 4) {
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+52);
             return false;
         }
         st->tx_version = read_u32_le(raw_result, 0);
@@ -859,7 +859,7 @@ init_global_state(dispatcher_context_t *dc, sign_psbt_state_t *st) {
         if (result_len == -1) {
             st->locktime = 0;
         } else if (result_len != 4) {
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+53);
             return false;
         } else {
             st->locktime = read_u32_le(raw_result, 0);
@@ -876,7 +876,7 @@ init_global_state(dispatcher_context_t *dc, sign_psbt_state_t *st) {
                                                              serialized_wallet_policy,
                                                              sizeof(serialized_wallet_policy));
         if (serialized_wallet_policy_len < 0) {
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+54);
             return false;
         }
 
@@ -905,13 +905,13 @@ init_global_state(dispatcher_context_t *dc, sign_psbt_state_t *st) {
             // No hmac, verify that the policy is indeed a default one
             if (!is_wallet_policy_standard(dc, &st->wallet_header, st->wallet_policy_map)) {
                 PRINTF("Non-standard policy, and no hmac provided\n");
-                SEND_SW_EC(dc, SW_INCORRECT_DATA, EC_SIGN_PSBT_MISSING_HMAC_FOR_NONDEFAULT_POLICY);
+                SEND_SW_EC(dc, SW_INCORRECT_DATA+55, EC_SIGN_PSBT_MISSING_HMAC_FOR_NONDEFAULT_POLICY);
                 return false;
             }
 
             if (st->wallet_header.name_len != 0) {
                 PRINTF("Name must be zero-length for a standard wallet policy\n");
-                SEND_SW_EC(dc, SW_INCORRECT_DATA, EC_SIGN_PSBT_NO_NAME_FOR_DEFAULT_POLICY);
+                SEND_SW_EC(dc, SW_INCORRECT_DATA+56, EC_SIGN_PSBT_NO_NAME_FOR_DEFAULT_POLICY);
                 return false;
             }
 
@@ -1159,9 +1159,9 @@ static bool fill_internal_key_expressions(dispatcher_context_t *dc, sign_psbt_st
     }
 
     if (st->n_internal_key_expressions == 0) {
-        PRINTF("No internal key found in wallet policy");
-        SEND_SW_EC(dc, SW_INCORRECT_DATA, EC_SIGN_PSBT_WALLET_POLICY_HAS_NO_INTERNAL_KEY);
-        return false;
+        //PRINTF("No internal key found in wallet policy");
+        //SEND_SW_EC(dc, SW_INCORRECT_DATA+57, EC_SIGN_PSBT_WALLET_POLICY_HAS_NO_INTERNAL_KEY);
+        //return false;
     }
 
     return true;
@@ -1193,19 +1193,19 @@ preprocess_inputs(dispatcher_context_t *dc,
             &input.in_out.map);
         if (res < 0) {
             PRINTF("Failed to process input map\n");
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+58);
             return false;
         }
         if (input.in_out.unexpected_pubkey_error) {
             PRINTF("Unexpected pubkey length\n");  // only compressed pubkeys are supported
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+59);
             return false;
         }
 
         // either witness utxo or non-witness utxo (or both) must be present.
         if (!input.has_nonWitnessUtxo && !input.has_witnessUtxo) {
             PRINTF("No witness utxo nor non-witness utxo present in input.\n");
-            SEND_SW_EC(dc, SW_INCORRECT_DATA, EC_SIGN_PSBT_MISSING_NONWITNESSUTXO_AND_WITNESSUTXO);
+            SEND_SW_EC(dc, SW_INCORRECT_DATA+60, EC_SIGN_PSBT_MISSING_NONWITNESSUTXO_AND_WITNESSUTXO);
             return false;
         }
 
@@ -1221,7 +1221,7 @@ preprocess_inputs(dispatcher_context_t *dc,
                                                   1,
                                                   prevout_hash,
                                                   sizeof(prevout_hash))) {
-                SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA+1);
                 return false;
             }
             // request non-witness utxo, and get the prevout's value and scriptpubkey
@@ -1232,7 +1232,7 @@ preprocess_inputs(dispatcher_context_t *dc,
                                                                  input.in_out.scriptPubKey,
                                                                  &input.in_out.scriptPubKey_len,
                                                                  prevout_hash)) {
-                SEND_SW_EC(dc, SW_INCORRECT_DATA, EC_SIGN_PSBT_NONWITNESSUTXO_CHECK_FAILED);
+                SEND_SW_EC(dc, SW_INCORRECT_DATA+3, EC_SIGN_PSBT_NONWITNESSUTXO_CHECK_FAILED);
                 return false;
             }
 
@@ -1248,7 +1248,7 @@ preprocess_inputs(dispatcher_context_t *dc,
                                                               &wit_utxo_prevout_amount,
                                                               wit_utxo_scriptPubkey,
                                                               &wit_utxo_scriptPubkey_len)) {
-                SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA+2);
                 return false;
             };
             if (input.has_nonWitnessUtxo) {
@@ -1262,7 +1262,7 @@ preprocess_inputs(dispatcher_context_t *dc,
                         "scriptPubKey or amount in non-witness utxo doesn't match with witness "
                         "utxo\n");
                     SEND_SW_EC(dc,
-                               SW_INCORRECT_DATA,
+                               SW_INCORRECT_DATA+4,
                                EC_SIGN_PSBT_NONWITNESSUTXO_AND_WITNESSUTXO_MISMATCH);
                     return false;
                 }
@@ -1288,7 +1288,7 @@ preprocess_inputs(dispatcher_context_t *dc,
                 PRINTF("Legacy inputs must have the non-witness utxo, but no witness utxo.\n");
                 SEND_SW_EC(
                     dc,
-                    SW_INCORRECT_DATA,
+                    SW_INCORRECT_DATA+5,
                     EC_SIGN_PSBT_MISSING_NONWITNESSUTXO_OR_UNEXPECTED_WITNESSUTXO_FOR_LEGACY);
                 return false;
             }
@@ -1304,7 +1304,7 @@ preprocess_inputs(dispatcher_context_t *dc,
         // For all segwit transactions, the witness utxo must be present
         if (segwit_version >= 0 && !input.has_witnessUtxo) {
             PRINTF("Witness utxo missing for segwit input\n");
-            SEND_SW_EC(dc, SW_INCORRECT_DATA, EC_SIGN_PSBT_MISSING_WITNESSUTXO_FOR_SEGWIT);
+            SEND_SW_EC(dc, SW_INCORRECT_DATA+6, EC_SIGN_PSBT_MISSING_WITNESSUTXO_FOR_SEGWIT);
             return false;
         }
 
@@ -1323,7 +1323,7 @@ preprocess_inputs(dispatcher_context_t *dc,
                                                       &input.sighash_type)) {
             PRINTF("Malformed PSBT_IN_SIGHASH_TYPE for input %d\n", cur_input_index);
 
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+7);
             return false;
         }
 
@@ -1444,13 +1444,13 @@ preprocess_outputs(dispatcher_context_t *dc,
             &output.in_out.map);
 
         if (res < 0) {
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+8);
             return false;
         }
 
         if (output.in_out.unexpected_pubkey_error) {
             PRINTF("Unexpected pubkey length\n");  // only compressed pubkeys are supported
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+9);
             return false;
         }
 
@@ -1465,7 +1465,7 @@ preprocess_outputs(dispatcher_context_t *dc,
                                                        raw_result,
                                                        sizeof(raw_result));
         if (result_len != 8) {
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+10);
             return false;
         }
         uint64_t value = read_u64_le(raw_result, 0);
@@ -1481,7 +1481,7 @@ preprocess_outputs(dispatcher_context_t *dc,
                                                    output.in_out.scriptPubKey,
                                                    sizeof(output.in_out.scriptPubKey));
         if (result_len == -1 || result_len > (int) sizeof(output.in_out.scriptPubKey)) {
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+11);
             return false;
         }
 
@@ -1490,7 +1490,7 @@ preprocess_outputs(dispatcher_context_t *dc,
         int is_internal = is_in_out_internal(dc, st, sign_psbt_cache, &output.in_out, false);
         if (is_internal < 0) {
             PRINTF("Error checking if output %d is internal\n", cur_output_index);
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+12);
             return false;
         } else if (is_internal == 0) {
             // external output, user needs to validate
@@ -1522,7 +1522,7 @@ preprocess_outputs(dispatcher_context_t *dc,
     if (st->inputs_total_amount < st->outputs.total_amount) {
         PRINTF("Negative fee is invalid\n");
         // negative fee transaction is invalid
-        SEND_SW(dc, SW_INCORRECT_DATA);
+        SEND_SW(dc, SW_INCORRECT_DATA+13);
         return false;
     }
 
@@ -1600,7 +1600,7 @@ static bool get_output_script_and_amount(
     int res = call_get_merkleized_map(dc, st->outputs_root, st->n_outputs, output_index, &map);
 
     if (res < 0) {
-        SEND_SW(dc, SW_INCORRECT_DATA);
+        SEND_SW(dc, SW_INCORRECT_DATA+14);
         return false;
     }
 
@@ -1615,7 +1615,7 @@ static bool get_output_script_and_amount(
                                                    raw_result,
                                                    sizeof(raw_result));
     if (result_len != 8) {
-        SEND_SW(dc, SW_INCORRECT_DATA);
+        SEND_SW(dc, SW_INCORRECT_DATA+15);
         return false;
     }
     uint64_t value = read_u64_le(raw_result, 0);
@@ -1630,7 +1630,7 @@ static bool get_output_script_and_amount(
                                                MAX_OUTPUT_SCRIPTPUBKEY_LEN);
 
     if (result_len == -1 || result_len > MAX_OUTPUT_SCRIPTPUBKEY_LEN) {
-        SEND_SW(dc, SW_INCORRECT_DATA);
+        SEND_SW(dc, SW_INCORRECT_DATA+16);
         return false;
     }
 
@@ -1673,7 +1673,7 @@ static bool __attribute__((noinline)) display_external_outputs(
                                                      out_scriptPubKey,
                                                      &out_scriptPubKey_len,
                                                      &out_amount)) {
-                SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA+17);
                 return false;
             }
 
@@ -1853,7 +1853,7 @@ static bool __attribute__((noinline)) compute_sighash_legacy(dispatcher_context_
         if (i != cur_input_index) {
             int res = call_get_merkleized_map(dc, st->inputs_root, st->n_inputs, i, &ith_map);
             if (res < 0) {
-                SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA+18);
                 return false;
             }
         } else {
@@ -2064,7 +2064,7 @@ static bool __attribute__((noinline)) compute_sighash_segwitv0(dispatcher_contex
         }
     } else {
         PRINTF("Invalid or unsupported script in segwit transaction\n");
-        SEND_SW(dc, SW_INCORRECT_DATA);
+        SEND_SW(dc, SW_INCORRECT_DATA+19);
         return false;
     }
 
@@ -2079,7 +2079,7 @@ static bool __attribute__((noinline)) compute_sighash_segwitv0(dispatcher_contex
                                                              witness_utxo,
                                                              sizeof(witness_utxo));
         if (witness_utxo_len < 8) {
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+20);
             return false;
         }
 
@@ -2116,7 +2116,7 @@ static bool __attribute__((noinline)) compute_sighash_segwitv0(dispatcher_contex
             cx_sha256_t sha_output_context;
             cx_sha256_init(&sha_output_context);
             if (hash_output_n(dc, st, &sha_output_context.header, cur_input_index) == -1) {
-                SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA+21);
                 return false;
             }
             crypto_hash_digest(&sha_output_context.header, hashOutputs, 32);
@@ -2203,7 +2203,7 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
                                                 1,
                                                 tmp,
                                                 32)) {
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+22);
             return false;
         }
         crypto_hash_update(&sighash_context.header, tmp, 32);
@@ -2215,7 +2215,7 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
                                                1,
                                                tmp,
                                                4)) {
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+23);
             return false;
         }
         crypto_hash_update(&sighash_context.header, tmp, 4);
@@ -2226,7 +2226,7 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
                                               1,
                                               tmp,
                                               8 + 1 + MAX_PREVOUT_SCRIPTPUBKEY_LEN)) {
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+24);
             return false;
         }
 
@@ -2265,7 +2265,7 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
         cx_sha256_init(&sha_output_context);
 
         if (hash_output_n(dc, st, &sha_output_context.header, cur_input_index) == -1) {
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+25);
             return false;
         }
         crypto_hash_digest(&sha_output_context.header, tmp, 32);
@@ -2284,7 +2284,7 @@ static bool __attribute__((noinline)) compute_sighash_segwitv1(dispatcher_contex
             memcpy(keyexpr_info->tapleaf_hash, st->psbt_leafhash, 32);
         } else {
             PRINTF("check leaf_hash not provided\n");
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+26);
             return false;
         }
 
@@ -2523,7 +2523,7 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
             merkleized_map_commitment_t ith_map;
             int res = call_get_merkleized_map(dc, st->inputs_root, st->n_inputs, i, &ith_map);
             if (res < 0) {
-                SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA+27);
                 return false;
             }
 
@@ -2535,7 +2535,7 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
                                                     1,
                                                     ith_prevout_hash,
                                                     32)) {
-                SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA+28);
                 return false;
             }
             // chester
@@ -2553,7 +2553,7 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
                                                    1,
                                                    ith_prevout_n_raw,
                                                    4)) {
-                SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA+29);
                 return false;
             }
             crypto_hash_update(&sha_prevouts_context.header, ith_prevout_n_raw, 4);
@@ -2582,7 +2582,7 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
         cx_sha256_init(&sha_outputs_context);
 
         if (hash_outputs(dc, st, &sha_outputs_context.header) == -1) {
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+30);
             return false;
         }
 
@@ -2604,7 +2604,7 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
 
             int res = call_get_merkleized_map(dc, st->inputs_root, st->n_inputs, i, &ith_map);
             if (res < 0) {
-                SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA+31);
                 return false;
             }
 
@@ -2616,7 +2616,7 @@ compute_tx_hashes(dispatcher_context_t *dc, sign_psbt_state_t *st, tx_hashes_t *
                                                       &in_amount,
                                                       in_scriptPubKey,
                                                       &in_scriptPubKey_len)) {
-                SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA+32);
                 return false;
             }
             uint8_t in_amount_le[8];
@@ -2654,7 +2654,7 @@ static bool __attribute__((noinline)) sign_transaction_input(dispatcher_context_
                                                       1,
                                                       &input->sighash_type)) {
             PRINTF("Malformed PSBT_IN_SIGHASH_TYPE for input %d\n", cur_input_index);
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+33);
             return false;
         }
     }
@@ -2674,7 +2674,7 @@ static bool __attribute__((noinline)) sign_transaction_input(dispatcher_context_
                                                              input->in_out.scriptPubKey,
                                                              &input->in_out.scriptPubKey_len,
                                                              NULL)) {
-            SEND_SW(dc, SW_INCORRECT_DATA);
+            SEND_SW(dc, SW_INCORRECT_DATA+34);
             return false;
         }
 
@@ -2696,7 +2696,7 @@ static bool __attribute__((noinline)) sign_transaction_input(dispatcher_context_
                                                               &amount,
                                                               input->in_out.scriptPubKey,
                                                               &input->in_out.scriptPubKey_len)) {
-                SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA+35);
                 return false;
             }
 
@@ -2715,7 +2715,7 @@ static bool __attribute__((noinline)) sign_transaction_input(dispatcher_context_
                                                   sizeof(redeemScript));
                 if (redeemScript_length < 0) {
                     PRINTF("Error fetching redeem script\n");
-                    SEND_SW(dc, SW_INCORRECT_DATA);
+                    SEND_SW(dc, SW_INCORRECT_DATA+36);
                     return false;
                 }
 
@@ -2728,7 +2728,7 @@ static bool __attribute__((noinline)) sign_transaction_input(dispatcher_context_
                 if (input->in_out.scriptPubKey_len != 23 ||
                     memcmp(input->in_out.scriptPubKey, p2sh_redeemscript, 23) != 0) {
                     PRINTF("witnessUtxo's scriptPubKey does not match redeemScript\n");
-                    SEND_SW_EC(dc, SW_INCORRECT_DATA, EC_SIGN_PSBT_MISMATCHING_REDEEM_SCRIPT);
+                    SEND_SW_EC(dc, SW_INCORRECT_DATA+37, EC_SIGN_PSBT_MISMATCHING_REDEEM_SCRIPT);
                     return false;
                 }
 
@@ -2901,7 +2901,7 @@ static bool __attribute__((noinline)) sign_transaction(
                 (merkle_tree_elements_callback_t) input_keys_callback,
                 &input.in_out.map);
             if (res < 0) {
-                SEND_SW(dc, SW_INCORRECT_DATA);
+                SEND_SW(dc, SW_INCORRECT_DATA+38);
                 return false;
             }
             if (keyexpr_info->tapleaf_ptr != NULL &&
@@ -2982,6 +2982,7 @@ static bool __attribute__((noinline)) sign_transaction(
             if (st->psbt_display_once == 0) {
                 if (st->bbn_action_type == BBN_POLICY_BIP322 &&
                     !bbn_check_and_display_message(dc, st)) {
+                    SEND_SW(dc, SW_DENY);
                     PRINTF("bbn_check_and_display_message fail\n");
                     return false;
                 }

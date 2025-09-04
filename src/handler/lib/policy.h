@@ -319,7 +319,7 @@ int get_action_type(const char *str);
 #define BBN_DESCRIPTOR_STAKE_TRANSFER "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_UNBOND         "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_WITHDRAW       "tr(@0/**,and_v(pk_k(@1/**),older"
-#define BBN_DESCRIPTOR_BIP322         "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))"
+#define BBN_DESCRIPTOR_BIP322         "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),pk_k(@3/**))))"
 
 #define isdigit(c) ((unsigned) ((c) - '0') < 10)
 #define isalpha(c) ((((c) >= 'A' && (c) <= 'Z')) || (((c) >= 'a' && (c) <= 'z')))
