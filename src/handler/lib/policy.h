@@ -255,7 +255,7 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
                                                        int wallet_version,
                                                        const uint8_t keys_merkle_root[static 32],
                                                        uint32_t n_keys);
-#define BBN_PRT_BUF
+//#define BBN_PRT_BUF
 #ifdef BBN_PRT_BUF
 #define PRINTF_BUF(ptr, len) \
     do {                     \

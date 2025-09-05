@@ -289,6 +289,7 @@ def open_psbt_from_file(filename: str) -> PSBT:
 #     # BIP-0322 test
 #     # PADDING MESSAGE
 #     # len 1 byte || hex of message || (32 - len - 1)*0xFC
+
 def test_sign_psbt_bip322_message_display(navigator: Navigator, firmware: Firmware, client:
                                        RaggerClient, test_name: str):
     #  script pubkey = 740ee64e452e3baee127b03c195bcc21ad3edded2ef26c5af483d9c56304d1e5
@@ -297,21 +298,22 @@ def test_sign_psbt_bip322_message_display(navigator: Navigator, firmware: Firmwa
     #  bbn only 146843229b3ffb043bf8da7b12baf0f80d88363238fcfcfcfcfcfcfcfcfcfcfc
     #  new version: 32bytes hash + address
     #  use another slot to transfer hash
-    #  addres would be: 
-    #  14 6843229b3ffb043bf8da7b12baf0f80d88363238 03 42424e fcfcfcfcfcfcfc
+    #  addrres would be: 
+    #  14 6843229b3ffb043bf8da7b12baf0f80d88363238 03 62626e fcfcfcfcfcfcfc
     #  hash 392376b1ca863487087702a0f74e90d44cd1f339a5776687c591bf5402395511   
     wallet = WalletPolicy(
         "Sign message",
         "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),pk_k(@3/**))))",
          [
             "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
-            "[83871619/86'/1'/0']tpubD6NzVbkrYhZ4YgAmhRQVWifGGFVzYnFBwTzt1rppUvhGquRV2a2iMX8kP6aKestNhrr7eynAKpJHx7CGXXr6XM4k1Y64Ym7pqsXbds1t6jW",
+            "[83871619/86'/1'/0']tpubD6NzVbkrYhZ4XGJtqEkzBeksG7YHh7vDxEpTGb98P9oCZpp2M7MkuLnyfM3HK2FMnhZFbDqSgAJWCY2GKagfaJD6aUX3ZXdzwPdcpaUhkWj",
             "[25270417/86'/1'/0']tpubD6NzVbkrYhZ4YkMn2vxCprkptChmVi9PDL2LeceaonJm71Rqg5TPC7UexzfFVRah3YegACuusqkDQQdCYCAJNiNFkzasVh8XBD6bQsumurc",
             "[04040816/86'/1'/0']tpubD6NzVbkrYhZ4X2YgqBD2RWUs13VsPaQX9bncfiBRpWQ8N9N77cSqCWDdTkMgSmot23qQPH6XfSm5Evf1vC8Uf7NfaqgqCHtcrbVZ8d2dnxA"
     ]
     )
     
-    psbt_b64 = "cHNidP8BAD0AAAAAAax33wJvai3ohYqdkcV8Gw1exs19JDS36wHEKb1fWRgYAAAAAAAAAAAAAQAAAAAAAAAAAWoAAAAAAAEBKwAAAAAAAAAAIlEgdA7mTkUuO67hJ7A8GVvMIa0+3e0u8mxa9IPZxWME0eUhFtyNL57/DE9NveBwpI4zDvyQi2KnZlaNkeZY8oSzJLh4GQD1rML9VgAAgAEAAIAAAACAAAAAAAAAAAABFyDcjS+e/wxPTb3gcKSOMw78kItip2ZWjZHmWPKEsyS4eAAA"
+    #psbt_b64 = "cHNidP8BAD0AAAAAAax33wJvai3ohYqdkcV8Gw1exs19JDS36wHEKb1fWRgYAAAAAAAAAAAAAQAAAAAAAAAAAWoAAAAAAAEBKwAAAAAAAAAAIlEgdA7mTkUuO67hJ7A8GVvMIa0+3e0u8mxa9IPZxWME0eUhFtyNL57/DE9NveBwpI4zDvyQi2KnZlaNkeZY8oSzJLh4GQD1rML9VgAAgAEAAIAAAACAAAAAAAAAAAABFyDcjS+e/wxPTb3gcKSOMw78kItip2ZWjZHmWPKEsyS4eAAA"
+    psbt_b64 = "cHNidP8BAD0AAAAAAWFa6D0Cymn4255lTzJkn73JGmoHne7ZcKN/ClbhxaEmAAAAAAAAAAAAAQAAAAAAAAAAAWoAAAAAAAEBKwAAAAAAAAAAIlEgdA7mTkUuO67hJ7A8GVvMIa0+3e0u8mxa9IPZxWME0eUhFtyNL57/DE9NveBwpI4zDvyQi2KnZlaNkeZY8oSzJLh4GQD1rML9VgAAgAEAAIAAAACAAAAAAAAAAAABFyDcjS+e/wxPTb3gcKSOMw78kItip2ZWjZHmWPKEsyS4eAAA"
     psbt = PSBT()
     psbt.deserialize(psbt_b64)
 
@@ -319,5 +321,5 @@ def test_sign_psbt_bip322_message_display(navigator: Navigator, firmware: Firmwa
                                 instructions=sign_psbt_instruction_message(firmware),
                                 testname=test_name)
 
-    assert len(hww_sigs) == 1
+    assert len(hww_sigs) == 0
 

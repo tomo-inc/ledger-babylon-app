@@ -101,25 +101,36 @@ static bool compute_bip322_txid_by_message(const uint8_t *message,
     int32_t prefix_len = 0;
 
     crypto_tr_tagged_hash_init(&sighash_context, BIP0322_msghash_tag, sizeof(BIP0322_msghash_tag));
-    prefix_len = message[21];
+    prefix_len = message[20];
     if(prefix_len > 10) {
+        PRINTF("prefix too long\n");
         return false;
-    }                        
+    }
+    PRINTF("message_len: %d\n", message_len);
+    PRINTF_BUF(message, message_len);                        
     convert_bits(converted_5bit, &datalen, 5, message, message_len, 8, 1);
-    memcpy(prefix, message + 22, prefix_len);
+    memcpy(prefix, message + 21, prefix_len);
     prefix[prefix_len] = '\0';
+    PRINTF("prefix: %s\n", prefix);
     bech32_encode(address_str,
                   (const char *) prefix,
                   converted_5bit,
                   datalen,
                   BECH32_ENCODING_BECH32);  // bech32 encode the message
     bytes_to_ascii_hex(message_hash, 32, converted_message);
+    PRINTF("address: %s\n", address_str);
     memcpy(converted_message + 64, address_str, strlen(address_str));
+    PRINTF("BIP322 message: %s\n", converted_message);
+    PRINTF_BUF(converted_message, 256);
+
     crypto_hash_update(&sighash_context.header, converted_message, 64 + strlen(address_str));
     crypto_hash_digest(&sighash_context.header, hash, 32);
 
     memcpy(tx + OFFSET_MSG_HASH, hash, 32);
     memcpy(tx + OFFSET_PUBKEY, tappub, 32);
+
+    PRINTF("BIP322 tx:\n");
+    PRINTF_BUF(tx, sizeof(tx));
 
     cx_sha256_init(&txhash_context);
     crypto_hash_update(&txhash_context.header, tx, sizeof(tx));
@@ -430,6 +441,12 @@ static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_st
     uint8_t message[64] = {0};
     size_t message_len = 0;
     char message_str[128] = {0};
+    char address_str[128] = { 0 };
+    uint8_t converted_message[256] = {0};
+    char prefix[16] = { 0 };
+    int32_t prefix_len = 0;
+    uint8_t converted_5bit[32 * 2] = {0};
+    size_t datalen = 0;
 
     compute_bip322_txid_by_message(st->psbt_leafhash + 1,
                                    st->psbt_leafhash_state,
@@ -438,21 +455,40 @@ static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_st
                                    txid);
     if (memcmp(txid, st->psbt_staker_pk, 32) != 0) {
         PRINTF("txid\n");
-        // PRINTF_BUF(txid, 32);
+        PRINTF_BUF(txid, 32);
         PRINTF("st->psbt_staker_pk\n");
-        // PRINTF_BUF(st->psbt_staker_pk, 32);
+        PRINTF_BUF(st->psbt_staker_pk, 32);
         SEND_SW(dc, SW_DENY);
         return false;
     }
 
-    convert_bits(message, &message_len, 5, st->psbt_leafhash + 1, st->psbt_leafhash_state, 8, 1);
-    bech32_encode(message_str,
-                  (const char *) "bbn",
-                  message,
-                  message_len,
+    // convert_bits(message, &message_len, 5, st->psbt_leafhash + 1, st->psbt_leafhash_state, 8, 1);
+    // bech32_encode(message_str,
+    //               (const char *) "bbn",
+    //               message,
+    //               message_len,
+    //               BECH32_ENCODING_BECH32);  // bech32 encode the message
+    // PRINTF("bbn message:%s\n", message_str);
+    // PRINTF_BUF(message_str, 64);`
+    PRINTF("prefix len: %d\n", st->psbt_leafhash[21]);
+    PRINTF_BUF(st->psbt_leafhash, 32);
+    prefix_len = st->psbt_leafhash[21];
+    if(prefix_len > 10) {
+        return false;
+    }
+    convert_bits(converted_5bit, &datalen, 5, st->psbt_leafhash + 1, st->psbt_leafhash_state, 8, 1);
+    memcpy(prefix, st->psbt_leafhash + 22, prefix_len);
+    prefix[prefix_len] = '\0';
+    bech32_encode(address_str,
+                  (const char *) prefix,
+                  converted_5bit,
+                  datalen,
                   BECH32_ENCODING_BECH32);  // bech32 encode the message
-
-    if (!ui_confirm_bbn_message(dc, message_str, "message")) {
+    bytes_to_ascii_hex(st->psbt_message_hash, 32, converted_message);
+    memcpy(converted_message + 64, address_str, strlen(address_str));
+    PRINTF("bbn message:%s\n", converted_message);
+    PRINTF_BUF(converted_message, 64);
+    if (!ui_confirm_bbn_message(dc, converted_message, "message")) {
         PRINTF("message_str %s\n", message_str);
         // PRINTF_BUF(message_str, 64);
         SEND_SW(dc, SW_DENY);
@@ -1159,9 +1195,9 @@ static bool fill_internal_key_expressions(dispatcher_context_t *dc, sign_psbt_st
     }
 
     if (st->n_internal_key_expressions == 0) {
-        //PRINTF("No internal key found in wallet policy");
-        //SEND_SW_EC(dc, SW_INCORRECT_DATA+57, EC_SIGN_PSBT_WALLET_POLICY_HAS_NO_INTERNAL_KEY);
-        //return false;
+        PRINTF("No internal key found in wallet policy");
+        SEND_SW_EC(dc, SW_INCORRECT_DATA+57, EC_SIGN_PSBT_WALLET_POLICY_HAS_NO_INTERNAL_KEY);
+        return false;
     }
 
     return true;
@@ -2882,7 +2918,10 @@ static bool __attribute__((noinline)) sign_transaction(
     // Iterate over all the key expressions that correspond to keys owned by us
     for (size_t i_keyexpr = 0; i_keyexpr < st->n_internal_key_expressions; i_keyexpr++) {
         keyexpr_info_t *keyexpr_info = &st->internal_key_expressions[i_keyexpr];
-
+        PRINTF("Considering key expression %d/%d (index %d)\n",
+               i_keyexpr + 1,
+               st->n_internal_key_expressions,
+               key_expression_index);
         if (!fill_keyexpr_info_if_internal(dc, st, keyexpr_info) == true) {
             PRINTF("fill_keyexpr_info_if_internal XX\n");
             continue;
