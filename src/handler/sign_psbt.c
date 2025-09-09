@@ -121,14 +121,16 @@ static bool compute_bip322_txid_by_message(const uint8_t *message,
     PRINTF("address: %s\n", address_str);
     memcpy(converted_message + 64, address_str, strlen(address_str));
     PRINTF("BIP322 message: %s\n", converted_message);
-    PRINTF_BUF(converted_message, 256);
+    PRINTF_BUF(converted_message, 64 + strlen(address_str));
 
     crypto_hash_update(&sighash_context.header, converted_message, 64 + strlen(address_str));
     crypto_hash_digest(&sighash_context.header, hash, 32);
-
+    PRINTF("BIP322 msg hash:\n");
+    PRINTF_BUF(hash, 32);
     memcpy(tx + OFFSET_MSG_HASH, hash, 32);
     memcpy(tx + OFFSET_PUBKEY, tappub, 32);
-
+    PRINTF("tappub:\n");
+    PRINTF_BUF(tappub, 32);
     PRINTF("BIP322 tx:\n");
     PRINTF_BUF(tx, sizeof(tx));
 
