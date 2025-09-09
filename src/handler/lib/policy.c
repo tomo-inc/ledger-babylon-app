@@ -2245,7 +2245,7 @@ bool check_descriptor(const char *s, bbn_policy_type_t type) {
         PRINTF("check_descriptor: unknown descriptor type: %s\n", descriptor);
         return false;
     }
-    return true;
+
     char *str2check;
     char *lock2check;
 
