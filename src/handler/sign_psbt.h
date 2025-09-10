@@ -214,5 +214,5 @@ static inline unsigned int count_psbt_covenant_pk_state(
 
 #define BIP32_PUBKEY_MAINNET 0x0488B21E
 
-#define MESSAGE_DATA_LEN  20
+#define MESSAGE_DATA_LEN 20
 #define MAX_PREFIX_LEN   10

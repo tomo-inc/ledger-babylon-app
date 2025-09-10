@@ -446,12 +446,12 @@ static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_st
     memset(message_str, 0, 128);
 
     if (!compute_bip322_txid_by_message(st->psbt_leafhash + 1,
-                                         st->psbt_leafhash_state,
-                                         st->psbt_finality_pk,
-                                         st->psbt_message_hash,
-                                         txid,
-                                         message_str,
-                                         &message_str_len)) {
+                                        st->psbt_leafhash_state,
+                                        st->psbt_finality_pk,
+                                        st->psbt_message_hash,
+                                        txid,
+                                        message_str,
+                                        &message_str_len)) {
         PRINTF("compute_bip322_txid_by_message failed\n");
         SEND_SW(dc, SW_DENY);
         return false;
