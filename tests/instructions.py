@@ -262,9 +262,9 @@ def sign_psbt_instruction_message(model: Firmware,save_screenshot: bool = False)
     else:
         instructions.new_request("Approve", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_CHOICE_CONFIRM,
                          save_screenshot=save_screenshot)
-        # instructions.same_request("Approve", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_CHOICE_CONFIRM,
-        #                  save_screenshot=save_screenshot)
-        # instructions.confirm_transaction(save_screenshot=save_screenshot)
+        instructions.same_request("Approve", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_CHOICE_CONFIRM,
+                         save_screenshot=save_screenshot)
+        instructions.confirm_transaction(save_screenshot=save_screenshot)
     return instructions
 
 def sign_psbt_instruction_approve_selftransfer(model: Firmware) -> Instructions:

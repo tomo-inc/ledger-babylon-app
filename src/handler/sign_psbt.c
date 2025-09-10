@@ -97,18 +97,18 @@ static bool compute_bip322_txid_by_message(const uint8_t *message,
     uint8_t hash[32];
     uint8_t converted_5bit[32 * 2] = {0};
     size_t datalen = 0;
-    char address_str[128] = { 0 };
+    char address_str[128] = {0};
     uint8_t converted_message[256] = {0};
-    char prefix[16] = { 0 };
+    char prefix[16] = {0};
     int32_t prefix_len = 0;
 
     crypto_tr_tagged_hash_init(&sighash_context, BIP0322_msghash_tag, sizeof(BIP0322_msghash_tag));
     prefix_len = message[MESSAGE_DATA_LEN];
-    if(prefix_len > MAX_PREFIX_LEN) {
+    if (prefix_len > MAX_PREFIX_LEN) {
         PRINTF("prefix too long\n");
         return false;
     }
-                  
+
     convert_bits(converted_5bit, &datalen, 5, message, message_len, 8, 1);
     memcpy(prefix, message + MESSAGE_DATA_LEN + 1, prefix_len);
     prefix[prefix_len] = '\0';
@@ -133,7 +133,7 @@ static bool compute_bip322_txid_by_message(const uint8_t *message,
     crypto_hash_update(&txid_context.header, hash, 32);
     crypto_hash_digest(&txid_context.header, txid_out, 32);
 
-    if(*message_out_len < strlen(address_str) + 64) {
+    if (*message_out_len < strlen(address_str) + 64) {
         PRINTF("message_out buffer too small\n");
         return false;
     }
@@ -440,18 +440,18 @@ static bool bbn_check_unbond(sign_psbt_state_t *st) {
 static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_state_t *st) {
     uint8_t txid[32];
     char message_str[128] = {0};
-    size_t message_str_len  = 128;
+    size_t message_str_len = 128;
 
     memset(txid, 0, 32);
     memset(message_str, 0, 128);
 
-    if(!compute_bip322_txid_by_message(st->psbt_leafhash + 1,
-                                   st->psbt_leafhash_state,
-                                   st->psbt_finality_pk,
-                                   st->psbt_message_hash,
-                                   txid,
-                                   message_str,
-                                   &message_str_len)) {
+    if (!compute_bip322_txid_by_message(st->psbt_leafhash + 1,
+                                         st->psbt_leafhash_state,
+                                         st->psbt_finality_pk,
+                                         st->psbt_message_hash,
+                                         txid,
+                                         message_str,
+                                         &message_str_len)) {
         PRINTF("compute_bip322_txid_by_message failed\n");
         SEND_SW(dc, SW_DENY);
         return false;
