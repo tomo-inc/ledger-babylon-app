@@ -89,7 +89,9 @@ static bool compute_bip322_txid_by_message(const uint8_t *message,
                                            size_t message_len,
                                            const uint8_t *tappub,
                                            const uint8_t *message_hash,
-                                           uint8_t *txid_out) {
+                                           uint8_t *txid_out,
+                                           char *message_out,
+                                           size_t *message_out_len) {
     uint8_t tx[] = {TX_PREFIX, TX_DUMMY_TXID, TX_MIDFIX, TX_DUMMY_TXID, TX_SUFFIX};
     cx_sha256_t sighash_context, txhash_context, txid_context;
     uint8_t hash[32];
@@ -101,14 +103,14 @@ static bool compute_bip322_txid_by_message(const uint8_t *message,
     int32_t prefix_len = 0;
 
     crypto_tr_tagged_hash_init(&sighash_context, BIP0322_msghash_tag, sizeof(BIP0322_msghash_tag));
-    prefix_len = message[20];
-    if(prefix_len > 10) {
+    prefix_len = message[MESSAGE_DATA_LEN];
+    if(prefix_len > MAX_PREFIX_LEN) {
         PRINTF("prefix too long\n");
         return false;
     }
                   
     convert_bits(converted_5bit, &datalen, 5, message, message_len, 8, 1);
-    memcpy(prefix, message + 21, prefix_len);
+    memcpy(prefix, message + MESSAGE_DATA_LEN + 1, prefix_len);
     prefix[prefix_len] = '\0';
     bech32_encode(address_str,
                   (const char *) prefix,
@@ -130,6 +132,13 @@ static bool compute_bip322_txid_by_message(const uint8_t *message,
     cx_sha256_init(&txid_context);
     crypto_hash_update(&txid_context.header, hash, 32);
     crypto_hash_digest(&txid_context.header, txid_out, 32);
+
+    if(*message_out_len < strlen(address_str) + 64) {
+        PRINTF("message_out buffer too small\n");
+        return false;
+    }
+    memcpy(message_out, converted_message, strlen(address_str) + 64);
+    *message_out_len = strlen(address_str) + 64;
     return true;
 }
 
@@ -430,21 +439,24 @@ static bool bbn_check_unbond(sign_psbt_state_t *st) {
 
 static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_state_t *st) {
     uint8_t txid[32];
-    uint8_t message[64] = {0};
-    size_t message_len = 0;
     char message_str[128] = {0};
-    char address_str[128] = { 0 };
-    uint8_t converted_message[256] = {0};
-    char prefix[16] = { 0 };
-    int32_t prefix_len = 0;
-    uint8_t converted_5bit[32 * 2] = {0};
-    size_t datalen = 0;
+    size_t message_str_len  = 128;
 
-    compute_bip322_txid_by_message(st->psbt_leafhash + 1,
+    memset(txid, 0, 32);
+    memset(message_str, 0, 128);
+
+    if(!compute_bip322_txid_by_message(st->psbt_leafhash + 1,
                                    st->psbt_leafhash_state,
                                    st->psbt_finality_pk,
                                    st->psbt_message_hash,
-                                   txid);
+                                   txid,
+                                   message_str,
+                                   &message_str_len)) {
+        PRINTF("compute_bip322_txid_by_message failed\n");
+        SEND_SW(dc, SW_DENY);
+        return false;
+    }
+
     if (memcmp(txid, st->psbt_staker_pk, 32) != 0) {
         PRINTF("txid\n");
         PRINTF_BUF(txid, 32);
@@ -454,23 +466,8 @@ static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_st
         return false;
     }
 
-    prefix_len = st->psbt_leafhash[21];
-    if(prefix_len > 10) {
-        return false;
-    }
-    convert_bits(converted_5bit, &datalen, 5, st->psbt_leafhash + 1, st->psbt_leafhash_state, 8, 1);
-    memcpy(prefix, st->psbt_leafhash + 22, prefix_len);
-    prefix[prefix_len] = '\0';
-    bech32_encode(address_str,
-                  (const char *) prefix,
-                  converted_5bit,
-                  datalen,
-                  BECH32_ENCODING_BECH32);  // bech32 encode the message
-    bytes_to_ascii_hex(st->psbt_message_hash, 32, converted_message);
-    memcpy(converted_message + 64, address_str, strlen(address_str));
-    if (!ui_confirm_bbn_message(dc, converted_message, "message")) {
+    if (!ui_confirm_bbn_message(dc, message_str, "message")) {
         PRINTF("message_str %s\n", message_str);
-        // PRINTF_BUF(message_str, 64);
         SEND_SW(dc, SW_DENY);
         return false;
     }
@@ -1005,7 +1002,6 @@ static bool __attribute__((noinline)) get_and_verify_key_info(dispatcher_context
                32);  // reuse for save memoroy
     }
     if (get_fingerprint(key_info.master_key_fingerprint) == FP_BIP322_HASH) {
-        PRINTF("FP_BIP322_HASH\n");
         memcpy(st->psbt_message_hash,
                keyexpr_info->pubkey.compressed_pubkey + 1,
                32);  // reuse for save memoroy
@@ -2898,10 +2894,6 @@ static bool __attribute__((noinline)) sign_transaction(
     // Iterate over all the key expressions that correspond to keys owned by us
     for (size_t i_keyexpr = 0; i_keyexpr < st->n_internal_key_expressions; i_keyexpr++) {
         keyexpr_info_t *keyexpr_info = &st->internal_key_expressions[i_keyexpr];
-        PRINTF("Considering key expression %d/%d (index %d)\n",
-               i_keyexpr + 1,
-               st->n_internal_key_expressions,
-               key_expression_index);
         if (!fill_keyexpr_info_if_internal(dc, st, keyexpr_info) == true) {
             PRINTF("fill_keyexpr_info_if_internal XX\n");
             continue;
