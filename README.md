@@ -143,6 +143,20 @@ python3 -m pip install ledgerblue
 python3 -m ledgerblue.runScript --scp --fileName bin/app.apdu --elfFile bin/app.elf
 ```
 
+## Development and Debugging
+
+For detailed development setup, emulator configuration, and debugging instructions, see the dedicated [**Development Guide**](DEVELOPMENT.md).
+
+The development guide covers:
+- Docker setup and configuration for all platforms (macOS, Linux, Windows)
+- Building the application for different Ledger devices (Flex, Stax, Nano X, Nano S+)
+- Running the Speculos emulator with various options
+- Troubleshooting common issues
+
+**Quick Start for Development:**
+1. See [DEVELOPMENT.md](DEVELOPMENT.md) for complete setup instructions
+2. Use the [VSCode integration](#with-vscode) for the easiest development experience
+
 ## Documentation
 
 For many use cases, the code examples provided in the following client libraries might be sufficient to get started:
