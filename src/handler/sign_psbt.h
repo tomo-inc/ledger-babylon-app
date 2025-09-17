@@ -173,6 +173,7 @@ typedef struct {
 
     uint64_t psbt_fee;
     uint32_t psbt_display_once;
+    uint8_t psbt_message_hash[BBN_LEAF_HASH_LEN];
 } sign_psbt_state_t;
 
 #define BBN_MIN_QUORUM 2
@@ -212,3 +213,6 @@ static inline unsigned int count_psbt_covenant_pk_state(
 #define TX_SUFFIX TX_LOCKTIME
 
 #define BIP32_PUBKEY_MAINNET 0x0488B21E
+
+#define MESSAGE_DATA_LEN 20
+#define MAX_PREFIX_LEN   10

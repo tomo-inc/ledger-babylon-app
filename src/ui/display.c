@@ -61,9 +61,9 @@ void decrease_streaming_index(void) {
 // otherwise, hid will be blocked during display to cause JS SDK timeout
 // however, stax and flex should not use REVAMPED_IO
 // otherwise, the function 'hold to sign' will not response to the touch
-#ifndef HAVE_NBGL
-#define REVAMPED_IO
-#endif
+// #ifndef HAVE_NBGL
+// #define REVAMPED_IO
+// #endif
 
 // Process UI events until the current flow terminates; does not handle any APDU exchange
 // This method also sets the UI state as "dirty" according to the input parameter

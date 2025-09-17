@@ -1,3 +1,12 @@
+# Babylon BTC Staking Application for Ledger
+
+This repository contains the initial implementation of the Babylon BTC Staking application for Ledger devices. It is developed based on [ledger_bitcoin_new](https://github.com/LedgerHQ/app-bitcoin-new). and will serve as the first version released on Ledger Live.
+
+In alignment with the Ledger team’s recommendations, a new version of the application is planned to be developed using the[app-btcext-boilerplate](https://github.com/LedgerHQ/app-btcext-boilerplate) framework. The new implementation can be found here:  [new implementation](https://github.com/tomo-inc/app-btcext-boilerplate)
+
+# Ledger Bitcoin Application(original repo)
+
+
 # Ledger Bitcoin Application
 
 This is the Bitcoin application for Ledger Nano X/SP, Stax and Flex.

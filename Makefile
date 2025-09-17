@@ -48,7 +48,7 @@ PATH_APP_LOAD_PARAMS = ""
 APPVERSION_M = 1
 APPVERSION_N = 0
 APPVERSION_P = 0
-APPVERSION_SUFFIX = ap # if not empty, appended at the end. Do not add a dash.
+#APPVERSION_SUFFIX = ap # if not empty, appended at the end. Do not add a dash.
 
 ifeq ($(APPVERSION_SUFFIX),)
 APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"

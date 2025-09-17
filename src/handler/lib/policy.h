@@ -277,6 +277,7 @@ __attribute__((warn_unused_result)) int is_policy_sane(dispatcher_context_t *dis
 #define BBN_FINALITY_PUB_FP     ((uint8_t[]){0xff, 0x11, 0x94, 0x73})
 #define BBN_BIP322_MESSAGE      ((uint8_t[]){0x83, 0x87, 0x16, 0x19})
 #define BBN_BIP322_TAPPUB       ((uint8_t[]){0x25, 0x27, 0x04, 0x17})
+#define BBN_BIP322_HASH         ((uint8_t[]){0x04, 0x04, 0x08, 0x16})
 typedef enum {
     FP_NULL,
     FP_LEAF_HASH_DISPLY,
@@ -284,6 +285,7 @@ typedef enum {
     FP_FINALITY_PUB,
     FP_BIP322_MESSAGE,
     FP_BIP322_TAPPUB,
+    FP_BIP322_HASH,
     FP_OTHER
 
 } BBN_FingerPrintType;
@@ -317,7 +319,7 @@ int get_action_type(const char *str);
 #define BBN_DESCRIPTOR_STAKE_TRANSFER "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_UNBOND         "tr(@0/**,and_v(and_v(pk_k(@1/**),and_v(pk_k(@2/**),multi_a("
 #define BBN_DESCRIPTOR_WITHDRAW       "tr(@0/**,and_v(pk_k(@1/**),older"
-#define BBN_DESCRIPTOR_BIP322         "tr(@0/**,and_v(pk_k(@1/**),pk_k(@2/**)))"
+#define BBN_DESCRIPTOR_BIP322         "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),pk_k(@3/**))))"
 
 #define isdigit(c) ((unsigned) ((c) - '0') < 10)
 #define isalpha(c) ((((c) >= 'A' && (c) <= 'Z')) || (((c) >= 'a' && (c) <= 'z')))
