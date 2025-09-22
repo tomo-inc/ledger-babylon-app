@@ -290,7 +290,7 @@ def test_sign_psbt_tr_script_withdraw(navigator: Navigator, firmware: Firmware, 
     # PADDING MESSAGE
     # len 1 byte || hex of message || (32 - len - 1)*0xFC
 
-def test_sign_psbt_bip322_message_display(navigator: Navigator, firmware: Firmware, client:
+def test_sign_psbt_bip322_message_display_v2(navigator: Navigator, firmware: Firmware, client:
                                        RaggerClient, test_name: str):
     #  script pubkey = 740ee64e452e3baee127b03c195bcc21ad3edded2ef26c5af483d9c56304d1e5
     #  bbn1dppj9xellvzrh7x60vft4u8cpkyrvv3camt8ps --> 6843229b3ffb043bf8da7b12baf0f80d88363238
@@ -323,3 +323,31 @@ def test_sign_psbt_bip322_message_display(navigator: Navigator, firmware: Firmwa
 
     assert len(hww_sigs) == 1
 
+def test_sign_psbt_bip322_message_display_v1(navigator: Navigator, firmware: Firmware, client:
+                                       RaggerClient, test_name: str):
+    #  script pubkey = 740ee64e452e3baee127b03c195bcc21ad3edded2ef26c5af483d9c56304d1e5
+    #  bbn1dppj9xellvzrh7x60vft4u8cpkyrvv3camt8ps --> 6843229b3ffb043bf8da7b12baf0f80d88363238
+    #  https://www.bech32converter.com/
+    #  addrres would be: 
+    #  14 6843229b3ffb043bf8da7b12baf0f80d88363238 03 62626e fcfcfcfcfcfcfc
+
+    wallet = WalletPolicy(
+        "Sign message",
+         "tr(@0/**,and_v(pk_k(@1/**),and_v(pk_k(@2/**),pk_k(@3/**))))",
+         [
+            "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U",
+            "[83871619/86'/1'/0']tpubD6NzVbkrYhZ4XGJtqEkzBeksG7YHh7vDxEpTGb98P9oCZpp2M7MkuLnyfM3HK2FMnhZFbDqSgAJWCY2GKagfaJD6aUX3ZXdzwPdcpaUhkWj",
+            "[25270417/86'/1'/0']tpubD6NzVbkrYhZ4YkMn2vxCprkptChmVi9PDL2LeceaonJm71Rqg5TPC7UexzfFVRah3YegACuusqkDQQdCYCAJNiNFkzasVh8XBD6bQsumurc",
+            "[04040816/86'/1'/0']tpubD6NzVbkrYhZ4Y61jsTPsFYz1UJXsmtX1fFyeMMh262tm9cDuCV3DKk8FLZk62jZGVzv5pbaWhWS5881J8r94p5R9YsNzrFDRK23g24BZD7x"
+    ]
+    )
+    
+    psbt_b64 = "cHNidP8BAD0AAAAAAax33wJvai3ohYqdkcV8Gw1exs19JDS36wHEKb1fWRgYAAAAAAAAAAAAAQAAAAAAAAAAAWoAAAAAAAEBKwAAAAAAAAAAIlEgdA7mTkUuO67hJ7A8GVvMIa0+3e0u8mxa9IPZxWME0eUhFtyNL57/DE9NveBwpI4zDvyQi2KnZlaNkeZY8oSzJLh4GQD1rML9VgAAgAEAAIAAAACAAAAAAAAAAAABFyDcjS+e/wxPTb3gcKSOMw78kItip2ZWjZHmWPKEsyS4eAAA"
+    psbt = PSBT()
+    psbt.deserialize(psbt_b64)
+
+    hww_sigs = client.sign_psbt(psbt, wallet, None, navigator,
+                                instructions=sign_psbt_instruction_message(firmware),
+                                testname=test_name)
+
+    assert len(hww_sigs) == 1

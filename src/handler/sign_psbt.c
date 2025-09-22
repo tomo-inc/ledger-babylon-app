@@ -85,8 +85,8 @@ void bytes_to_ascii_hex(const uint8_t *input, size_t input_len, uint8_t *output)
     }
 }
 
-static bool compute_bip322_txid_by_message(const uint8_t *message,
-                                           size_t message_len,
+static bool compute_bip322_txid_by_message(const uint8_t *address,
+                                           size_t address_len,
                                            const uint8_t *tappub,
                                            const uint8_t *message_hash,
                                            uint8_t *txid_out,
@@ -103,25 +103,42 @@ static bool compute_bip322_txid_by_message(const uint8_t *message,
     int32_t prefix_len = 0;
 
     crypto_tr_tagged_hash_init(&sighash_context, BIP0322_msghash_tag, sizeof(BIP0322_msghash_tag));
-    prefix_len = message[MESSAGE_DATA_LEN];
+    prefix_len = address[MESSAGE_DATA_LEN];
     if (prefix_len > MAX_PREFIX_LEN) {
-        PRINTF("prefix too long\n");
+        PRINTF("prefix too long %d\n",prefix_len);
         return false;
     }
 
-    convert_bits(converted_5bit, &datalen, 5, message, message_len, 8, 1);
-    memcpy(prefix, message + MESSAGE_DATA_LEN + 1, prefix_len);
+    convert_bits(converted_5bit, &datalen, 5, address, address_len, 8, 1);
+    memcpy(prefix, address + MESSAGE_DATA_LEN + 1, prefix_len);
     prefix[prefix_len] = '\0';
+    memset(address_str, 0, sizeof(address_str));
     bech32_encode(address_str,
                   (const char *) prefix,
                   converted_5bit,
                   datalen,
                   BECH32_ENCODING_BECH32);  // bech32 encode the message
-    bytes_to_ascii_hex(message_hash, 32, converted_message);
-    memcpy(converted_message + 64, address_str, strlen(address_str));
-    PRINTF_BUF(converted_message, 64 + strlen(address_str));
+    
+    bool all_ff = true;
+    uint32_t message_len = strlen(address_str);
+    for (size_t i = 0; i < 32; ++i) {
+        if (message_hash[i] != 0xFF) {
+            all_ff = false;
+            break;
+        }
+    }
+    if (!all_ff) {
+        PRINTF("message_hash is not all 0xff\n");
+        bytes_to_ascii_hex(message_hash, 32, converted_message);
+        memcpy(converted_message + 64, address_str, strlen(address_str));
+        PRINTF_BUF(converted_message, 64 + strlen(address_str));
+        message_len += 64;
+    }else {
+        memcpy(converted_message, address_str, strlen(address_str));
+        PRINTF_BUF(converted_message, strlen(address_str));
+    }
 
-    crypto_hash_update(&sighash_context.header, converted_message, 64 + strlen(address_str));
+    crypto_hash_update(&sighash_context.header, converted_message, message_len);
     crypto_hash_digest(&sighash_context.header, hash, 32);
     memcpy(tx + OFFSET_MSG_HASH, hash, 32);
     memcpy(tx + OFFSET_PUBKEY, tappub, 32);
@@ -133,12 +150,12 @@ static bool compute_bip322_txid_by_message(const uint8_t *message,
     crypto_hash_update(&txid_context.header, hash, 32);
     crypto_hash_digest(&txid_context.header, txid_out, 32);
 
-    if (*message_out_len < strlen(address_str) + 64) {
+    if (*message_out_len < message_len) {
         PRINTF("message_out buffer too small\n");
         return false;
     }
-    memcpy(message_out, converted_message, strlen(address_str) + 64);
-    *message_out_len = strlen(address_str) + 64;
+    memcpy(message_out, converted_message, message_len);
+    *message_out_len = message_len;
     return true;
 }
 
