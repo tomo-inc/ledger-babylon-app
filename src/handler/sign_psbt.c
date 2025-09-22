@@ -105,7 +105,7 @@ static bool compute_bip322_txid_by_message(const uint8_t *address,
     crypto_tr_tagged_hash_init(&sighash_context, BIP0322_msghash_tag, sizeof(BIP0322_msghash_tag));
     prefix_len = address[MESSAGE_DATA_LEN];
     if (prefix_len > MAX_PREFIX_LEN) {
-        PRINTF("prefix too long %d\n",prefix_len);
+        PRINTF("prefix too long %d\n", prefix_len);
         return false;
     }
 
@@ -118,7 +118,7 @@ static bool compute_bip322_txid_by_message(const uint8_t *address,
                   converted_5bit,
                   datalen,
                   BECH32_ENCODING_BECH32);  // bech32 encode the message
-    
+
     bool all_ff = true;
     uint32_t message_len = strlen(address_str);
     for (size_t i = 0; i < 32; ++i) {
@@ -133,7 +133,7 @@ static bool compute_bip322_txid_by_message(const uint8_t *address,
         memcpy(converted_message + 64, address_str, strlen(address_str));
         PRINTF_BUF(converted_message, 64 + strlen(address_str));
         message_len += 64;
-    }else {
+    } else {
         memcpy(converted_message, address_str, strlen(address_str));
         PRINTF_BUF(converted_message, strlen(address_str));
     }
