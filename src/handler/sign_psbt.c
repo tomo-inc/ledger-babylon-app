@@ -100,7 +100,7 @@ static bool compute_bip322_txid_by_message(const uint8_t *address,
     char address_str[128] = {0};
     uint8_t converted_message[256] = {0};
     char prefix[16] = {0};
-    int32_t prefix_len = 0;
+    uint32_t prefix_len = 0; // Coinspect: TODO nagtive check BAB-SDLC-002
 
     crypto_tr_tagged_hash_init(&sighash_context, BIP0322_msghash_tag, sizeof(BIP0322_msghash_tag));
     prefix_len = address[MESSAGE_DATA_LEN];
@@ -1011,6 +1011,13 @@ static bool __attribute__((noinline)) get_and_verify_key_info(dispatcher_context
         memcpy(st->psbt_leafhash,
                keyexpr_info->pubkey.compressed_pubkey + 1,
                32);  // reuse for save memoroy
+        // Coinspect: TODO
+        // BAB-SDLC-001
+        // 20 is the fixed length
+        if (st->psbt_leafhash[0] != 20) {
+            PRINTF("bip322 message hash length too long\n");
+            return false;
+        }
         st->psbt_leafhash_state = st->psbt_leafhash[0];
     }
     if (get_fingerprint(key_info.master_key_fingerprint) == FP_BIP322_TAPPUB) {
