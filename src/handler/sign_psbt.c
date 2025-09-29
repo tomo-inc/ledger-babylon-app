@@ -100,7 +100,7 @@ static bool compute_bip322_txid_by_message(const uint8_t *address,
     char address_str[128] = {0};
     uint8_t converted_message[256] = {0};
     char prefix[16] = {0};
-    uint32_t prefix_len = 0; // Coinspect: TODO nagtive check BAB-SDLC-002
+    uint32_t prefix_len = 0;
 
     crypto_tr_tagged_hash_init(&sighash_context, BIP0322_msghash_tag, sizeof(BIP0322_msghash_tag));
     prefix_len = address[MESSAGE_DATA_LEN];
