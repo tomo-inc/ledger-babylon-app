@@ -94,12 +94,12 @@ static bool compute_bip322_txid_by_message(const uint8_t *address,
                                            size_t *message_out_len) {
     uint8_t tx[] = {TX_PREFIX, TX_DUMMY_TXID, TX_MIDFIX, TX_DUMMY_TXID, TX_SUFFIX};
     cx_sha256_t sighash_context, txhash_context, txid_context;
-    uint8_t hash[32];
-    uint8_t converted_5bit[32 * 2] = {0};
+    uint8_t hash[BBN_MESSAGE_HASH_LEN];
+    uint8_t converted_5bit[BBN_MESSAGE_HASH_LEN * 2] = {0};
     size_t datalen = 0;
-    char address_str[128] = {0};
-    uint8_t converted_message[256] = {0};
-    char prefix[16] = {0};
+    char address_str[BBN_MESSAGE_ADDR_LEN] = {0};
+    uint8_t converted_message[BBN_MESSAGE_ADDR_LEN * 2] = {0};
+    char prefix[BBN_MESSAGE_PREF_LEN] = {0};
     uint32_t prefix_len = 0;
 
     crypto_tr_tagged_hash_init(&sighash_context, BIP0322_msghash_tag, sizeof(BIP0322_msghash_tag));
@@ -121,7 +121,7 @@ static bool compute_bip322_txid_by_message(const uint8_t *address,
 
     bool all_ff = true;
     uint32_t message_len = strlen(address_str);
-    for (size_t i = 0; i < 32; ++i) {
+    for (size_t i = 0; i < BBN_MESSAGE_HASH_LEN; ++i) {
         if (message_hash[i] != 0xFF) {
             all_ff = false;
             break;
@@ -129,18 +129,18 @@ static bool compute_bip322_txid_by_message(const uint8_t *address,
     }
     if (!all_ff) {
         PRINTF("message_hash is not all 0xff\n");
-        bytes_to_ascii_hex(message_hash, 32, converted_message);
-        memcpy(converted_message + 64, address_str, strlen(address_str));
-        PRINTF_BUF(converted_message, 64 + strlen(address_str));
-        message_len += 64;
+        bytes_to_ascii_hex(message_hash, BBN_MESSAGE_HASH_LEN, converted_message);
+        memcpy(converted_message + BBN_MESSAGE_HASH_LEN * 2, address_str, strlen(address_str));
+        PRINTF_BUF(converted_message, BBN_MESSAGE_HASH_LEN * 2 + strlen(address_str));
+        message_len += BBN_MESSAGE_HASH_LEN * 2;
     } else {
         memcpy(converted_message, address_str, strlen(address_str));
         PRINTF_BUF(converted_message, strlen(address_str));
     }
 
     crypto_hash_update(&sighash_context.header, converted_message, message_len);
-    crypto_hash_digest(&sighash_context.header, hash, 32);
-    memcpy(tx + OFFSET_MSG_HASH, hash, 32);
+    crypto_hash_digest(&sighash_context.header, hash, BBN_MESSAGE_HASH_LEN);
+    memcpy(tx + OFFSET_MSG_HASH, hash, BBN_MESSAGE_HASH_LEN);
     memcpy(tx + OFFSET_PUBKEY, tappub, 32);
 
     cx_sha256_init(&txhash_context);
@@ -455,12 +455,12 @@ static bool bbn_check_unbond(sign_psbt_state_t *st) {
 }
 
 static bool bbn_check_and_display_message(dispatcher_context_t *dc, sign_psbt_state_t *st) {
-    uint8_t txid[32];
-    char message_str[128] = {0};
-    size_t message_str_len = 128;
+    uint8_t txid[BBN_MESSAGE_HASH_LEN];
+    char message_str[BBN_MESSAGE_ADDR_LEN] = {0};
+    size_t message_str_len = BBN_MESSAGE_ADDR_LEN;
 
-    memset(txid, 0, 32);
-    memset(message_str, 0, 128);
+    memset(txid, 0, BBN_MESSAGE_HASH_LEN);
+    memset(message_str, 0, BBN_MESSAGE_ADDR_LEN);
 
     if (!compute_bip322_txid_by_message(st->psbt_leafhash + 1,
                                         st->psbt_leafhash_state,
