@@ -216,3 +216,7 @@ static inline unsigned int count_psbt_covenant_pk_state(
 
 #define MESSAGE_DATA_LEN 20
 #define MAX_PREFIX_LEN   10
+
+#define BBN_MESSAGE_HASH_LEN 32
+#define BBN_MESSAGE_PREF_LEN 16
+#define BBN_MESSAGE_ADDR_LEN 128
